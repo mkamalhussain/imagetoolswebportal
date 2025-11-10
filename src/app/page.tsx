@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { modules } from "@/data/modules";
-import AdSense from "@/components/AdSense";
 
 export default function Home() {
   return (
@@ -22,13 +21,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="sponsored" className="px-0 py-6 border-t">
-        <h2 className="text-xl font-medium mb-3">Sponsored</h2>
-        <div className="card p-2">
-          <AdSense className="w-full" style={{ display: 'block', minHeight: 120 }} />
-        </div>
-        <p className="text-xs text-gray-500 mt-2">Configure your AdSense client and slot via environment variables NEXT_PUBLIC_ADS_CLIENT and NEXT_PUBLIC_ADS_SLOT.</p>
-      </section>
+      {/* Sponsored section now provided globally in layout */}
     </main>
   );
 }

@@ -1,7 +1,6 @@
 import Link from "next/link";
 import ClientModuleRenderer from "./ClientModuleRenderer";
 import { modules } from "@/data/modules";
-import AdSense from "@/components/AdSense";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -28,13 +27,7 @@ export default async function ModulePage({ params }: Props) {
         <ClientModuleRenderer slug={slug} />
       </div>
 
-      <section id="sponsored" className="px-0 py-6 border-t mt-6">
-        <h2 className="text-xl font-medium mb-3">Sponsored</h2>
-        <div className="card p-2">
-          <AdSense className="w-full" style={{ display: 'block', minHeight: 120 }} />
-        </div>
-        <p className="text-xs text-gray-500 mt-2">Configure AdSense via NEXT_PUBLIC_ADS_CLIENT and NEXT_PUBLIC_ADS_SLOT.</p>
-      </section>
+      {/* Sponsored section now provided globally in layout */}
 
       <Link href="/" className="text-blue-600 mt-6 inline-block">Back to Home</Link>
     </main>
