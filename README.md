@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Image Tools Web Portal
+
+Deploy-ready Next.js 16 web portal that aggregates multiple client-side image tools with a consistent UI, theme toggle, and optional AdSense integration.
+
+## Badges
+
+- Deploy with Vercel: https://vercel.com/new/import?s=https://github.com/mkamalhussain/imagetoolswebportal
+- Repository: https://github.com/mkamalhussain/imagetoolswebportal
 
 ## Getting Started
 
-First, run the development server:
+Prerequisites:
+- Node 18+ and npm
 
+Install and run dev server:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npx next dev -p 3005
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Production build:
+```bash
+npm run build
+npm run start
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment Variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The portal supports optional AdSense.
+Create a `.env.local` file and set:
+```bash
+NEXT_PUBLIC_ADS_CLIENT=ca-pub-xxxxxxxxxxxxxxxx
+NEXT_PUBLIC_ADS_SLOT=1234567890
+```
 
-## Learn More
+See `.env.example` for the variable names.
 
-To learn more about Next.js, take a look at the following resources:
+## Vercel Deployment
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+This repository is ready for Vercel.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Import the repo in Vercel Dashboard: https://vercel.com/new
+2. Set "Root Directory" to `imagetoolswebportal`
+3. Add environment variables (if using AdSense)
+4. Deploy to Production
 
-## Deploy on Vercel
+Optional region pinning is configured via `vercel.json` (`iad1`).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Branches
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `main`: stable, deployable
+- `develop`: integration branch for work-in-progress changes
+
+## Contributing
+
+Please see `CONTRIBUTING.md` for guidelines.
