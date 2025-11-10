@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
+import AdSense from "@/components/AdSense";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -44,6 +45,14 @@ export default function RootLayout({
         <div className="max-w-6xl mx-auto w-full px-6 py-6">
           {children}
         </div>
+
+        <section id="sponsored" className="max-w-6xl mx-auto w-full px-6 py-6 border-t">
+          <h2 className="text-xl font-medium mb-3">Sponsored</h2>
+          <div className="card p-2">
+            <AdSense className="w-full" style={{ display: 'block', minHeight: 120 }} />
+          </div>
+          <p className="text-xs text-gray-500 mt-2">Configure AdSense via NEXT_PUBLIC_ADS_CLIENT and NEXT_PUBLIC_ADS_SLOT.</p>
+        </section>
 
         <footer className="border-t mt-8">
           <div className="max-w-6xl mx-auto px-6 py-6 text-sm text-gray-600 dark:text-gray-400">
