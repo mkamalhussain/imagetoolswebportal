@@ -19,14 +19,21 @@ export default function ImageOCRExtractor() {
   const ensureTesseractLoaded = async () => {
     if (window.Tesseract) return;
     setLoadingLib(true);
-    await new Promise<void>((resolve, reject) => {
+    const tryLoad = (src: string) => new Promise<void>((resolve, reject) => {
       const script = document.createElement("script");
-      script.src = "https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js";
+      script.src = src;
       script.async = true;
+      script.crossOrigin = "anonymous";
       script.onload = () => resolve();
-      script.onerror = () => reject(new Error("Failed to load tesseract.js"));
+      script.onerror = () => reject(new Error(`Failed to load: ${src}`));
       document.head.appendChild(script);
     });
+    try {
+      await tryLoad("https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js");
+    } catch (_e) {
+      // Fallback to unpkg if jsDelivr is blocked
+      await tryLoad("https://unpkg.com/tesseract.js@4/dist/tesseract.min.js");
+    }
     setLoadingLib(false);
   };
 
@@ -48,6 +55,7 @@ export default function ImageOCRExtractor() {
       setError("");
       controllerRef.current = new AbortController();
       const { signal } = controllerRef.current;
+      if (!window.Tesseract) throw new Error("OCR library not available. Please retry in a moment.");
       const result = await window.Tesseract.recognize(imageUrl, "eng", {
         logger: (m: any) => {
           if (m?.progress) {
