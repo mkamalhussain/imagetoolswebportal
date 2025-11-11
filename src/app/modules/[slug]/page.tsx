@@ -20,16 +20,19 @@ export default async function ModulePage({ params }: Props) {
 
   return (
     <main className="min-h-screen">
-      <h1 className="text-2xl font-semibold">{mod.title}</h1>
-      <p className="text-gray-600 mt-2">{mod.description}</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold">{mod.title}</h1>
+          <p className="text-gray-600 mt-2">{mod.description}</p>
+        </div>
+        <Link href="/" className="text-blue-600">Back to Home</Link>
+      </div>
+      <hr className="my-4" />
 
       <div className="card p-4 mt-6">
         <ClientModuleRenderer slug={slug} />
       </div>
-
-      {/* Sponsored section now provided globally in layout */}
-
-      <Link href="/" className="text-blue-600 mt-6 inline-block">Back to Home</Link>
+      {/* Sponsored section provided globally in layout */}
     </main>
   );
 }

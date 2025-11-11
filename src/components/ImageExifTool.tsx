@@ -217,10 +217,11 @@ export default function ImageExifTool() {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <input type="file" accept="image/jpeg" onChange={onFile} />
+        <input type="file" accept="image/jpeg,image/jpg" onChange={onFile} />
         <button className="border px-3 py-1 rounded" disabled={!previewUrl} onClick={stripExifAndDownload}>Download without EXIF</button>
       </div>
       {error && <p className="text-red-600 text-sm">{error}</p>}
+      <p className="text-xs text-gray-600">Tip: EXIF data is typically present on JPEGs. If you upload PNG or WebP, metadata may be missing.</p>
       {previewUrl && (
         <img src={previewUrl} alt="preview" className="max-w-full border rounded" />
       )}

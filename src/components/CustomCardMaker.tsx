@@ -8,9 +8,15 @@ export default function CustomCardMaker() {
   const [message, setMessage] = useState("Hello world!");
   const [bgColor, setBgColor] = useState("#0ea5e9");
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [width, setWidth] = useState<number>(640);
+  const [height, setHeight] = useState<number>(360);
+  const [titleSize, setTitleSize] = useState<number>(28);
+  const [messageSize, setMessageSize] = useState<number>(16);
 
   function renderCanvas() {
     const cnv = canvasRef.current!;
+    cnv.width = Math.max(200, Math.min(2000, width));
+    cnv.height = Math.max(150, Math.min(2000, height));
     const ctx = cnv.getContext("2d")!;
     const w = cnv.width, h = cnv.height;
     // background
@@ -35,11 +41,11 @@ export default function CustomCardMaker() {
 
     function drawText() {
       ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 28px system-ui, sans-serif";
+      ctx.font = `bold ${titleSize}px system-ui, sans-serif`;
       ctx.textAlign = "center";
-      ctx.fillText(title, w / 2, h - 90);
-      ctx.font = "16px system-ui, sans-serif";
-      wrapText(ctx, message, w / 2, h - 60, w * 0.8, 20);
+      ctx.fillText(title, w / 2, h - Math.max(90, Math.round(height * 0.2)));
+      ctx.font = `${messageSize}px system-ui, sans-serif`;
+      wrapText(ctx, message, w / 2, h - Math.max(60, Math.round(height * 0.15)), w * 0.8, Math.max(18, Math.round(messageSize * 1.2)));
     }
   }
 
@@ -86,12 +92,28 @@ export default function CustomCardMaker() {
           <span>Background</span>
           <input type="color" value={bgColor} onChange={(e) => setBgColor(e.target.value)} />
         </label>
+        <label className="flex items-center gap-2">
+          <span>Width</span>
+          <input type="number" min={200} max={2000} value={width} onChange={(e) => setWidth(parseInt(e.target.value || "0"))} className="w-24 border rounded p-1" />
+        </label>
+        <label className="flex items-center gap-2">
+          <span>Height</span>
+          <input type="number" min={150} max={2000} value={height} onChange={(e) => setHeight(parseInt(e.target.value || "0"))} className="w-24 border rounded p-1" />
+        </label>
+        <label className="flex items-center gap-2">
+          <span>Title Size</span>
+          <input type="number" min={12} max={120} value={titleSize} onChange={(e) => setTitleSize(parseInt(e.target.value || "0"))} className="w-20 border rounded p-1" />
+        </label>
+        <label className="flex items-center gap-2">
+          <span>Message Size</span>
+          <input type="number" min={10} max={80} value={messageSize} onChange={(e) => setMessageSize(parseInt(e.target.value || "0"))} className="w-20 border rounded p-1" />
+        </label>
         <input type="file" accept="image/*" onChange={onFile} />
         <button className="border px-3 py-1 rounded" onClick={() => renderCanvas()}>Render</button>
         <button className="border px-3 py-1 rounded" onClick={download}>Download</button>
       </div>
       <div className="rounded border p-4 inline-block">
-        <canvas ref={canvasRef} width={640} height={360} />
+        <canvas ref={canvasRef} width={width} height={height} />
       </div>
       <p className="text-sm text-gray-600">Tip: Render after updating text or color to refresh the card preview.</p>
     </div>

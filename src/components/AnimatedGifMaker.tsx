@@ -15,11 +15,26 @@ export default function AnimatedGifMaker() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js";
-    script.async = true;
-    document.head.appendChild(script);
-    return () => { document.head.removeChild(script); };
+    let appended: HTMLScriptElement | null = null;
+    const loadGifLib = (src: string) => new Promise<void>((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = src;
+      script.async = true;
+      script.crossOrigin = "anonymous";
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error(`Failed to load: ${src}`));
+      document.head.appendChild(script);
+      appended = script;
+    });
+    (async () => {
+      try {
+        await loadGifLib("https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js");
+      } catch (_e) {
+        // Fallback CDN if cdnjs is blocked
+        await loadGifLib("https://unpkg.com/gif.js@0.2.0/dist/gif.js");
+      }
+    })();
+    return () => { if (appended) document.head.removeChild(appended); };
   }, []);
 
   async function onFiles(e: React.ChangeEvent<HTMLInputElement>) {
@@ -52,7 +67,8 @@ export default function AnimatedGifMaker() {
     if (!window.GIF) return alert("GIF library not loaded yet. Please wait a moment.");
     if (frames.length === 0) return;
     setGenerating(true);
-    const gif = new window.GIF({ workers: 2, quality, workerScript: "https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js" });
+    const workerCandidate = typeof fetch !== 'undefined' ? "https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js" : "https://unpkg.com/gif.js@0.2.0/dist/gif.worker.js";
+    const gif = new window.GIF({ workers: 2, quality, workerScript: workerCandidate });
     frames.forEach((frame) => gif.addFrame(frame, { delay: delayMs }));
     gif.on("finished", (blob: Blob) => {
       const url = URL.createObjectURL(blob);
