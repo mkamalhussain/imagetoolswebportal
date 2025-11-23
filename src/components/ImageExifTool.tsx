@@ -37,6 +37,25 @@ export default function ImageExifTool() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState<string>("");
   const [tags, setTags] = useState<TagRecord | null>(null);
+  const [loadingLib, setLoadingLib] = useState<boolean>(false);
+
+  async function ensureExifrLoaded() {
+    if ((window as any).exifr) return;
+    const tryLoad = (src: string) => new Promise<void>((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = src;
+      script.async = true;
+      script.crossOrigin = "anonymous";
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error(`Failed to load: ${src}`));
+      document.head.appendChild(script);
+    });
+    try {
+      await tryLoad("https://unpkg.com/exifr@7.1.3/dist/lite.umd.js");
+    } catch (_e) {
+      await tryLoad("https://cdn.jsdelivr.net/npm/exifr@7.1.3/dist/lite.umd.js");
+    }
+  }
 
   function isValidJPEG(file: File | undefined) {
     return !!file && file.type === "image/jpeg" && file.size <= 10 * 1024 * 1024;
@@ -180,7 +199,22 @@ export default function ImageExifTool() {
     setPreviewUrl(url);
     const buf = await file.arrayBuffer();
     const t = parseEXIF(buf);
-    setTags(t);
+    if (t && Object.keys(t).length > 0) {
+      setTags(t);
+    } else {
+      // Fallback: try exifr library for broader metadata support
+      try {
+        setLoadingLib(true);
+        await ensureExifrLoaded();
+        const exifTags = await (window as any).exifr?.parse(file);
+        setTags(exifTags || {});
+      } catch (err) {
+        console.warn("exifr fallback failed", err);
+        setTags({});
+      } finally {
+        setLoadingLib(false);
+      }
+    }
   }
 
   function stripExifAndDownload() {
@@ -217,9 +251,13 @@ export default function ImageExifTool() {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <input type="file" accept="image/jpeg,image/jpg" onChange={onFile} />
+        <label className="btn btn-primary cursor-pointer">
+          Choose JPEG
+          <input type="file" accept="image/jpeg,image/jpg" onChange={onFile} className="hidden" />
+        </label>
         <button className="border px-3 py-1 rounded" disabled={!previewUrl} onClick={stripExifAndDownload}>Download without EXIF</button>
       </div>
+      {loadingLib && <p className="text-sm text-gray-600">Loading EXIF library…</p>}
       {error && <p className="text-red-600 text-sm">{error}</p>}
       <p className="text-xs text-gray-600">Tip: EXIF data is typically present on JPEGs. If you upload PNG or WebP, metadata may be missing.</p>
       {previewUrl && (

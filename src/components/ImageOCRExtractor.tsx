@@ -14,6 +14,7 @@ export default function ImageOCRExtractor() {
   const [loadingLib, setLoadingLib] = useState<boolean>(false);
   const [running, setRunning] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
+  const [language, setLanguage] = useState<string>("eng");
   const controllerRef = useRef<AbortController | null>(null);
 
   const ensureTesseractLoaded = async () => {
@@ -47,6 +48,32 @@ export default function ImageOCRExtractor() {
     setError("");
   };
 
+  const prepareImageForOCR = async (src: string): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        const maxDim = 1600;
+        const { width: iw, height: ih } = img;
+        const scale = Math.min(1, maxDim / Math.max(iw, ih));
+        const w = Math.max(1, Math.round(iw * scale));
+        const h = Math.max(1, Math.round(ih * scale));
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) { reject(new Error("Canvas context unavailable")); return; }
+        // Draw and lightly sharpen by drawing twice (simple trick)
+        ctx.drawImage(img, 0, 0, w, h);
+        // Export as JPEG to reduce size
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+        resolve(dataUrl);
+      };
+      img.onerror = () => reject(new Error("Failed to load image"));
+      img.src = src;
+    });
+  };
+
   const startOCR = async () => {
     if (!imageUrl) return;
     try {
@@ -56,7 +83,10 @@ export default function ImageOCRExtractor() {
       controllerRef.current = new AbortController();
       const { signal } = controllerRef.current;
       if (!window.Tesseract) throw new Error("OCR library not available. Please retry in a moment.");
-      const result = await window.Tesseract.recognize(imageUrl, "eng", {
+      setProgress(5);
+      const dataUrl = await prepareImageForOCR(imageUrl);
+      setProgress(15);
+      const result = await window.Tesseract.recognize(dataUrl, language || "eng", {
         logger: (m: any) => {
           if (m?.progress) {
             setProgress(Math.round((m.progress as number) * 100));
@@ -92,7 +122,25 @@ export default function ImageOCRExtractor() {
     <div className="space-y-4">
       <h2 className="text-xl font-semibold">OCR Extractor</h2>
       <div className="flex flex-wrap gap-3 items-center">
-        <input type="file" accept="image/*" onChange={onFile} />
+        <label className="btn btn-primary cursor-pointer">
+          Choose Image
+          <input type="file" accept="image/*" onChange={onFile} className="hidden" />
+        </label>
+        <label className="flex items-center gap-2">
+          <span>Language</span>
+          <select
+            className="select select-bordered"
+            value={language}
+            onChange={(e) => setLanguage(e.target.value)}
+          >
+            <option value="eng">English</option>
+            <option value="spa">Spanish</option>
+            <option value="fra">French</option>
+            <option value="deu">German</option>
+            <option value="ita">Italian</option>
+            <option value="por">Portuguese</option>
+          </select>
+        </label>
         <button
           className="px-3 py-1 bg-blue-600 text-white rounded disabled:opacity-50"
           disabled={!imageUrl || running || loadingLib}

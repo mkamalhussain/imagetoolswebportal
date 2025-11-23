@@ -20,4 +20,7 @@ export const modules: ModuleDef[] = [
   { slug: 'image-anaglyph-3d', title: 'Anaglyph 3D', description: 'Create 3D anaglyph images from stereo pairs.' },
   { slug: 'image-resizer', title: 'Image Resizer', description: 'Resize images quickly.' },
   { slug: 'image-to-cartoon', title: 'Image to Cartoon', description: 'Cartoonify your images.' },
+  { slug: 'color-palette-extractor', title: 'Color Palette Extractor', description: 'Extract dominant colors and copy hex codes.' },
+  { slug: 'image-upscaler', title: 'Image Upscaler', description: 'Upscale images by 2x–4x with multiple methods.' },
+  { slug: 'watermark-remover', title: 'Watermark Remover', description: 'Brush blur or clone to clean watermark areas.' },
 ];

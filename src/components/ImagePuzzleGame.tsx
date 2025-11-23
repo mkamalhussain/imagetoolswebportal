@@ -182,7 +182,10 @@ export default function ImagePuzzleGame() {
     <div className="space-y-4">
       <h2 className="text-xl font-semibold">Image Puzzle Game</h2>
       <div className="flex flex-wrap gap-3 items-center">
-        <input type="file" accept="image/*" onChange={onFile} />
+        <label className="btn btn-primary cursor-pointer">
+          Choose Image
+          <input type="file" accept="image/*" onChange={onFile} className="hidden" />
+        </label>
         <label className="flex items-center gap-2">
           <span>Grid</span>
           <input

@@ -15,6 +15,14 @@ const OCRExtractor = dynamic(() => import("@/components/ImageOCRExtractor"), { s
 const PuzzleGame = dynamic(() => import("@/components/ImagePuzzleGame"), { ssr: false });
 const BackgroundChanger = dynamic(() => import("@/components/ImageBackgroundChanger"), { ssr: false });
 const FormatConverter = dynamic(() => import("@/components/ImageFormatConverter"), { ssr: false });
+const Anaglyph3D = dynamic(() => import("@/components/Anaglyph3D"), { ssr: false });
+const ImageResizer = dynamic(() => import("@/components/ImageResizer"), { ssr: false });
+const DitheringTool = dynamic(() => import("@/components/ImageDitheringTool"), { ssr: false });
+const HiddenMessage = dynamic(() => import("@/components/ImageHiddenMessage"), { ssr: false });
+const ImageToCartoon = dynamic(() => import("@/components/ImageToCartoon"), { ssr: false });
+const ColorPaletteExtractor = dynamic(() => import("@/components/ColorPaletteExtractor"), { ssr: false });
+const ImageUpscaler = dynamic(() => import("@/components/ImageUpscaler"), { ssr: false });
+const WatermarkRemover = dynamic(() => import("@/components/WatermarkRemover"), { ssr: false });
 
 export default function ClientModuleRenderer({ slug }: Props) {
   if (slug === "image-pixel-sorter") {
@@ -46,6 +54,30 @@ export default function ClientModuleRenderer({ slug }: Props) {
   }
   if (slug === "image-format-converter") {
     return <FormatConverter />;
+  }
+  if (slug === "image-anaglyph-3d") {
+    return <Anaglyph3D />;
+  }
+  if (slug === "image-resizer") {
+    return <ImageResizer />;
+  }
+  if (slug === "image-dithering-tool") {
+    return <DitheringTool />;
+  }
+  if (slug === "image-hidden-message") {
+    return <HiddenMessage />;
+  }
+  if (slug === "image-to-cartoon") {
+    return <ImageToCartoon />;
+  }
+  if (slug === "color-palette-extractor") {
+    return <ColorPaletteExtractor />;
+  }
+  if (slug === "image-upscaler") {
+    return <ImageUpscaler />;
+  }
+  if (slug === "watermark-remover") {
+    return <WatermarkRemover />;
   }
   return <p className="text-gray-700">This module is coming soon.</p>;
 }

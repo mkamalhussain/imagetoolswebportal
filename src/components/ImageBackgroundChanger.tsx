@@ -13,6 +13,11 @@ export default function ImageBackgroundChanger() {
   const [color, setColor] = useState<string>("#00ff00");
   const [tolerance, setTolerance] = useState<number>(40);
   const [resultUrl, setResultUrl] = useState<string>("");
+  // Replacement background options
+  const [bgType, setBgType] = useState<"none" | "color" | "image">("none");
+  const [bgColor, setBgColor] = useState<string>("#ffffff");
+  const [bgImageUrl, setBgImageUrl] = useState<string>("");
+  const [bgFit, setBgFit] = useState<"cover" | "contain">("cover");
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -21,13 +26,21 @@ export default function ImageBackgroundChanger() {
       return;
     }
     process();
-  }, [imageUrl, color, tolerance]);
+  }, [imageUrl, color, tolerance, bgType, bgColor, bgImageUrl, bgFit]);
 
   const onFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const url = URL.createObjectURL(file);
     setImageUrl(url);
+  };
+
+  const onBgFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    setBgImageUrl(url);
+    setBgType("image");
   };
 
   const hexToRgb = (hex: string): [number, number, number] => {
@@ -62,6 +75,75 @@ export default function ImageBackgroundChanger() {
         }
       }
       ctx.putImageData(imgData, 0, 0);
+      // Compose replacement background if selected
+      if (bgType === "none") {
+        setResultUrl(canvas.toDataURL("image/png"));
+        return;
+      }
+
+      const out = document.createElement("canvas");
+      out.width = canvas.width;
+      out.height = canvas.height;
+      const outCtx = out.getContext("2d");
+      if (!outCtx) {
+        setResultUrl(canvas.toDataURL("image/png"));
+        return;
+      }
+
+      if (bgType === "color") {
+        outCtx.fillStyle = bgColor;
+        outCtx.fillRect(0, 0, out.width, out.height);
+        outCtx.drawImage(canvas, 0, 0);
+        setResultUrl(out.toDataURL("image/png"));
+        return;
+      }
+
+      if (bgType === "image" && bgImageUrl) {
+        const bgImg = new Image();
+        bgImg.crossOrigin = "anonymous";
+        bgImg.onload = () => {
+          // Draw background image with fit mode
+          const cw = out.width;
+          const ch = out.height;
+          const iw = bgImg.width;
+          const ih = bgImg.height;
+          const cAspect = cw / ch;
+          const iAspect = iw / ih;
+          let drawW = cw, drawH = ch, dx = 0, dy = 0;
+          if (bgFit === "cover") {
+            if (iAspect > cAspect) {
+              // image wider
+              drawH = ch;
+              drawW = ch * iAspect;
+            } else {
+              drawW = cw;
+              drawH = cw / iAspect;
+            }
+            dx = (cw - drawW) / 2;
+            dy = (ch - drawH) / 2;
+          } else {
+            // contain
+            if (iAspect > cAspect) {
+              drawW = cw;
+              drawH = cw / iAspect;
+              dx = 0;
+              dy = (ch - drawH) / 2;
+            } else {
+              drawH = ch;
+              drawW = ch * iAspect;
+              dx = (cw - drawW) / 2;
+              dy = 0;
+            }
+          }
+          outCtx.drawImage(bgImg, dx, dy, drawW, drawH);
+          outCtx.drawImage(canvas, 0, 0);
+          setResultUrl(out.toDataURL("image/png"));
+        };
+        bgImg.src = bgImageUrl;
+        return;
+      }
+
+      // Fallback
       setResultUrl(canvas.toDataURL("image/png"));
     };
     img.src = imageUrl;
@@ -77,9 +159,12 @@ export default function ImageBackgroundChanger() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-semibold">Background Changer (Chroma Key)</h2>
+      <h2 className="text-xl font-semibold">Background Changer (Remove or Replace)</h2>
       <div className="flex flex-wrap gap-3 items-center">
-        <input type="file" accept="image/*" onChange={onFile} />
+        <label className="btn btn-primary cursor-pointer">
+          Choose Image
+          <input type="file" accept="image/*" onChange={onFile} className="hidden" />
+        </label>
         <label className="flex items-center gap-2">
           <span>Target color</span>
           <input type="color" value={color} onChange={(e) => setColor(e.target.value)} />
@@ -94,6 +179,35 @@ export default function ImageBackgroundChanger() {
             onChange={(e) => setTolerance(parseInt(e.target.value))}
           />
           <span>{tolerance}</span>
+        </label>
+      </div>
+      <div className="flex flex-wrap gap-3 items-center">
+        <span className="opacity-70">Replacement:</span>
+        <label className="flex items-center gap-2">
+          <input type="radio" name="bg-type" checked={bgType === "none"} onChange={() => setBgType("none")} />
+          <span>Transparent</span>
+        </label>
+        <label className="flex items-center gap-2">
+          <input type="radio" name="bg-type" checked={bgType === "color"} onChange={() => setBgType("color")} />
+          <span>Solid color</span>
+          <input type="color" value={bgColor} onChange={(e) => setBgColor(e.target.value)} disabled={bgType !== "color"} />
+        </label>
+        <label className="flex items-center gap-2">
+          <input type="radio" name="bg-type" checked={bgType === "image"} onChange={() => setBgType("image")} />
+          <span>Image</span>
+          <label className="btn btn-secondary cursor-pointer">
+            Choose Replacement
+            <input type="file" accept="image/*" onChange={onBgFile} className="hidden" />
+          </label>
+          <select
+            className="select select-bordered"
+            value={bgFit}
+            onChange={(e) => setBgFit(e.target.value as "cover" | "contain")}
+            disabled={bgType !== "image"}
+          >
+            <option value="cover">Cover</option>
+            <option value="contain">Contain</option>
+          </select>
         </label>
         <button className="px-3 py-1 bg-green-600 text-white rounded" onClick={download} disabled={!resultUrl}>
           Download PNG
