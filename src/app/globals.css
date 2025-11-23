@@ -60,3 +60,34 @@ a {
 a:hover {
   text-decoration: underline;
 }
+
+/* Fallback button styles to replace DaisyUI in production */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid rgba(0,0,0,0.1);
+  transition: background-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+}
+.btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(29,78,216,0.35);
+}
+.btn-primary {
+  background-color: #1d4ed8; /* blue-700 */
+  color: #ffffff;
+}
+.btn-primary:hover {
+  background-color: #1e40af; /* blue-800 */
+}
+.btn-secondary {
+  background-color: #e5e7eb; /* gray-200 */
+  color: #111827; /* gray-900 */
+}
+.btn-secondary:hover {
+  background-color: #d1d5db; /* gray-300 */
+}
