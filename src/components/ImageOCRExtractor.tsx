@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
+import Button from "@/components/Button";
 
 declare global {
   interface Window {
@@ -122,10 +123,10 @@ export default function ImageOCRExtractor() {
     <div className="space-y-4">
       <h2 className="text-xl font-semibold">OCR Extractor</h2>
       <div className="flex flex-wrap gap-3 items-center">
-        <label className="btn btn-primary cursor-pointer">
+        <Button as="label" variant="primary" className="cursor-pointer">
           Choose Image
           <input type="file" accept="image/*" onChange={onFile} className="hidden" />
-        </label>
+        </Button>
         <label className="flex items-center gap-2">
           <span>Language</span>
           <select

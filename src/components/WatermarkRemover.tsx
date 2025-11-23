@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import Button from "./Button";
 
 export default function WatermarkRemover() {
   const [imgUrl, setImgUrl] = useState<string>("");
@@ -134,10 +135,10 @@ export default function WatermarkRemover() {
   return (
     <div className="space-y-3">
       <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
-        <label className="btn btn-primary cursor-pointer">
+        <Button variant="primary" as="label">
           Choose Image
           <input ref={fileRef} type="file" accept="image/*" onChange={onFile} className="hidden" />
-        </label>
+        </Button>
         <label className="flex items-center gap-2">Brush
           <input type="range" min={8} max={64} value={brushSize} onChange={(e) => setBrushSize(parseInt(e.target.value))} />
           <span className="text-sm">{brushSize}px</span>
@@ -152,7 +153,7 @@ export default function WatermarkRemover() {
             <option value="clone">Clone (Alt-click to set source)</option>
           </select>
         </label>
-        <button className="btn" onClick={download} disabled={!imgUrl}>Download PNG</button>
+        <Button onClick={download} disabled={!imgUrl}>Download PNG</Button>
       </div>
 
       <p className="text-xs text-gray-600">Tip: Hold Alt and click to set clone source. Then paint over the watermark.</p>

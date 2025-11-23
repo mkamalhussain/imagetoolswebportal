@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
+import Button from "@/components/Button";
 
 function colorDiff(a: [number, number, number], b: [number, number, number]) {
   const dr = a[0] - b[0];
@@ -161,10 +162,10 @@ export default function ImageBackgroundChanger() {
     <div className="space-y-4">
       <h2 className="text-xl font-semibold">Background Changer (Remove or Replace)</h2>
       <div className="flex flex-wrap gap-3 items-center">
-        <label className="btn btn-primary cursor-pointer">
+        <Button as="label" variant="primary" className="cursor-pointer">
           Choose Image
           <input type="file" accept="image/*" onChange={onFile} className="hidden" />
-        </label>
+        </Button>
         <label className="flex items-center gap-2">
           <span>Target color</span>
           <input type="color" value={color} onChange={(e) => setColor(e.target.value)} />
@@ -195,10 +196,10 @@ export default function ImageBackgroundChanger() {
         <label className="flex items-center gap-2">
           <input type="radio" name="bg-type" checked={bgType === "image"} onChange={() => setBgType("image")} />
           <span>Image</span>
-          <label className="btn btn-secondary cursor-pointer">
+          <Button as="label" variant="secondary" className="cursor-pointer">
             Choose Replacement
             <input type="file" accept="image/*" onChange={onBgFile} className="hidden" />
-          </label>
+          </Button>
           <select
             className="select select-bordered"
             value={bgFit}

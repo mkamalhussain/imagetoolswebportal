@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
+import Button from "./Button";
 
 type Mapping = number[]; // maps tile index -> source index
 
@@ -182,10 +183,10 @@ export default function ImagePuzzleGame() {
     <div className="space-y-4">
       <h2 className="text-xl font-semibold">Image Puzzle Game</h2>
       <div className="flex flex-wrap gap-3 items-center">
-        <label className="btn btn-primary cursor-pointer">
+        <Button variant="primary" as="label">
           Choose Image
           <input type="file" accept="image/*" onChange={onFile} className="hidden" />
-        </label>
+        </Button>
         <label className="flex items-center gap-2">
           <span>Grid</span>
           <input

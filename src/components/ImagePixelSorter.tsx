@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
+import Button from "@/components/Button";
 import "./ImagePixelSorter.css";
 
 type Mode = "brightness" | "hue" | "red" | "green" | "blue";
@@ -166,10 +167,10 @@ export default function ImagePixelSorter() {
     <div className="pixel-sorter-container">
       <div className="controls">
         <div className="row">
-          <label className="btn btn-primary cursor-pointer">
+          <Button as="label" variant="primary" className="cursor-pointer">
             Choose Image
             <input ref={fileRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
-          </label>
+          </Button>
         </div>
         <div className="row">
           <label>Mode</label>

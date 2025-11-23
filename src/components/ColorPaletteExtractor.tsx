@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import Button from "@/components/Button";
 
 type Swatch = { r: number; g: number; b: number };
 
@@ -137,16 +138,16 @@ export default function ColorPaletteExtractor() {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3">
-        <label className="btn btn-primary cursor-pointer">
+        <Button as="label" variant="primary" className="cursor-pointer">
           Choose Image
           <input ref={fileRef} type="file" accept="image/*" onChange={onFile} className="hidden" />
-        </label>
+        </Button>
         <label className="flex items-center gap-2 text-sm">Colors
           <input type="range" min={3} max={12} value={k} onChange={(e) => setK(parseInt(e.target.value))} />
           <span>{k}</span>
         </label>
-        <button className="btn" onClick={extractPalette} disabled={!imgUrl}>Extract</button>
-        <button className="btn" onClick={downloadJSON} disabled={palette.length === 0}>Download JSON</button>
+        <Button onClick={extractPalette} disabled={!imgUrl}>Extract</Button>
+        <Button onClick={downloadJSON} disabled={palette.length === 0}>Download JSON</Button>
       </div>
 
       {status && <p className="text-sm text-gray-600">{status}</p>}
@@ -158,8 +159,8 @@ export default function ColorPaletteExtractor() {
             <div key={i} className="card p-2 text-center">
               <div className="w-full h-16 rounded" style={{ backgroundColor: hex }} />
               <div className="mt-2 text-xs font-mono">{hex}</div>
-              <button className="btn mt-2" onClick={() => copyHex(hex)}>Copy</button>
-            </div>
+              <Button className="mt-2" onClick={() => copyHex(hex)}>Copy</Button>
+      </div>
           );
         })}
       </div>

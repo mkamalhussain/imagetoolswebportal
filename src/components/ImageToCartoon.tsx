@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import Button from "@/components/Button";
 
 function clamp(v: number, min = 0, max = 255) {
   return Math.max(min, Math.min(max, v));
@@ -151,10 +152,10 @@ export default function ImageToCartoon() {
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-2">
-        <label className="btn btn-primary cursor-pointer">
+        <Button as="label" variant="primary" className="cursor-pointer">
           Choose Image
           <input ref={fileInputRef} type="file" accept="image/*" onChange={onFile} className="hidden" />
-        </label>
+        </Button>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <label className="flex items-center gap-2">Levels
             <input type="range" min={3} max={12} value={levels} onChange={(e) => setLevels(parseInt(e.target.value))} />
@@ -170,9 +171,9 @@ export default function ImageToCartoon() {
           </label>
         </div>
         <div className="flex gap-2">
-          <button className="btn" onClick={runCartoon} disabled={!imgUrl}>Apply Cartoon</button>
-          <button className="btn" onClick={download} disabled={!imgUrl}>Download PNG</button>
-          <button className="btn" onClick={() => { setImgUrl(""); setStatus(""); if (fileInputRef.current) fileInputRef.current.value = ""; }}>Reset</button>
+          <Button onClick={runCartoon} disabled={!imgUrl}>Apply Cartoon</Button>
+          <Button onClick={download} disabled={!imgUrl}>Download PNG</Button>
+          <Button onClick={() => { setImgUrl(""); setStatus(""); if (fileInputRef.current) fileInputRef.current.value = ""; }}>Reset</Button>
         </div>
         {status && <p className="text-sm text-gray-600">{status}</p>}
       </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import Button from "./Button";
 
 type Method = "nearest" | "smooth" | "multi-step";
 
@@ -112,10 +113,10 @@ export default function ImageUpscaler() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-3 items-center">
-        <label className="btn btn-primary cursor-pointer">
+        <Button variant="primary" as="label">
           Choose Image
           <input ref={fileRef} type="file" accept="image/*" onChange={onFile} className="hidden" />
-        </label>
+        </Button>
         <label className="flex items-center gap-2">
           <span>Scale</span>
           <input type="range" min={1} max={4} step={0.1} value={scale} onChange={(e) => setScale(parseFloat(e.target.value))} />

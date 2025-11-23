@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useRef, useState } from "react";
+import Button from "./Button";
 
 export default function CustomCardMaker() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -112,10 +113,10 @@ export default function CustomCardMaker() {
           <span>Message Size</span>
           <input type="number" min={10} max={80} value={messageSize} onChange={(e) => setMessageSize(parseInt(e.target.value || "0"))} className="w-20 border rounded p-1" />
         </label>
-        <label className="btn btn-primary cursor-pointer">
+        <Button variant="primary" as="label">
           Choose Image
           <input type="file" accept="image/*" onChange={onFile} className="hidden" />
-        </label>
+        </Button>
         <label className="flex items-center gap-2">
           <span>Image Scale</span>
           <input type="range" min={0.1} max={3} step={0.05} value={imageScale} onChange={(e) => setImageScale(parseFloat(e.target.value))} />

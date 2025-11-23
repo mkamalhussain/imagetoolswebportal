@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
+import Button from "@/components/Button";
 
 type Mode = "encode" | "decode";
 
@@ -170,10 +171,10 @@ export default function ImageHiddenMessage() {
             <option value="encode">Encode</option>
             <option value="decode">Decode</option>
           </select>
-          <label className="btn btn-primary cursor-pointer">
+          <Button as="label" variant="primary" className="cursor-pointer">
             Choose Image
             <input ref={fileInputRef} type="file" accept="image/*" onChange={onFile} className="hidden" />
-          </label>
+          </Button>
           <span className="text-sm text-gray-600">PNG recommended to preserve output fidelity.</span>
         </div>
       </div>

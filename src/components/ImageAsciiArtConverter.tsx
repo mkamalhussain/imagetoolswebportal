@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import Button from "./Button";
 
 export default function ImageAsciiArtConverter() {
   const [imageUrl, setImageUrl] = useState<string>("");
@@ -78,10 +79,10 @@ export default function ImageAsciiArtConverter() {
     <div className="space-y-4">
       <h2 className="text-xl font-semibold">ASCII Art Converter</h2>
       <div className="flex flex-wrap gap-3 items-center">
-        <label className="btn btn-primary cursor-pointer">
+        <Button variant="primary" as="label">
           Choose Image
           <input type="file" accept="image/*" onChange={onFile} className="hidden" />
-        </label>
+        </Button>
         <label className="flex items-center gap-2">
           <span>Columns</span>
           <input

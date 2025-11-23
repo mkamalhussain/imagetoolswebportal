@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import Button from "@/components/Button";
 
 export default function ImageResizer() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -91,10 +92,10 @@ export default function ImageResizer() {
       <div className="flex flex-wrap gap-4 items-end">
         <div>
           <label className="block text-sm font-medium mb-1">Upload Image</label>
-          <label className="btn btn-primary cursor-pointer">
+          <Button as="label" variant="primary" className="cursor-pointer">
             Choose Image
             <input type="file" accept="image/*" onChange={onFileChange} className="hidden" />
-          </label>
+          </Button>
           {origW > 0 && origH > 0 && (
             <p className="text-xs text-gray-500 mt-1">Original: {origW} × {origH}</p>
           )}
@@ -135,7 +136,7 @@ export default function ImageResizer() {
           <label className="block text-sm font-medium mb-1">Quality ({Math.round(quality * 100)}%)</label>
           <input type="range" min={0.1} max={1} step={0.01} value={quality} onChange={(e) => setQuality(parseFloat(e.target.value))} />
         </div>
-        <button onClick={onDownload} className="btn">Download</button>
+        <Button onClick={onDownload}>Download</Button>
       </div>
 
       <div className="border rounded p-3 bg-white">

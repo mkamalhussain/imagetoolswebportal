@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import Button from "./Button";
 
 type Algo = "floyd-steinberg" | "ordered";
 
@@ -143,10 +144,10 @@ export default function ImageDitheringTool() {
       <div className="flex flex-wrap gap-4 items-end">
         <div>
           <label className="block text-sm font-medium mb-1">Upload Image</label>
-          <label className="btn btn-primary cursor-pointer">
-            Choose Image
-            <input type="file" accept="image/*" onChange={onFileChange} className="hidden" />
-          </label>
+        <Button variant="primary" as="label">
+          Choose Image
+          <input type="file" accept="image/*" onChange={onFileChange} className="hidden" />
+        </Button>
           <p className="text-xs text-gray-500 mt-1">Processing is client-side via Canvas.</p>
         </div>
         <div>
@@ -161,7 +162,7 @@ export default function ImageDitheringTool() {
           <input type="range" min={2} max={8} value={levels} onChange={(e) => setLevels(parseInt(e.target.value, 10))} />
           <div className="text-sm text-gray-600 mt-1">{levels} grayscale levels</div>
         </div>
-        <button onClick={onDownload} className="btn">Download PNG</button>
+        <Button onClick={onDownload}>Download PNG</Button>
       </div>
 
       <div className="border rounded p-3 bg-white">

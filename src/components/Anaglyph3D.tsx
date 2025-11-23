@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import Button from "./Button";
 
 export default function Anaglyph3D() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -97,10 +98,10 @@ export default function Anaglyph3D() {
       <div className="flex flex-wrap gap-4 items-end">
         <div>
           <label className="block text-sm font-medium mb-1">Upload Image</label>
-          <label className="btn btn-primary cursor-pointer">
+          <Button variant="primary" as="label">
             Choose Image
             <input type="file" accept="image/*" onChange={onFileChange} className="hidden" />
-          </label>
+          </Button>
           <p className="text-xs text-gray-500 mt-1">Tip: Use high-resolution images for best results.</p>
         </div>
         <div>
@@ -114,7 +115,7 @@ export default function Anaglyph3D() {
           />
           <div className="text-sm text-gray-600 mt-1">Current: {offset}px</div>
         </div>
-        <button onClick={onDownload} className="btn">Download PNG</button>
+        <Button onClick={onDownload}>Download PNG</Button>
       </div>
 
       <div className="border rounded p-3 bg-white">

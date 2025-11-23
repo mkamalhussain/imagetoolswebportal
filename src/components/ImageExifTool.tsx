@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Button from "@/components/Button";
 
 type TagRecord = Record<string, any>;
 
@@ -251,10 +252,10 @@ export default function ImageExifTool() {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <label className="btn btn-primary cursor-pointer">
+        <Button as="label" variant="primary" className="cursor-pointer">
           Choose JPEG
           <input type="file" accept="image/jpeg,image/jpg" onChange={onFile} className="hidden" />
-        </label>
+        </Button>
         <button className="border px-3 py-1 rounded" disabled={!previewUrl} onClick={stripExifAndDownload}>Download without EXIF</button>
       </div>
       {loadingLib && <p className="text-sm text-gray-600">Loading EXIF library…</p>}

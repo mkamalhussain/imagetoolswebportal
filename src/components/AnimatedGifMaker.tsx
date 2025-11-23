@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import Button from "@/components/Button";
 
 declare global {
   interface Window { GIF: any }
@@ -272,10 +273,10 @@ export default function AnimatedGifMaker() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
-        <label className="btn btn-primary cursor-pointer">
+        <Button as="label" variant="primary" className="cursor-pointer">
           Choose Images
           <input type="file" accept="image/*" multiple onChange={onFiles} className="hidden" />
-      </label>
+      </Button>
         <label className="flex items-center gap-2">
           <span>Delay</span>
           <input type="number" min={50} max={2000} value={delayMs} onChange={(e) => setDelayMs(parseInt(e.target.value || "0"))} className="w-20 border rounded p-1" />

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import Button from "./Button";
 
 export default function FaviconMaker() {
   const [size, setSize] = useState<number>(32);
@@ -47,10 +48,10 @@ export default function FaviconMaker() {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3">
-        <label className="btn btn-primary cursor-pointer">
+        <Button variant="primary" as="label">
           Choose Image
           <input type="file" accept="image/*" onChange={onFile} className="hidden" />
-        </label>
+        </Button>
         <label className="flex items-center gap-2">
           <span>Size</span>
           <select value={size} onChange={(e) => setSize(parseInt(e.target.value))}>
