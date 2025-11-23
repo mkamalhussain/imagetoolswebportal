@@ -43,12 +43,12 @@ export default function RootLayout({
         </header>
 
         {/* Sponsored section moved directly below the header to keep it above the fold */}
-        <section id="sponsored" className="max-w-6xl mx-auto w-full px-6 py-4 border-b">
-          <h2 className="text-xl font-medium mb-2">Sponsored</h2>
-          <div className="card p-2">
-            <AdSense className="w-full" style={{ display: 'block', minHeight: 120 }} />
+        <section id="sponsored" className="max-w-6xl mx-auto w-full px-6 py-2 border-b">
+          <h2 className="text-lg font-medium mb-1">Sponsored</h2>
+          <div className="card p-1">
+            <AdSense className="w-full" style={{ display: 'block', minHeight: 60 }} />
           </div>
-          <p className="text-xs text-gray-500 mt-2">Configure AdSense via NEXT_PUBLIC_ADS_CLIENT and NEXT_PUBLIC_ADS_SLOT.</p>
+          <p className="text-xs text-gray-500 mt-1">Configure AdSense via NEXT_PUBLIC_ADS_CLIENT and NEXT_PUBLIC_ADS_SLOT.</p>
         </section>
 
         <div className="max-w-6xl mx-auto w-full px-6 py-6">

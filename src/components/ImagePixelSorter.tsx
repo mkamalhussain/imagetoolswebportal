@@ -166,7 +166,10 @@ export default function ImagePixelSorter() {
     <div className="pixel-sorter-container">
       <div className="controls">
         <div className="row">
-          <input ref={fileRef} type="file" accept="image/*" onChange={handleFileChange} />
+          <label className="btn btn-primary cursor-pointer">
+            Choose Image
+            <input ref={fileRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+          </label>
         </div>
         <div className="row">
           <label>Mode</label>

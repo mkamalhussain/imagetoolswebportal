@@ -7,6 +7,7 @@ export default function ImageAsciiArtConverter() {
   const [invert, setInvert] = useState<boolean>(false);
   const [ascii, setAscii] = useState<string>("");
   const [fontSize, setFontSize] = useState<number>(9);
+  const [aspectCorrection, setAspectCorrection] = useState<number>(0.55); // correct for character aspect
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   const charSet = useMemo(() => "@%#*+=-:. ", []); // darkest -> lightest
@@ -21,7 +22,7 @@ export default function ImageAsciiArtConverter() {
     img.onload = () => {
       const aspect = img.height / img.width;
       const cols = Math.max(10, Math.min(240, Math.floor(columns)));
-      const rows = Math.max(5, Math.floor(cols * aspect));
+      const rows = Math.max(5, Math.floor(cols * aspect * aspectCorrection));
       const canvas = canvasRef.current;
       if (!canvas) return;
       canvas.width = cols;
@@ -49,7 +50,7 @@ export default function ImageAsciiArtConverter() {
       setAscii(out);
     };
     img.src = imageUrl;
-  }, [imageUrl, columns, invert, charSet]);
+  }, [imageUrl, columns, invert, charSet, aspectCorrection]);
 
   const onFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -77,7 +78,10 @@ export default function ImageAsciiArtConverter() {
     <div className="space-y-4">
       <h2 className="text-xl font-semibold">ASCII Art Converter</h2>
       <div className="flex flex-wrap gap-3 items-center">
-        <input type="file" accept="image/*" onChange={onFile} />
+        <label className="btn btn-primary cursor-pointer">
+          Choose Image
+          <input type="file" accept="image/*" onChange={onFile} className="hidden" />
+        </label>
         <label className="flex items-center gap-2">
           <span>Columns</span>
           <input
@@ -88,6 +92,18 @@ export default function ImageAsciiArtConverter() {
             onChange={(e) => setColumns(parseInt(e.target.value))}
           />
           <span>{columns}</span>
+        </label>
+        <label className="flex items-center gap-2">
+          <span>Aspect</span>
+          <input
+            type="range"
+            min={0.4}
+            max={0.8}
+            step={0.01}
+            value={aspectCorrection}
+            onChange={(e) => setAspectCorrection(parseFloat(e.target.value))}
+          />
+          <span>{aspectCorrection.toFixed(2)}</span>
         </label>
         <label className="flex items-center gap-2">
           <span>Font size</span>

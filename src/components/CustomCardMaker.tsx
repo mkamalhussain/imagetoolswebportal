@@ -12,6 +12,9 @@ export default function CustomCardMaker() {
   const [height, setHeight] = useState<number>(360);
   const [titleSize, setTitleSize] = useState<number>(28);
   const [messageSize, setMessageSize] = useState<number>(16);
+  const [imageScale, setImageScale] = useState<number>(1.0); // 1.0 = natural fit in render
+  const [imageXOffset, setImageXOffset] = useState<number>(0);
+  const [imageYOffset, setImageYOffset] = useState<number>(0);
 
   function renderCanvas() {
     const cnv = canvasRef.current!;
@@ -26,11 +29,12 @@ export default function CustomCardMaker() {
     if (imageUrl) {
       const img = new Image();
       img.onload = () => {
-        const ratio = Math.min(w * 0.8 / img.width, h * 0.5 / img.height);
+        const fitRatio = Math.min(w * 0.8 / img.width, h * 0.5 / img.height);
+        const ratio = fitRatio * Math.max(0.1, imageScale);
         const iw = img.width * ratio;
         const ih = img.height * ratio;
-        const ix = (w - iw) / 2;
-        const iy = 40;
+        const ix = (w - iw) / 2 + imageXOffset;
+        const iy = 40 + imageYOffset;
         ctx.drawImage(img, ix, iy, iw, ih);
         drawText();
       };
@@ -108,7 +112,23 @@ export default function CustomCardMaker() {
           <span>Message Size</span>
           <input type="number" min={10} max={80} value={messageSize} onChange={(e) => setMessageSize(parseInt(e.target.value || "0"))} className="w-20 border rounded p-1" />
         </label>
-        <input type="file" accept="image/*" onChange={onFile} />
+        <label className="btn btn-primary cursor-pointer">
+          Choose Image
+          <input type="file" accept="image/*" onChange={onFile} className="hidden" />
+        </label>
+        <label className="flex items-center gap-2">
+          <span>Image Scale</span>
+          <input type="range" min={0.1} max={3} step={0.05} value={imageScale} onChange={(e) => setImageScale(parseFloat(e.target.value))} />
+          <span>{imageScale.toFixed(2)}×</span>
+        </label>
+        <label className="flex items-center gap-2">
+          <span>Image X</span>
+          <input type="range" min={-200} max={200} step={1} value={imageXOffset} onChange={(e) => setImageXOffset(parseInt(e.target.value))} />
+        </label>
+        <label className="flex items-center gap-2">
+          <span>Image Y</span>
+          <input type="range" min={-200} max={200} step={1} value={imageYOffset} onChange={(e) => setImageYOffset(parseInt(e.target.value))} />
+        </label>
         <button className="border px-3 py-1 rounded" onClick={() => renderCanvas()}>Render</button>
         <button className="border px-3 py-1 rounded" onClick={download}>Download</button>
       </div>

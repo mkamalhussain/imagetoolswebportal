@@ -1,17 +1,15 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 export default function FaviconMaker() {
   const [size, setSize] = useState<number>(32);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file || !file.type.startsWith("image/")) return;
-    const url = URL.createObjectURL(file);
-    setPreviewUrl(url);
+  // Auto-render when size or image changes
+  useEffect(() => {
+    if (!previewUrl) return;
     const img = new Image();
     img.onload = () => {
       const cnv = canvasRef.current!;
@@ -19,7 +17,6 @@ export default function FaviconMaker() {
       cnv.height = size;
       const ctx = cnv.getContext("2d")!;
       ctx.clearRect(0, 0, size, size);
-      // Fit image into square
       const ratio = Math.min(size / img.width, size / img.height);
       const w = img.width * ratio;
       const h = img.height * ratio;
@@ -27,7 +24,15 @@ export default function FaviconMaker() {
       const y = (size - h) / 2;
       ctx.drawImage(img, x, y, w, h);
     };
-    img.src = url;
+    img.src = previewUrl;
+  }, [previewUrl, size]);
+
+  async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !file.type.startsWith("image/")) return;
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+    // Rendering handled in effect when previewUrl/size changes
   }
 
   function download() {
@@ -42,7 +47,10 @@ export default function FaviconMaker() {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3">
-        <input type="file" accept="image/*" onChange={onFile} />
+        <label className="btn btn-primary cursor-pointer">
+          Choose Image
+          <input type="file" accept="image/*" onChange={onFile} className="hidden" />
+        </label>
         <label className="flex items-center gap-2">
           <span>Size</span>
           <select value={size} onChange={(e) => setSize(parseInt(e.target.value))}>
