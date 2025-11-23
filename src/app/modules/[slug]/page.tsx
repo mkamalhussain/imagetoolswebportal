@@ -22,7 +22,10 @@ export default async function ModulePage({ params }: Props) {
     <main className="min-h-screen">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">{mod.title}</h1>
+          <h1 className="text-2xl font-semibold">
+            {mod.title}
+            <span className="ml-2 align-middle text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-700 border border-blue-200">UI v4</span>
+          </h1>
           <p className="text-gray-600 mt-2">{mod.description}</p>
         </div>
         <Link href="/" className="text-blue-600">Back to Home</Link>
