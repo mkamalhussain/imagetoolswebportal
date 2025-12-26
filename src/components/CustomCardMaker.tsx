@@ -636,7 +636,7 @@ export default function CustomCardMaker() {
       ctx.setLineDash([]);
     }
 
-    drawText();
+        drawText();
 
     if (clipRadius > 0) {
       ctx.restore();
@@ -908,7 +908,7 @@ export default function CustomCardMaker() {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Image Scale: {imageScale.toFixed(2)}×
-                    </label>
+        </label>
                     <input
                       type="range"
                       min={0.1}
@@ -924,7 +924,7 @@ export default function CustomCardMaker() {
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Horizontal Offset
-                      </label>
+        </label>
                       <input
                         type="range"
                         min={-200}
@@ -939,7 +939,7 @@ export default function CustomCardMaker() {
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Vertical Offset
-                      </label>
+        </label>
                       <input
                         type="range"
                         min={-200}
@@ -950,8 +950,8 @@ export default function CustomCardMaker() {
                         className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer"
                       />
                       <span className="text-xs text-gray-500 dark:text-gray-400">{imageYOffset}px</span>
-                    </div>
-                  </div>
+      </div>
+      </div>
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
