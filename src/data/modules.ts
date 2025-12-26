@@ -114,4 +114,10 @@ export const modules: ModuleDef[] = [
     description: 'Brush blur or clone to clean watermark areas.',
     icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-red-400"><path stroke-linecap="round" stroke-linejoin="round" d="M9 4.5v15m7.5-15v15m-4.5-15h.008v.008H12V4.5zm0 3h.008v.008H12V7.5zm0 3h.008v.008H12v10.5zm0 3h.008v.008H12V13.5zm0 3h.008v.008H12V16.5z" /></svg>'
   },
+  {
+    slug: 'personality-analyzer',
+    title: 'Personality Analyzer',
+    description: 'Analyze personality traits through handwriting analysis.',
+    icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-purple-500"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>'
+  },
 ];

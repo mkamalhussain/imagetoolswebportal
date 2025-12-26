@@ -23,6 +23,7 @@ const ImageToCartoon = dynamic(() => import("@/components/ImageToCartoon"), { ss
 const ColorPaletteExtractor = dynamic(() => import("@/components/ColorPaletteExtractor"), { ssr: false });
 const ImageUpscaler = dynamic(() => import("@/components/ImageUpscaler"), { ssr: false });
 const WatermarkRemover = dynamic(() => import("@/components/WatermarkRemover"), { ssr: false });
+const PersonalityAnalyzer = dynamic(() => import("@/components/PersonalityAnalyzer"), { ssr: false });
 
 export default function ClientModuleRenderer({ slug }: Props) {
   if (slug === "image-pixel-sorter") {
@@ -78,6 +79,9 @@ export default function ClientModuleRenderer({ slug }: Props) {
   }
   if (slug === "watermark-remover") {
     return <WatermarkRemover />;
+  }
+  if (slug === "personality-analyzer") {
+    return <PersonalityAnalyzer />;
   }
   return <p className="text-gray-700">This module is coming soon.</p>;
 }
