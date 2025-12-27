@@ -194,7 +194,8 @@ export default function MemeGenerator() {
   // Handle template selection
   const selectTemplate = useCallback((template: MemeTemplate) => {
     setSelectedTemplate(template);
-    setCustomImage(null);
+    // Don't clear customImage - let user choose between template and custom image
+    // setCustomImage(null);
     setTopText(template.topText || "");
     setBottomText(template.bottomText || "");
   }, []);
@@ -452,10 +453,11 @@ export default function MemeGenerator() {
             </div>
           </div>
 
-          {/* Canvas for processing (hidden) */}
-          <canvas ref={canvasRef} style={{ display: 'none' }} />
         </div>
       )}
+
+      {/* Canvas for processing (hidden) - always rendered */}
+      <canvas ref={canvasRef} style={{ display: 'none' }} />
 
       {/* Instructions */}
       <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
