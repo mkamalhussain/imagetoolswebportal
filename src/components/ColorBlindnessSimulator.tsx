@@ -67,9 +67,9 @@ export default function ColorBlindnessSimulator() {
     // Color blindness transformation matrices
     const matrices: Record<ColorBlindnessType, number[]> = {
       normal: [
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
+        1.1, -0.1, 0, 0,  // Slight boost to test if matrix is applied
+        0, 1.1, -0.1, 0,
+        0, 0, 1.1, 0,
         0, 0, 0, 1
       ],
       protanopia: [
