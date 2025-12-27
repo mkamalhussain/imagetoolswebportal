@@ -35,7 +35,6 @@ export default function ImageMoodAnalyzer() {
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState<string>("");
 
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const analysisCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -364,40 +363,9 @@ export default function ImageMoodAnalyzer() {
         recommendations: recommendations.slice(0, 3)
       };
 
+      // Set results - the canvas will render from sourceUrl
       setMoodResult(result);
-
-      // Small delay to ensure display canvas is fully rendered
-      await new Promise(resolve => setTimeout(resolve, 100));
-
-      // Copy the analyzed image to the display canvas
-      console.log("Attempting to copy analysis result to display canvas");
-      console.log("canvasRef.current exists:", !!canvasRef.current);
-
-      const displayCanvas = canvasRef.current;
-      if (displayCanvas) {
-        console.log("Display canvas found, copying image...");
-        try {
-          const displayCtx = displayCanvas.getContext('2d');
-          if (displayCtx) {
-            displayCanvas.width = canvas.width;
-            displayCanvas.height = canvas.height;
-            displayCtx.clearRect(0, 0, displayCanvas.width, displayCanvas.height);
-            displayCtx.drawImage(canvas, 0, 0);
-            console.log("Image copied to display canvas successfully");
-            console.log("Display canvas dimensions:", displayCanvas.width, displayCanvas.height);
-          } else {
-            console.error("Could not get display canvas context");
-          }
-        } catch (copyError) {
-          console.error("Error copying to display canvas:", copyError);
-        }
-      } else {
-        console.error("Display canvas ref is null - canvas may not be rendered yet");
-        console.log("Current render state - moodResult:", !!moodResult, "isAnalyzing:", isAnalyzing);
-        // Try to set the source URL directly as fallback
-        setSourceUrl(canvas.toDataURL('image/png'));
-        console.log("Set source URL as fallback");
-      }
+      setSourceUrl(canvas.toDataURL('image/png'));
 
       setSourceUrl(canvas.toDataURL('image/png'));
 
@@ -445,12 +413,6 @@ export default function ImageMoodAnalyzer() {
     setFileName(null);
     setMoodResult(null);
     setError("");
-    if (canvasRef.current) {
-      const ctx = canvasRef.current.getContext("2d");
-      if (ctx) {
-        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-      }
-    }
   }, []);
 
   // Download analysis report as PDF
@@ -599,13 +561,10 @@ export default function ImageMoodAnalyzer() {
     }
 
     // Add image to PDF if available
-    if (canvasRef.current) {
+    if (result && sourceUrl) {
       try {
-        const canvas = canvasRef.current;
-        const imgData = canvas.toDataURL('image/jpeg', 0.8);
-
         // Add image on a new page or at the end
-        if (yPosition > pageHeight - 100) {
+        if (yPosition > pageHeight - 120) {
           pdf.addPage();
           yPosition = 20;
         } else {
@@ -618,16 +577,21 @@ export default function ImageMoodAnalyzer() {
 
         // Calculate image dimensions to fit the page
         const imgWidth = Math.min(pageWidth - 40, 150);
-        const imgHeight = (canvas.height / canvas.width) * imgWidth;
+        const imgHeight = 100; // Fixed height for simplicity
 
         if (yPosition + imgHeight > pageHeight - 20) {
           pdf.addPage();
           yPosition = 20;
         }
 
-        pdf.addImage(imgData, 'JPEG', 20, yPosition, imgWidth, imgHeight);
+        pdf.addImage(sourceUrl, 'PNG', 20, yPosition, imgWidth, imgHeight);
+        console.log('Added image to PDF successfully');
       } catch (error) {
         console.warn('Could not add image to PDF:', error);
+        // Continue without image
+        pdf.setFontSize(10);
+        pdf.setTextColor(150, 150, 150);
+        pdf.text('(Image could not be embedded)', 20, yPosition + 20);
       }
     }
 
@@ -775,10 +739,11 @@ export default function ImageMoodAnalyzer() {
                       <p className="text-gray-600 dark:text-gray-400">Analyzing mood...</p>
                     </div>
                   </div>
-                ) : (
+                ) : sourceUrl ? (
                   <>
-                    <canvas
-                      ref={canvasRef}
+                    <img
+                      src={sourceUrl}
+                      alt="Analyzed image"
                       className="max-w-full h-auto rounded border border-gray-200 dark:border-gray-600"
                     />
                     {fileName && (
@@ -787,7 +752,7 @@ export default function ImageMoodAnalyzer() {
                       </p>
                     )}
                   </>
-                )}
+                ) : null}
               </div>
             </div>
 
