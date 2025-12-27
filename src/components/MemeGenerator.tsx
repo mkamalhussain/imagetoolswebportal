@@ -94,9 +94,9 @@ export default function MemeGenerator() {
       height: 500
     },
     {
-      id: "woman-yelling-at-cat",
-      name: "Woman Yelling at Cat",
-      url: "https://i.imgflip.com/5kdcuf.jpg",
+      id: "surprised-pikachu",
+      name: "Surprised Pikachu",
+      url: "https://i.imgflip.com/2kbn1e.jpg",
       width: 500,
       height: 500
     }
