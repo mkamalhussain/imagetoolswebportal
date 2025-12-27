@@ -49,6 +49,12 @@ export default function PerspectiveCorrection() {
         canvas.width = img.width;
         canvas.height = img.height;
 
+        // Draw the image on the canvas for display
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0);
+        }
+
         // Initialize corners as a rectangle
         const margin = 50;
         setCorners([
