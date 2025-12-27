@@ -162,56 +162,56 @@ export default function QRCodeTool() {
             return;
           }
 
-          // Set canvas size for scanning (keep original for accurate QR detection)
-          const width = img.width;
-          const height = img.height;
-          canvas.width = width;
-          canvas.height = height;
+          const originalWidth = img.width;
+          const originalHeight = img.height;
 
-          // For display, create a scaled version if image is very large
-          const maxDisplaySize = 800;
-          let displayWidth = width;
-          let displayHeight = height;
+          // Always scan at full resolution for accuracy
+          const scanCanvas = document.createElement('canvas');
+          scanCanvas.width = originalWidth;
+          scanCanvas.height = originalHeight;
+          const scanCtx = scanCanvas.getContext('2d');
 
-          if (width > maxDisplaySize || height > maxDisplaySize) {
-            const ratio = Math.min(maxDisplaySize / width, maxDisplaySize / height);
-            displayWidth = Math.floor(width * ratio);
-            displayHeight = Math.floor(height * ratio);
-
-            // Create a separate canvas for display
-            const displayCanvas = document.createElement('canvas');
-            displayCanvas.width = displayWidth;
-            displayCanvas.height = displayHeight;
-            const displayCtx = displayCanvas.getContext('2d');
-
-            if (displayCtx) {
-              displayCtx.drawImage(img, 0, 0, displayWidth, displayHeight);
-              // Update the main canvas with scaled version for display
-              canvas.width = displayWidth;
-              canvas.height = displayHeight;
-              ctx.drawImage(displayCanvas, 0, 0);
-            }
+          if (!scanCtx) {
+            setError("Failed to create scan context");
+            return;
           }
 
-          // Clear canvas first
-          ctx.clearRect(0, 0, width, height);
+          // Draw full-resolution image for scanning
+          scanCtx.drawImage(img, 0, 0, originalWidth, originalHeight);
 
-          // Draw image to canvas
-          ctx.drawImage(img, 0, 0, width, height);
+          // For display, scale if necessary
+          const maxDisplaySize = 800;
+          let displayWidth = originalWidth;
+          let displayHeight = originalHeight;
 
-          // Always display the uploaded image
+          if (originalWidth > maxDisplaySize || originalHeight > maxDisplaySize) {
+            const ratio = Math.min(maxDisplaySize / originalWidth, maxDisplaySize / originalHeight);
+            displayWidth = Math.floor(originalWidth * ratio);
+            displayHeight = Math.floor(originalHeight * ratio);
+          }
+
+          // Set display canvas size
+          canvas.width = displayWidth;
+          canvas.height = displayHeight;
+
+          // Draw scaled image for display
+          ctx.drawImage(img, 0, 0, displayWidth, displayHeight);
+
+          // Set the display image URL immediately
           setQrImageUrl(canvas.toDataURL('image/png'));
 
-          // Get image data for scanning
-          const imageData = ctx.getImageData(0, 0, width, height);
+          // Get full-resolution image data for scanning
+          const imageData = scanCtx.getImageData(0, 0, originalWidth, originalHeight);
 
-          // Validate image data
+          // Validate full-resolution image data
           if (!imageData || !imageData.data || imageData.data.length === 0) {
             setError("Failed to read image data for scanning");
             return;
           }
 
-          // Scan for QR code
+          console.log("Scanning QR code at full resolution:", originalWidth, "x", originalHeight);
+
+          // Scan for QR code using full-resolution data
           const code = jsQR(imageData.data, imageData.width, imageData.height);
 
           if (code && code.data) {
