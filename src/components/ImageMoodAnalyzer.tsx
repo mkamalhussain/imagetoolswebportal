@@ -27,6 +27,7 @@ export default function ImageMoodAnalyzer() {
   const [error, setError] = useState<string>("");
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const analysisCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Color name mapping
@@ -78,14 +79,11 @@ export default function ImageMoodAnalyzer() {
     setError("");
     setMoodResult(null);
 
-    // Small delay to ensure canvas is fully rendered
-    await new Promise(resolve => setTimeout(resolve, 100));
-
     try {
-      const canvas = canvasRef.current;
+      const canvas = analysisCanvasRef.current;
       if (!canvas) {
-        console.error("Canvas ref is null during mood analysis");
-        setError("Canvas not available. Please try again.");
+        console.error("Analysis canvas not available");
+        setError("Analysis engine not ready. Please refresh the page and try again.");
         return;
       }
 
@@ -306,6 +304,18 @@ export default function ImageMoodAnalyzer() {
       };
 
       setMoodResult(result);
+
+      // Copy the analyzed image to the display canvas
+      const displayCanvas = canvasRef.current;
+      if (displayCanvas) {
+        const displayCtx = displayCanvas.getContext('2d');
+        if (displayCtx) {
+          displayCanvas.width = canvas.width;
+          displayCanvas.height = canvas.height;
+          displayCtx.drawImage(canvas, 0, 0);
+        }
+      }
+
       setSourceUrl(canvas.toDataURL('image/png'));
 
     } catch (err) {
@@ -395,6 +405,14 @@ export default function ImageMoodAnalyzer() {
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
+      {/* Hidden canvas for analysis */}
+      <canvas
+        ref={analysisCanvasRef}
+        style={{ display: 'none' }}
+        width="800"
+        height="600"
+      />
+
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
           Image Mood Analyzer
