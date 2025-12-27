@@ -25,6 +25,9 @@ export default function QRCodeTool() {
 
   // Generate QR Code
   const generateQR = useCallback(async () => {
+    console.log("generateQR called with text:", qrText);
+    console.log("logoImage available:", !!logoImage);
+
     if (!qrText.trim()) {
       setError("Please enter text or URL to generate QR code");
       return;
@@ -32,13 +35,22 @@ export default function QRCodeTool() {
 
     setIsProcessing(true);
     setError("");
+    setQrImageUrl(""); // Clear previous result
 
     try {
       const canvas = canvasRef.current;
-      if (!canvas) return;
+      if (!canvas) {
+        setError("Canvas not available");
+        return;
+      }
 
       const ctx = canvas.getContext("2d");
-      if (!ctx) return;
+      if (!ctx) {
+        setError("Canvas context not available");
+        return;
+      }
+
+      console.log("Generating QR code with text:", qrText);
 
       // Generate QR code as image data URL
       const qrDataUrl = await QRCode.toDataURL(qrText, {
@@ -50,18 +62,26 @@ export default function QRCodeTool() {
         }
       });
 
+      console.log("QR data URL generated, length:", qrDataUrl.length);
+
       // Load the QR code image
       const qrImg = new Image();
       qrImg.onload = () => {
+        console.log("QR image loaded, drawing to canvas");
+
         // Set canvas size
         canvas.width = 400;
         canvas.height = 400;
+
+        // Clear canvas
+        ctx.clearRect(0, 0, 400, 400);
 
         // Draw QR code
         ctx.drawImage(qrImg, 0, 0, 400, 400);
 
         // If logo is provided, embed it in the center
         if (logoImage) {
+          console.log("Adding logo to QR code");
           const logoSize = 80; // Logo size (20% of QR code)
           const logoX = (400 - logoSize) / 2;
           const logoY = (400 - logoSize) / 2;
@@ -76,8 +96,15 @@ export default function QRCodeTool() {
 
         // Create final data URL
         const finalDataUrl = canvas.toDataURL('image/png');
+        console.log("Final QR image URL generated, setting state");
         setQrImageUrl(finalDataUrl);
       };
+
+      qrImg.onerror = () => {
+        console.error("Failed to load QR image");
+        setError("Failed to load generated QR code");
+      };
+
       qrImg.src = qrDataUrl;
 
     } catch (err) {
@@ -425,20 +452,29 @@ export default function QRCodeTool() {
       )}
 
       {/* Results */}
-      {(qrImageUrl || scannedText) && (
+      {(qrImageUrl || scannedText || isProcessing) && (
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            {mode === 'generate' ? 'Generated QR Code' : 'Scanned QR Code'}
+            {mode === 'generate' ? (isProcessing ? 'Generating QR Code...' : 'Generated QR Code') : 'Scanned QR Code'}
           </h3>
 
           <div className="flex flex-col lg:flex-row gap-6">
             {/* QR Code Display */}
             <div className="flex-1">
               <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-                <canvas
-                  ref={canvasRef}
-                  className="max-w-full h-auto border border-gray-200 dark:border-gray-600 rounded"
-                />
+                {isProcessing && mode === 'generate' ? (
+                  <div className="flex items-center justify-center h-96">
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                      <p className="text-gray-600 dark:text-gray-400">Generating QR Code...</p>
+                    </div>
+                  </div>
+                ) : (
+                  <canvas
+                    ref={canvasRef}
+                    className="max-w-full h-auto border border-gray-200 dark:border-gray-600 rounded"
+                  />
+                )}
               </div>
             </div>
 
