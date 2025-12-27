@@ -31,6 +31,9 @@ const ImageHistogramViewer = dynamic(() => import("@/components/ImageHistogramVi
 const MemeGenerator = dynamic(() => import("@/components/MemeGenerator"), { ssr: false });
 const ImageGridMaker = dynamic(() => import("@/components/ImageGridMaker"), { ssr: false });
 const ImageSizePredictor = dynamic(() => import("@/components/ImageSizePredictor"), { ssr: false });
+const InfographicCreator = dynamic(() => import("@/components/InfographicCreator"), { ssr: false });
+const PerspectiveCorrection = dynamic(() => import("@/components/PerspectiveCorrection"), { ssr: false });
+const PanoramaStitcher = dynamic(() => import("@/components/PanoramaStitcher"), { ssr: false });
 
 export default function ClientModuleRenderer({ slug }: Props) {
   if (slug === "image-pixel-sorter") {
@@ -110,6 +113,15 @@ export default function ClientModuleRenderer({ slug }: Props) {
   }
   if (slug === "image-size-predictor") {
     return <ImageSizePredictor />;
+  }
+  if (slug === "infographic-creator") {
+    return <InfographicCreator />;
+  }
+  if (slug === "perspective-correction") {
+    return <PerspectiveCorrection />;
+  }
+  if (slug === "panorama-stitcher") {
+    return <PanoramaStitcher />;
   }
   return <p className="text-gray-700">This module is coming soon.</p>;
 }
