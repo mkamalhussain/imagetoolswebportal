@@ -23,33 +23,12 @@ export default function ImageSizePredictor() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Estimate compressed size based on format and quality
-  const estimateCompressedSize = useCallback((originalSize: number, format: string, quality: number): number => {
-    let baseRatio: number;
-
-    switch (format.toLowerCase()) {
-      case 'jpeg':
-      case 'jpg':
-        // JPEG compression ratios vary significantly with quality
-        if (quality >= 0.9) baseRatio = 0.8; // High quality, minimal compression
-        else if (quality >= 0.7) baseRatio = 0.6;
-        else if (quality >= 0.5) baseRatio = 0.4;
-        else if (quality >= 0.3) baseRatio = 0.25;
-        else baseRatio = 0.15; // Low quality, high compression
-        break;
-      case 'webp':
-        // WebP generally better compression than JPEG
-        baseRatio = quality * 0.6 + 0.1;
-        break;
-      case 'png':
-        // PNG is lossless, but can be large
-        baseRatio = 0.7; // Some compression possible
-        break;
-      default:
-        baseRatio = 0.8;
-    }
-
-    return Math.round(originalSize * baseRatio);
+  // Get actual size from data URL
+  const getDataUrlSize = useCallback((dataUrl: string): number => {
+    // Remove the data URL prefix to get just the base64 data
+    const base64Data = dataUrl.split(',')[1];
+    // Calculate actual byte size (base64 is ~33% larger than binary)
+    return Math.round((base64Data.length * 3) / 4);
   }, []);
 
   // Analyze image and generate predictions
@@ -105,14 +84,14 @@ export default function ImageSizePredictor() {
         ctx.drawImage(img, 0, 0);
 
         const dataUrl = canvas.toDataURL('image/jpeg', quality);
-        const estimatedSize = estimateCompressedSize(fileSize, 'jpeg', quality);
+        const actualSize = getDataUrlSize(dataUrl);
 
         results.push({
           format: 'JPEG',
           quality: Math.round(quality * 100),
-          size: estimatedSize,
+          size: actualSize,
           dataUrl,
-          compressionRatio: Math.round((1 - estimatedSize / fileSize) * 100)
+          compressionRatio: Math.round((1 - actualSize / fileSize) * 100)
         });
       }
 
@@ -124,14 +103,14 @@ export default function ImageSizePredictor() {
           ctx.drawImage(img, 0, 0);
 
           const dataUrl = canvas.toDataURL('image/webp', quality);
-          const estimatedSize = estimateCompressedSize(fileSize, 'webp', quality);
+          const actualSize = getDataUrlSize(dataUrl);
 
           results.push({
             format: 'WebP',
             quality: Math.round(quality * 100),
-            size: estimatedSize,
+            size: actualSize,
             dataUrl,
-            compressionRatio: Math.round((1 - estimatedSize / fileSize) * 100)
+            compressionRatio: Math.round((1 - actualSize / fileSize) * 100)
           });
         }
       }
@@ -140,7 +119,7 @@ export default function ImageSizePredictor() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0);
       const pngDataUrl = canvas.toDataURL('image/png');
-      const pngSize = estimateCompressedSize(fileSize, 'png', 1);
+      const pngSize = getDataUrlSize(pngDataUrl);
 
       results.push({
         format: 'PNG',
@@ -158,7 +137,7 @@ export default function ImageSizePredictor() {
     } finally {
       setIsAnalyzing(false);
     }
-  }, [estimateCompressedSize]);
+  }, [getDataUrlSize]);
 
   // Apply selected compression
   const applyCompression = useCallback(async (prediction: CompressionResult) => {
