@@ -37,10 +37,14 @@ export default function QRCodeTool() {
     setError("");
     setQrImageUrl(""); // Clear previous result
 
+    // Small delay to ensure canvas is fully rendered
+    await new Promise(resolve => setTimeout(resolve, 100));
+
     try {
       const canvas = canvasRef.current;
       if (!canvas) {
-        setError("Canvas not available");
+        console.error("Canvas ref is null");
+        setError("Canvas not available. Please try again.");
         return;
       }
 
@@ -462,19 +466,20 @@ export default function QRCodeTool() {
             {/* QR Code Display */}
             <div className="flex-1">
               <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-                {isProcessing && mode === 'generate' ? (
-                  <div className="flex items-center justify-center h-96">
-                    <div className="text-center">
-                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                      <p className="text-gray-600 dark:text-gray-400">Generating QR Code...</p>
+                <div className="relative">
+                  {isProcessing && mode === 'generate' && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-gray-800 z-10">
+                      <div className="text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                        <p className="text-gray-600 dark:text-gray-400">Generating QR Code...</p>
+                      </div>
                     </div>
-                  </div>
-                ) : (
+                  )}
                   <canvas
                     ref={canvasRef}
                     className="max-w-full h-auto border border-gray-200 dark:border-gray-600 rounded"
                   />
-                )}
+                </div>
               </div>
             </div>
 
