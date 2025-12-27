@@ -18,6 +18,7 @@ export default function QRCodeTool() {
   const [error, setError] = useState<string>("");
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [canvasReady, setCanvasReady] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const logoInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -121,17 +122,29 @@ export default function QRCodeTool() {
 
   // Scan QR Code from uploaded image
   const scanQR = useCallback(async (file: File) => {
+    console.log("scanQR called with file:", file.name, "size:", file.size);
 
     setIsProcessing(true);
     setError("");
     setScannedText("");
+    setQrImageUrl(""); // Clear any previous results
+
+    // Wait for canvas to be ready
+    let attempts = 0;
+    while (!canvasRef.current && attempts < 10) {
+      await new Promise(resolve => setTimeout(resolve, 50));
+      attempts++;
+    }
 
     try {
       const canvas = canvasRef.current;
       if (!canvas) {
-        setError("Canvas not available");
+        console.error("Canvas still not available after waiting");
+        setError("Canvas not available. Please refresh the page and try again.");
         return;
       }
+
+      console.log("Canvas ready for scanning, dimensions:", canvas.width, canvas.height);
 
       const ctx = canvas.getContext("2d");
       if (!ctx) {
@@ -149,18 +162,36 @@ export default function QRCodeTool() {
             return;
           }
 
-          // Set canvas size to match image (with reasonable limits)
-          const maxSize = 2048;
-          let { width, height } = img;
-
-          if (width > maxSize || height > maxSize) {
-            const ratio = Math.min(maxSize / width, maxSize / height);
-            width = Math.floor(width * ratio);
-            height = Math.floor(height * ratio);
-          }
-
+          // Set canvas size for scanning (keep original for accurate QR detection)
+          const width = img.width;
+          const height = img.height;
           canvas.width = width;
           canvas.height = height;
+
+          // For display, create a scaled version if image is very large
+          const maxDisplaySize = 800;
+          let displayWidth = width;
+          let displayHeight = height;
+
+          if (width > maxDisplaySize || height > maxDisplaySize) {
+            const ratio = Math.min(maxDisplaySize / width, maxDisplaySize / height);
+            displayWidth = Math.floor(width * ratio);
+            displayHeight = Math.floor(height * ratio);
+
+            // Create a separate canvas for display
+            const displayCanvas = document.createElement('canvas');
+            displayCanvas.width = displayWidth;
+            displayCanvas.height = displayHeight;
+            const displayCtx = displayCanvas.getContext('2d');
+
+            if (displayCtx) {
+              displayCtx.drawImage(img, 0, 0, displayWidth, displayHeight);
+              // Update the main canvas with scaled version for display
+              canvas.width = displayWidth;
+              canvas.height = displayHeight;
+              ctx.drawImage(displayCanvas, 0, 0);
+            }
+          }
 
           // Clear canvas first
           ctx.clearRect(0, 0, width, height);
@@ -458,7 +489,7 @@ export default function QRCodeTool() {
       )}
 
       {/* Results */}
-      {(qrImageUrl || scannedText || isProcessing) && (
+      {(qrImageUrl || scannedText || isProcessing || (mode === 'scan' && fileInputRef.current?.files?.length)) && (
         <div className="space-y-4">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
             {mode === 'generate'
@@ -481,8 +512,12 @@ export default function QRCodeTool() {
                     </div>
                   )}
                   <canvas
-                    ref={canvasRef}
-                    className="max-w-full h-auto border border-gray-200 dark:border-gray-600 rounded"
+                    ref={(el) => {
+                      canvasRef.current = el;
+                      setCanvasReady(!!el);
+                    }}
+                    className="max-w-full h-auto max-h-96 border border-gray-200 dark:border-gray-600 rounded"
+                    style={{ minHeight: '200px', minWidth: '200px' }}
                   />
                 </div>
               </div>
