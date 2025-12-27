@@ -120,4 +120,10 @@ export const modules: ModuleDef[] = [
     description: 'Analyze personality traits through handwriting analysis.',
     icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-purple-500"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>'
   },
+  {
+    slug: 'qr-code-tool',
+    title: 'QR Code Tool',
+    description: 'Generate QR codes or scan QR codes from images.',
+    icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-green-600"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5C4.254 10.5 3.75 9.996 3.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5c-.621 0-1.125-.504-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5C14.004 10.5 13.5 9.996 13.5 9.375v-4.5z" /><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75h.0075v.0075H6.75V6.75zm0 5.25h.0075v.0075H6.75V12zm5.25-5.25h.0075v.0075H12V6.75zm0 5.25h.0075v.0075H12V12zm5.25-5.25h.0075v.0075H17.25V6.75zm0 5.25h.0075v.0075H17.25V12z" /></svg>'
+  },
 ];
