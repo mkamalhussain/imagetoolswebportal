@@ -26,6 +26,9 @@ const WatermarkRemover = dynamic(() => import("@/components/WatermarkRemover"), 
 const PersonalityAnalyzer = dynamic(() => import("@/components/PersonalityAnalyzer"), { ssr: false });
 const QRCodeTool = dynamic(() => import("@/components/QRCodeTool"), { ssr: false });
 const ImageMoodAnalyzer = dynamic(() => import("@/components/ImageMoodAnalyzer"), { ssr: false });
+const ColorBlindnessSimulator = dynamic(() => import("@/components/ColorBlindnessSimulator"), { ssr: false });
+const ImageHistogramViewer = dynamic(() => import("@/components/ImageHistogramViewer"), { ssr: false });
+const MemeGenerator = dynamic(() => import("@/components/MemeGenerator"), { ssr: false });
 
 export default function ClientModuleRenderer({ slug }: Props) {
   if (slug === "image-pixel-sorter") {
@@ -90,6 +93,15 @@ export default function ClientModuleRenderer({ slug }: Props) {
   }
   if (slug === "image-mood-analyzer") {
     return <ImageMoodAnalyzer />;
+  }
+  if (slug === "color-blindness-simulator") {
+    return <ColorBlindnessSimulator />;
+  }
+  if (slug === "image-histogram-viewer") {
+    return <ImageHistogramViewer />;
+  }
+  if (slug === "meme-generator") {
+    return <MemeGenerator />;
   }
   return <p className="text-gray-700">This module is coming soon.</p>;
 }
