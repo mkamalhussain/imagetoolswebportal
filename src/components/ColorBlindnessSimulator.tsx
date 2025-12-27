@@ -20,6 +20,7 @@ export default function ColorBlindnessSimulator() {
   const [sourceUrl, setSourceUrl] = useState<string | null>(null);
   const [simulatedUrl, setSimulatedUrl] = useState<string | null>(null);
   const [currentSimulation, setCurrentSimulation] = useState<ColorBlindnessType>('normal');
+  const [originalFile, setOriginalFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState<string>("");
@@ -122,6 +123,7 @@ export default function ColorBlindnessSimulator() {
     setIsProcessing(true);
     setError("");
     setSimulatedUrl(null); // Clear previous result
+    setOriginalFile(file); // Store original file for re-processing
 
     // Small delay to ensure canvas is fully rendered
     await new Promise(resolve => setTimeout(resolve, 100));
@@ -186,11 +188,10 @@ export default function ColorBlindnessSimulator() {
   const handleSimulationChange = useCallback((type: ColorBlindnessType) => {
     setCurrentSimulation(type);
     // Re-process if we have an image
-    if (sourceUrl) {
-      const file = new File([], "temp"); // This won't work, need to store original file
-      // For now, just update the type - user will need to re-upload for new simulation
+    if (originalFile) {
+      processImage(originalFile);
     }
-  }, [sourceUrl]);
+  }, [originalFile, processImage]);
 
   // Drag and drop handlers
   const handleDragOver = useCallback((e: React.DragEvent) => {
