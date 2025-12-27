@@ -205,11 +205,17 @@ export default function PerspectiveCorrection() {
     if (!canvas) return;
 
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+
+    // Calculate scaling factor between displayed size and actual pixel size
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    // Convert mouse coordinates to canvas pixel coordinates
+    const x = (e.clientX - rect.left) * scaleX;
+    const y = (e.clientY - rect.top) * scaleY;
 
     // Check if clicking on a corner point
-    const clickRadius = 10;
+    const clickRadius = 15; // Increased radius for easier clicking
     for (let i = 0; i < corners.length; i++) {
       const corner = corners[i];
       const distance = Math.sqrt((x - corner.x) ** 2 + (y - corner.y) ** 2);
@@ -227,12 +233,25 @@ export default function PerspectiveCorrection() {
     if (!canvas) return;
 
     const rect = canvas.getBoundingClientRect();
-    const x = Math.max(0, Math.min(canvas.width, e.clientX - rect.left));
-    const y = Math.max(0, Math.min(canvas.height, e.clientY - rect.top));
+
+    // Calculate scaling factor between displayed size and actual pixel size
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    // Convert mouse coordinates to canvas pixel coordinates
+    const x = Math.max(0, Math.min(canvas.width, (e.clientX - rect.left) * scaleX));
+    const y = Math.max(0, Math.min(canvas.height, (e.clientY - rect.top) * scaleY));
 
     setCorners(prev => prev.map((corner, index) =>
       index === draggingPoint ? { x, y } : corner
     ));
+
+    // Redraw canvas to show updated corner positions (optional visual feedback)
+    const ctx = canvas.getContext("2d");
+    if (ctx && originalImage) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(originalImage, 0, 0);
+    }
   }, [draggingPoint]);
 
   const handleMouseUp = useCallback(() => {
