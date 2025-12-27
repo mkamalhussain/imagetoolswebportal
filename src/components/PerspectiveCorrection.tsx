@@ -52,17 +52,23 @@ export default function PerspectiveCorrection() {
         // Draw the image on the canvas for display
         const ctx = canvas.getContext("2d");
         if (ctx) {
+          console.log('Drawing image to canvas:', img.width, 'x', img.height);
           ctx.drawImage(img, 0, 0);
+          console.log('Canvas after drawing:', canvas.width, 'x', canvas.height);
+        } else {
+          console.error('Could not get canvas context');
         }
 
         // Initialize corners as a rectangle
         const margin = 50;
-        setCorners([
+        const newCorners = [
           { x: margin, y: margin },
           { x: img.width - margin, y: margin },
           { x: img.width - margin, y: img.height - margin },
           { x: margin, y: img.height - margin }
-        ]);
+        ];
+        console.log('Setting corners:', newCorners);
+        setCorners(newCorners);
       }
 
     } catch (err) {
@@ -365,10 +371,14 @@ export default function PerspectiveCorrection() {
             </div>
 
             <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-              <div className="relative">
+              <div className="relative overflow-auto max-h-96 max-w-full">
                 <canvas
                   ref={canvasRef}
-                  className="max-w-full h-auto cursor-crosshair"
+                  className="border border-gray-200 dark:border-gray-600 cursor-crosshair block"
+                  style={{
+                    maxWidth: '100%',
+                    height: 'auto'
+                  }}
                   onMouseDown={handleMouseDown}
                   onMouseMove={handleMouseMove}
                   onMouseUp={handleMouseUp}
@@ -395,7 +405,10 @@ export default function PerspectiveCorrection() {
                 {/* Connecting lines */}
                 <svg
                   className="absolute inset-0 pointer-events-none"
-                  style={{ width: '100%', height: '100%' }}
+                  style={{
+                    width: originalImage?.width || '100%',
+                    height: originalImage?.height || '100%'
+                  }}
                 >
                   <polygon
                     points={corners.map(corner => `${corner.x},${corner.y}`).join(' ')}
