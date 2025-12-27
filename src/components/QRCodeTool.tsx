@@ -3,6 +3,8 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import Button from "@/components/Button";
 import QRCode from "qrcode";
+// @ts-ignore - jsQR doesn't have proper TypeScript types
+import jsQR from "jsqr";
 
 export default function QRCodeTool() {
   const [mode, setMode] = useState<'scan' | 'generate'>('generate');
@@ -19,13 +21,7 @@ export default function QRCodeTool() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const logoInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Dynamic import of jsQR for client-side only
-  const [jsQR, setJsQR] = useState<any>(null);
-  useEffect(() => {
-    import('jsqr').then((module) => {
-      setJsQR(module.default);
-    });
-  }, []);
+  // jsQR is now imported statically
 
   // Generate QR Code
   const generateQR = useCallback(async () => {
@@ -94,10 +90,6 @@ export default function QRCodeTool() {
 
   // Scan QR Code from uploaded image
   const scanQR = useCallback(async (file: File) => {
-    if (!jsQR) {
-      setError("QR scanning library not loaded. Please wait and try again.");
-      return;
-    }
 
     setIsProcessing(true);
     setError("");
@@ -181,7 +173,7 @@ export default function QRCodeTool() {
     } finally {
       setIsProcessing(false);
     }
-  }, [jsQR]);
+  }, []);
 
   // Handle file upload for scanning
   const handleFileUpload = useCallback((file: File) => {
@@ -383,11 +375,6 @@ export default function QRCodeTool() {
       {/* Scan Mode */}
       {mode === 'scan' && (
         <div className="space-y-6">
-          {!jsQR && (
-            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-              <p className="text-blue-700 dark:text-blue-400">Loading QR scanning library...</p>
-            </div>
-          )}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Upload Image with QR Code
@@ -411,7 +398,7 @@ export default function QRCodeTool() {
               <Button
                 className="mt-4"
                 onClick={() => fileInputRef.current?.click()}
-                disabled={!jsQR || isProcessing}
+                disabled={isProcessing}
               >
                 {isProcessing ? "Processing..." : "Select Image"}
               </Button>
