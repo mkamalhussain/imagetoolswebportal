@@ -221,13 +221,13 @@ export default function ImageUpscaler() {
       const imgData = ctx.getImageData(0, 0, outW, outH);
       const radius = Math.floor(denoise / 10);
       const denoised = applyMedianFilter(imgData.data, outW, outH, radius);
-      ctx.putImageData(new ImageData(denoised, outW, outH), 0, 0);
+      ctx.putImageData(new ImageData(new Uint8ClampedArray(denoised), outW, outH), 0, 0);
     }
 
     if (colorEnhancement > 0) {
       const imgData = ctx.getImageData(0, 0, outW, outH);
       const enhanced = enhanceColors(imgData.data, colorEnhancement);
-      ctx.putImageData(new ImageData(enhanced, outW, outH), 0, 0);
+      ctx.putImageData(new ImageData(new Uint8ClampedArray(enhanced), outW, outH), 0, 0);
     }
 
     // Calculate file size

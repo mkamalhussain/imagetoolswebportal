@@ -12,12 +12,23 @@ type CommonProps = {
   disabled?: boolean;
 };
 
-type ButtonProps = CommonProps & {
-  as?: AsTag;
+type AnchorProps = {
+  href?: string;
+  target?: string;
+  rel?: string;
+};
+
+type ButtonSpecificProps = {
   type?: "button" | "submit" | "reset";
   onClick?: React.MouseEventHandler<HTMLElement>;
-  href?: string;
 };
+
+type ButtonProps = CommonProps &
+  (
+    | ({ as?: "button" } & ButtonSpecificProps)
+    | ({ as: "label" })
+    | ({ as: "a" } & AnchorProps)
+  );
 
 export default function Button({
   as = "button",
@@ -25,10 +36,8 @@ export default function Button({
   className = "",
   children,
   disabled,
-  type = "button",
-  onClick,
-  href,
-}: ButtonProps) {
+  ...rest
+}: ButtonProps): React.JSX.Element {
   const base =
     "inline-flex items-center justify-center gap-2 px-4 py-2 text-base rounded-md font-semibold transition-all duration-200 " +
     "focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed";
@@ -50,15 +59,17 @@ export default function Button({
   }
 
   if (as === "a") {
+    const { href, target, rel } = rest as AnchorProps;
     return (
-      <a className={classes} href={href} onClick={onClick} aria-disabled={disabled}>
+      <a className={classes} href={href} target={target} rel={rel} aria-disabled={disabled}>
         {children}
       </a>
     );
   }
 
+  const { type, onClick } = rest as ButtonSpecificProps;
   return (
-    <button className={classes} type={type} disabled={disabled} onClick={onClick as any}>
+    <button className={classes} type={type} disabled={disabled} onClick={onClick}>
       {children}
     </button>
   );
