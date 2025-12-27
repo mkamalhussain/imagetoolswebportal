@@ -78,10 +78,14 @@ export default function ImageMoodAnalyzer() {
     setError("");
     setMoodResult(null);
 
+    // Small delay to ensure canvas is fully rendered
+    await new Promise(resolve => setTimeout(resolve, 100));
+
     try {
       const canvas = canvasRef.current;
       if (!canvas) {
-        setError("Canvas not available");
+        console.error("Canvas ref is null during mood analysis");
+        setError("Canvas not available. Please try again.");
         return;
       }
 
@@ -447,125 +451,144 @@ export default function ImageMoodAnalyzer() {
       )}
 
       {/* Results */}
-      {moodResult && sourceUrl && (
+      {(moodResult && sourceUrl) || isAnalyzing ? (
         <div className="space-y-6">
           <div className="flex justify-between items-center">
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-              Analysis Results
+              {isAnalyzing ? 'Analyzing Image Mood...' : 'Analysis Results'}
             </h3>
-            <Button variant="secondary" onClick={clearAll}>
-              Analyze Another Image
-            </Button>
+            {!isAnalyzing && (
+              <Button variant="secondary" onClick={clearAll}>
+                Analyze Another Image
+              </Button>
+            )}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Image Display */}
             <div>
-              <h4 className="font-medium text-gray-900 dark:text-white mb-3">Uploaded Image</h4>
+              <h4 className="font-medium text-gray-900 dark:text-white mb-3">
+                {isAnalyzing ? 'Processing Image...' : 'Uploaded Image'}
+              </h4>
               <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-                <canvas
-                  ref={canvasRef}
-                  className="max-w-full h-auto rounded border border-gray-200 dark:border-gray-600"
-                />
-                {fileName && (
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 text-center">
-                    {fileName}
-                  </p>
+                {isAnalyzing ? (
+                  <div className="flex items-center justify-center h-64">
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                      <p className="text-gray-600 dark:text-gray-400">Analyzing mood...</p>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <canvas
+                      ref={canvasRef}
+                      className="max-w-full h-auto rounded border border-gray-200 dark:border-gray-600"
+                    />
+                    {fileName && (
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 text-center">
+                        {fileName}
+                      </p>
+                    )}
+                  </>
                 )}
               </div>
             </div>
 
             {/* Mood Analysis */}
-            <div className="space-y-4">
-              {/* Primary Mood */}
-              <div>
-                <h4 className="font-medium text-gray-900 dark:text-white mb-3">Primary Mood</h4>
-                <div className={`p-4 rounded-lg border-2 ${getMoodColor(moodResult.primaryMood)}`}>
-                  <div className="flex items-center space-x-3">
-                    <span className="text-3xl">{getMoodEmoji(moodResult.primaryMood)}</span>
-                    <div>
-                      <h5 className="font-semibold text-lg capitalize">
-                        {moodResult.primaryMood}
-                      </h5>
-                      <p className="text-sm opacity-75">
-                        Confidence: {Math.round(moodResult.confidence * 100)}%
-                      </p>
+            {moodResult && !isAnalyzing && (
+              <div className="space-y-4">
+                {/* Primary Mood */}
+                <div>
+                  <h4 className="font-medium text-gray-900 dark:text-white mb-3">Primary Mood</h4>
+                  <div className={`p-4 rounded-lg border-2 ${getMoodColor(moodResult.primaryMood)}`}>
+                    <div className="flex items-center space-x-3">
+                      <span className="text-3xl">{getMoodEmoji(moodResult.primaryMood)}</span>
+                      <div>
+                        <h5 className="font-semibold text-lg capitalize">
+                          {moodResult.primaryMood}
+                        </h5>
+                        <p className="text-sm opacity-75">
+                          Confidence: {Math.round(moodResult.confidence * 100)}%
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Secondary Moods */}
-              {moodResult.secondaryMoods.length > 0 && (
+                {/* Secondary Moods */}
+                {moodResult.secondaryMoods.length > 0 && (
+                  <div>
+                    <h4 className="font-medium text-gray-900 dark:text-white mb-3">Secondary Moods</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {moodResult.secondaryMoods.map((mood, index) => (
+                        <span
+                          key={index}
+                          className={`px-3 py-1 rounded-full text-sm font-medium ${getMoodColor(mood)}`}
+                        >
+                          {getMoodEmoji(mood)} {mood}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Technical Analysis */}
                 <div>
-                  <h4 className="font-medium text-gray-900 dark:text-white mb-3">Secondary Moods</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {moodResult.secondaryMoods.map((mood, index) => (
-                      <span
-                        key={index}
-                        className={`px-3 py-1 rounded-full text-sm font-medium ${getMoodColor(mood)}`}
-                      >
-                        {getMoodEmoji(mood)} {mood}
-                      </span>
+                  <h4 className="font-medium text-gray-900 dark:text-white mb-3">Technical Analysis</h4>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-600 dark:text-gray-400">Brightness:</span>
+                      <span className="ml-2 font-medium">{Math.round(moodResult.analysis.brightness * 100)}%</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600 dark:text-gray-400">Saturation:</span>
+                      <span className="ml-2 font-medium">{Math.round(moodResult.analysis.saturation * 100)}%</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600 dark:text-gray-400">Warmth:</span>
+                      <span className="ml-2 font-medium">{moodResult.analysis.warmth.toFixed(1)}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600 dark:text-gray-400">Complexity:</span>
+                      <span className="ml-2 font-medium">{Math.round(moodResult.analysis.complexity)}</span>
+                    </div>
+                    <div className="col-span-2">
+                      <span className="text-gray-600 dark:text-gray-400">Composition:</span>
+                      <span className="ml-2 font-medium capitalize">{moodResult.composition.replace('-', ' ')}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Dominant Colors */}
+                <div>
+                  <h4 className="font-medium text-gray-900 dark:text-white mb-3">Dominant Colors</h4>
+                  <div className="space-y-2">
+                    {moodResult.dominantColors.map((color, index) => (
+                      <div key={index} className="flex items-center space-x-3">
+                        <div
+                          className="w-6 h-6 rounded border border-gray-300 dark:border-gray-600"
+                          style={{ backgroundColor: color.color }}
+                        />
+                        <span className="text-sm font-medium">{color.name}</span>
+                        <span className="text-sm text-gray-600 dark:text-gray-400">{color.percentage}%</span>
+                      </div>
                     ))}
                   </div>
                 </div>
-              )}
-
-              {/* Technical Analysis */}
-              <div>
-                <h4 className="font-medium text-gray-900 dark:text-white mb-3">Technical Analysis</h4>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-gray-600 dark:text-gray-400">Brightness:</span>
-                    <span className="ml-2 font-medium">{Math.round(moodResult.analysis.brightness * 100)}%</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-600 dark:text-gray-400">Saturation:</span>
-                    <span className="ml-2 font-medium">{Math.round(moodResult.analysis.saturation * 100)}%</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-600 dark:text-gray-400">Warmth:</span>
-                    <span className="ml-2 font-medium">{moodResult.analysis.warmth.toFixed(1)}</span>
-                  </div>
-                  <div>
-                    <span className="text-gray-600 dark:text-gray-400">Complexity:</span>
-                    <span className="ml-2 font-medium">{Math.round(moodResult.analysis.complexity)}</span>
-                  </div>
-                  <div className="col-span-2">
-                    <span className="text-gray-600 dark:text-gray-400">Composition:</span>
-                    <span className="ml-2 font-medium capitalize">{moodResult.composition.replace('-', ' ')}</span>
-                  </div>
-                </div>
               </div>
-
-              {/* Dominant Colors */}
-              <div>
-                <h4 className="font-medium text-gray-900 dark:text-white mb-3">Dominant Colors</h4>
-                <div className="space-y-2">
-                  {moodResult.dominantColors.map((color, index) => (
-                    <div key={index} className="flex items-center space-x-3">
-                      <div
-                        className="w-6 h-6 rounded border border-gray-300 dark:border-gray-600"
-                        style={{ backgroundColor: color.color }}
-                      />
-                      <span className="text-sm font-medium">{color.name}</span>
-                      <span className="text-sm text-gray-600 dark:text-gray-400">{color.percentage}%</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+            )}
           </div>
 
           {/* Fun Message */}
-          <div className="text-center p-4 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 rounded-lg">
-            <p className="text-purple-800 dark:text-purple-200 font-medium">
-              🤖 <em>Remember: This is a fun analysis, not scientific psychology!</em>
-            </p>
-          </div>
+          {moodResult && (
+            <div className="text-center p-4 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 rounded-lg">
+              <p className="text-purple-800 dark:text-purple-200 font-medium">
+                🤖 <em>Remember: This is a fun analysis, not scientific psychology!</em>
+              </p>
+            </div>
+          )}
         </div>
-      )}
+      ) : null}
 
       {/* Instructions */}
       <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
