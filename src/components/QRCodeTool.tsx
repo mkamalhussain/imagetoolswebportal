@@ -14,16 +14,21 @@ export default function QRCodeTool() {
   const [dragOver, setDragOver] = useState(false);
   const [qrImageUrl, setQrImageUrl] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const [logoImage, setLogoImage] = useState<HTMLImageElement | null>(null);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [embedLogo, setEmbedLogo] = useState<boolean>(false);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [canvasReady, setCanvasReady] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const logoInputRef = useRef<HTMLInputElement | null>(null);
 
   // jsQR is now imported statically
 
   // Generate QR Code
   const generateQR = useCallback(async () => {
     console.log("generateQR called with text:", qrText);
+    console.log("embedLogo:", embedLogo, "logoImage available:", !!logoImage);
 
     if (!qrText.trim()) {
       setError("Please enter text or URL to generate QR code");
@@ -80,8 +85,20 @@ export default function QRCodeTool() {
         // Draw QR code
         ctx.drawImage(qrImg, 0, 0, 600, 600);
 
-        // NOTE: Logo embedding is disabled as it breaks QR code scannability
-        // QR codes require clean, unmodified modules to be readable
+        // Embed logo if requested (WARNING: may break scannability)
+        if (embedLogo && logoImage) {
+          console.warn("Embedding logo - this may make QR code unscannable");
+          const logoSize = 100; // Smaller logo size to minimize interference
+          const logoX = (600 - logoSize) / 2;
+          const logoY = (600 - logoSize) / 2;
+
+          // Create white background for logo
+          ctx.fillStyle = 'white';
+          ctx.fillRect(logoX - 4, logoY - 4, logoSize + 8, logoSize + 8);
+
+          // Draw logo
+          ctx.drawImage(logoImage, logoX, logoY, logoSize, logoSize);
+        }
 
         // Create final data URL
         const finalDataUrl = canvas.toDataURL('image/png');
@@ -102,7 +119,7 @@ export default function QRCodeTool() {
     } finally {
       setIsProcessing(false);
     }
-  }, [qrText]);
+  }, [qrText, embedLogo, logoImage]);
 
   // Scan QR Code from uploaded image
   const scanQR = useCallback(async (file: File) => {
@@ -230,6 +247,16 @@ export default function QRCodeTool() {
     }
   }, [mode, scanQR]);
 
+  // Handle logo file upload
+  const handleLogoUpload = useCallback((file: File) => {
+    const img = new Image();
+    img.onload = () => {
+      setLogoImage(img);
+      setLogoFile(file);
+    };
+    img.src = URL.createObjectURL(file);
+  }, []);
+
 
   // Drag and drop handlers
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -249,11 +276,13 @@ export default function QRCodeTool() {
     const files = e.dataTransfer.files;
     if (files.length > 0) {
       const file = files[0];
-      if (mode === 'scan' && file.type.startsWith('image/')) {
+      if (mode === 'generate' && file.type.startsWith('image/')) {
+        handleLogoUpload(file);
+      } else if (mode === 'scan' && file.type.startsWith('image/')) {
         handleFileUpload(file);
       }
     }
-  }, [mode, handleFileUpload]);
+  }, [mode, handleLogoUpload, handleFileUpload]);
 
   // Download QR code
   const downloadQR = useCallback(() => {
@@ -270,6 +299,9 @@ export default function QRCodeTool() {
     setQrText("");
     setScannedText("");
     setQrImageUrl("");
+    setLogoImage(null);
+    setLogoFile(null);
+    setEmbedLogo(false);
     setError("");
     if (canvasRef.current) {
       const ctx = canvasRef.current.getContext("2d");
@@ -333,6 +365,85 @@ export default function QRCodeTool() {
             />
           </div>
 
+          {/* Logo Embedding Option */}
+          <div className="space-y-4">
+            <div className="flex items-center space-x-3">
+              <input
+                type="checkbox"
+                id="embedLogo"
+                checked={embedLogo}
+                onChange={(e) => setEmbedLogo(e.target.checked)}
+                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+              />
+              <label htmlFor="embedLogo" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Embed logo in QR code (⚠️ may reduce scannability)
+              </label>
+            </div>
+
+            {embedLogo && (
+              <div>
+                <div
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                    dragOver
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                      : 'border-gray-300 dark:border-gray-600'
+                  }`}
+                >
+                  {logoImage ? (
+                    <div className="space-y-4">
+                      <div className="flex justify-center">
+                        <img
+                          src={URL.createObjectURL(logoFile!)}
+                          alt="Logo preview"
+                          className="max-w-16 max-h-16 object-contain border border-gray-200 dark:border-gray-600 rounded"
+                        />
+                      </div>
+                      <div className="space-x-2">
+                        <Button onClick={() => logoInputRef.current?.click()}>
+                          Change Logo
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          onClick={() => {
+                            setLogoImage(null);
+                            setLogoFile(null);
+                          }}
+                        >
+                          Remove Logo
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="text-gray-500 dark:text-gray-400">
+                        <svg className="mx-auto h-8 w-8 mb-2" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                          <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                        <p className="text-sm">Drop logo here, or click to select</p>
+                        <p className="text-xs text-gray-400">Small, simple logos work best</p>
+                      </div>
+                      <Button onClick={() => logoInputRef.current?.click()}>
+                        Select Logo
+                      </Button>
+                    </div>
+                  )}
+                </div>
+                <input
+                  ref={logoInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleLogoUpload(file);
+                  }}
+                  className="hidden"
+                />
+              </div>
+            )}
+          </div>
 
           {/* Generate Button */}
           <div className="flex justify-center">
@@ -484,8 +595,8 @@ export default function QRCodeTool() {
           <li><strong>Generate:</strong> Enter text or URL and click "Generate QR Code"</li>
           <li><strong>Scan:</strong> Upload an image containing a QR code to extract the data</li>
           <li>• Supports text, URLs, and other data encoded in QR codes</li>
-          <li>• <strong>Important:</strong> QR codes must remain clean and unmodified to be scannable</li>
-          <li>• Logos or modifications will make QR codes unreadable</li>
+          <li>• <strong>Optional logo embedding:</strong> Check the box to add a logo (⚠️ may reduce scannability)</li>
+          <li>• For best results, use small, simple logos and test scannability</li>
         </ul>
       </div>
     </div>
