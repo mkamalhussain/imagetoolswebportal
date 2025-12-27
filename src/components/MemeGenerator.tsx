@@ -39,19 +39,17 @@ export default function MemeGenerator() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Debug: Monitor selectedTemplate state changes
-  useEffect(() => {
-    console.log('selectedTemplate changed:', selectedTemplate);
-  }, [selectedTemplate]);
 
   // Popular meme templates
   const memeTemplates: MemeTemplate[] = [
     {
-      id: "distracted-boyfriend",
-      name: "Distracted Boyfriend",
-      url: "https://i.imgflip.com/1ur9b0.jpg",
+      id: "doge",
+      name: "Doge",
+      url: "https://i.imgflip.com/4t0m5.jpg",
       width: 500,
-      height: 500
+      height: 500,
+      topText: "wow",
+      bottomText: "such meme"
     },
     {
       id: "drake-hotline-bling",
@@ -96,9 +94,9 @@ export default function MemeGenerator() {
       height: 500
     },
     {
-      id: "mocking-spongebob",
-      name: "Mocking SpongeBob",
-      url: "https://i.imgflip.com/1otk.jpg",
+      id: "woman-yelling-at-cat",
+      name: "Woman Yelling at Cat",
+      url: "https://i.imgflip.com/5kdcuf.jpg",
       width: 500,
       height: 500
     }
@@ -137,7 +135,10 @@ export default function MemeGenerator() {
       const img = new Image();
       await new Promise((resolve, reject) => {
         img.onload = resolve;
-        img.onerror = reject;
+        img.onerror = (error) => {
+          console.error('Failed to load image:', imageUrl, error);
+          reject(new Error(`Failed to load image: ${imageUrl}`));
+        };
         img.crossOrigin = "anonymous";
         img.src = imageUrl;
       });
@@ -198,13 +199,11 @@ export default function MemeGenerator() {
 
   // Handle template selection
   const selectTemplate = useCallback((template: MemeTemplate) => {
-    console.log('Template selected:', template.name);
     setSelectedTemplate(template);
     // Don't clear customImage - let user choose between template and custom image
     // setCustomImage(null);
     setTopText(template.topText || "");
     setBottomText(template.bottomText || "");
-    console.log('Selected template state updated');
   }, []);
 
   // Handle custom image upload
@@ -257,7 +256,6 @@ export default function MemeGenerator() {
             <button
               key={template.id}
               onClick={() => selectTemplate(template)}
-              onError={(e) => console.log('Template image failed to load:', template.url)}
               className={`relative group rounded-lg overflow-hidden border-2 transition-all ${
                 selectedTemplate?.id === template.id
                   ? 'border-blue-500 ring-2 ring-blue-300'
