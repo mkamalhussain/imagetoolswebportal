@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Button from "@/components/Button";
 
 interface MemeTemplate {
@@ -38,6 +38,11 @@ export default function MemeGenerator() {
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Debug: Monitor selectedTemplate state changes
+  useEffect(() => {
+    console.log('selectedTemplate changed:', selectedTemplate);
+  }, [selectedTemplate]);
 
   // Popular meme templates
   const memeTemplates: MemeTemplate[] = [
@@ -193,11 +198,13 @@ export default function MemeGenerator() {
 
   // Handle template selection
   const selectTemplate = useCallback((template: MemeTemplate) => {
+    console.log('Template selected:', template.name);
     setSelectedTemplate(template);
     // Don't clear customImage - let user choose between template and custom image
     // setCustomImage(null);
     setTopText(template.topText || "");
     setBottomText(template.bottomText || "");
+    console.log('Selected template state updated');
   }, []);
 
   // Handle custom image upload
