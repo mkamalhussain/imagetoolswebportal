@@ -29,6 +29,8 @@ const ImageMoodAnalyzer = dynamic(() => import("@/components/ImageMoodAnalyzer")
 const ColorBlindnessSimulator = dynamic(() => import("@/components/ColorBlindnessSimulator"), { ssr: false });
 const ImageHistogramViewer = dynamic(() => import("@/components/ImageHistogramViewer"), { ssr: false });
 const MemeGenerator = dynamic(() => import("@/components/MemeGenerator"), { ssr: false });
+const ImageGridMaker = dynamic(() => import("@/components/ImageGridMaker"), { ssr: false });
+const ImageSizePredictor = dynamic(() => import("@/components/ImageSizePredictor"), { ssr: false });
 
 export default function ClientModuleRenderer({ slug }: Props) {
   if (slug === "image-pixel-sorter") {
@@ -102,6 +104,12 @@ export default function ClientModuleRenderer({ slug }: Props) {
   }
   if (slug === "meme-generator") {
     return <MemeGenerator />;
+  }
+  if (slug === "image-grid-maker") {
+    return <ImageGridMaker />;
+  }
+  if (slug === "image-size-predictor") {
+    return <ImageSizePredictor />;
   }
   return <p className="text-gray-700">This module is coming soon.</p>;
 }
