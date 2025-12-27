@@ -42,11 +42,16 @@ export default function ImageGridMaker() {
 
     setIsGenerating(true);
     setError("");
+    setGeneratedGrid(null); // Clear previous result
+
+    // Small delay to ensure canvas is fully rendered
+    await new Promise(resolve => setTimeout(resolve, 100));
 
     try {
       const canvas = canvasRef.current;
       if (!canvas) {
-        setError("Canvas not available");
+        console.error("Canvas ref is null during grid generation");
+        setError("Canvas not available. Please try again.");
         return;
       }
 
@@ -374,10 +379,11 @@ export default function ImageGridMaker() {
             </div>
           </div>
 
-          {/* Canvas for processing (hidden) */}
-          <canvas ref={canvasRef} style={{ display: 'none' }} />
         </div>
       )}
+
+      {/* Canvas for processing (hidden) - always rendered */}
+      <canvas ref={canvasRef} style={{ display: 'none' }} />
 
       {/* Instructions */}
       <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
