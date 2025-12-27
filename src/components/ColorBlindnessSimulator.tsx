@@ -121,11 +121,16 @@ export default function ColorBlindnessSimulator() {
   const processImage = useCallback(async (file: File) => {
     setIsProcessing(true);
     setError("");
+    setSimulatedUrl(null); // Clear previous result
+
+    // Small delay to ensure canvas is fully rendered
+    await new Promise(resolve => setTimeout(resolve, 100));
 
     try {
       const canvas = canvasRef.current;
       if (!canvas) {
-        setError("Canvas not available");
+        console.error("Canvas ref is null during color blindness processing");
+        setError("Canvas not available. Please try again.");
         return;
       }
 
@@ -319,41 +324,63 @@ export default function ColorBlindnessSimulator() {
       )}
 
       {/* Results */}
-      {sourceUrl && simulatedUrl && (
+      {((sourceUrl && simulatedUrl) || isProcessing) && (
         <div className="space-y-6">
           <div className="flex justify-between items-center">
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-              {simulations[currentSimulation].name} Simulation
+              {isProcessing ? 'Processing Image...' : `${simulations[currentSimulation].name} Simulation`}
             </h3>
-            <Button onClick={downloadImage}>
-              📥 Download Result
-            </Button>
+            {simulatedUrl && !isProcessing && (
+              <Button onClick={downloadImage}>
+                📥 Download Result
+              </Button>
+            )}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Original Image */}
             <div>
-              <h4 className="font-medium text-gray-900 dark:text-white mb-3">Original Image</h4>
+              <h4 className="font-medium text-gray-900 dark:text-white mb-3">
+                {isProcessing ? 'Processing...' : 'Original Image'}
+              </h4>
               <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-                <img
-                  src={sourceUrl}
-                  alt="Original"
-                  className="max-w-full h-auto rounded border border-gray-200 dark:border-gray-600"
-                />
+                {isProcessing ? (
+                  <div className="flex items-center justify-center h-64">
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                      <p className="text-gray-600 dark:text-gray-400">Analyzing image...</p>
+                    </div>
+                  </div>
+                ) : sourceUrl ? (
+                  <img
+                    src={sourceUrl}
+                    alt="Original"
+                    className="max-w-full h-auto rounded border border-gray-200 dark:border-gray-600"
+                  />
+                ) : null}
               </div>
             </div>
 
             {/* Simulated Image */}
             <div>
               <h4 className="font-medium text-gray-900 dark:text-white mb-3">
-                Simulated: {simulations[currentSimulation].name}
+                {isProcessing ? 'Generating Simulation...' : `Simulated: ${simulations[currentSimulation].name}`}
               </h4>
               <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-                <img
-                  src={simulatedUrl}
-                  alt={`Simulated ${currentSimulation}`}
-                  className="max-w-full h-auto rounded border border-gray-200 dark:border-gray-600"
-                />
+                {isProcessing ? (
+                  <div className="flex items-center justify-center h-64">
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+                      <p className="text-gray-600 dark:text-gray-400">Applying color simulation...</p>
+                    </div>
+                  </div>
+                ) : simulatedUrl ? (
+                  <img
+                    src={simulatedUrl}
+                    alt={`Simulated ${currentSimulation}`}
+                    className="max-w-full h-auto rounded border border-gray-200 dark:border-gray-600"
+                  />
+                ) : null}
               </div>
             </div>
           </div>
@@ -371,6 +398,7 @@ export default function ColorBlindnessSimulator() {
             </p>
           </div>
 
+          {/* Canvas for processing (hidden) */}
           {/* Canvas for processing (hidden) */}
           <canvas ref={canvasRef} style={{ display: 'none' }} />
         </div>
