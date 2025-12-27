@@ -204,11 +204,16 @@ export default function ImageHistogramViewer() {
   const processImage = useCallback(async (file: File) => {
     setIsProcessing(true);
     setError("");
+    setHistogramData(null); // Clear previous results
+
+    // Small delay to ensure canvas is fully rendered
+    await new Promise(resolve => setTimeout(resolve, 100));
 
     try {
       const canvas = canvasRef.current;
       if (!canvas) {
-        setError("Canvas not available");
+        console.error("Canvas ref is null during histogram processing");
+        setError("Canvas not available. Please try again.");
         return;
       }
 
@@ -423,45 +428,69 @@ export default function ImageHistogramViewer() {
       )}
 
       {/* Results */}
-      {sourceUrl && histogramData && (
+      {((sourceUrl && histogramData) || isProcessing) && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Image Display */}
             <div>
-              <h4 className="font-medium text-gray-900 dark:text-white mb-3">Analyzed Image</h4>
+              <h4 className="font-medium text-gray-900 dark:text-white mb-3">
+                {isProcessing ? 'Processing Image...' : 'Analyzed Image'}
+              </h4>
               <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-                <img
-                  src={sourceUrl}
-                  alt="Analyzed image"
-                  className="max-w-full h-auto rounded border border-gray-200 dark:border-gray-600"
-                />
+                {isProcessing ? (
+                  <div className="flex items-center justify-center h-64">
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                      <p className="text-gray-600 dark:text-gray-400">Analyzing image...</p>
+                    </div>
+                  </div>
+                ) : sourceUrl ? (
+                  <img
+                    src={sourceUrl}
+                    alt="Analyzed image"
+                    className="max-w-full h-auto rounded border border-gray-200 dark:border-gray-600"
+                  />
+                ) : null}
               </div>
             </div>
 
             {/* Statistics */}
             <div>
-              <h4 className="font-medium text-gray-900 dark:text-white mb-3">Image Statistics</h4>
+              <h4 className="font-medium text-gray-900 dark:text-white mb-3">
+                {isProcessing ? 'Calculating Statistics...' : 'Image Statistics'}
+              </h4>
               <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Mean Brightness:</span>
-                  <span className="font-medium">{histogramData.stats.meanBrightness}/255</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Contrast:</span>
-                  <span className="font-medium">{histogramData.stats.contrast}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Dominant Color:</span>
-                  <div className="flex items-center space-x-2">
-                    <div
-                      className="w-6 h-6 rounded border border-gray-300 dark:border-gray-600"
-                      style={{ backgroundColor: histogramData.stats.dominantColor }}
-                    />
-                    <span className="font-medium font-mono text-sm">
-                      {histogramData.stats.dominantColor}
-                    </span>
+                {isProcessing ? (
+                  <div className="flex items-center justify-center h-32">
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-2"></div>
+                      <p className="text-gray-600 dark:text-gray-400 text-sm">Computing statistics...</p>
+                    </div>
                   </div>
-                </div>
+                ) : histogramData ? (
+                  <>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Mean Brightness:</span>
+                      <span className="font-medium">{histogramData.stats.meanBrightness}/255</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Contrast:</span>
+                      <span className="font-medium">{histogramData.stats.contrast}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Dominant Color:</span>
+                      <div className="flex items-center space-x-2">
+                        <div
+                          className="w-6 h-6 rounded border border-gray-300 dark:border-gray-600"
+                          style={{ backgroundColor: histogramData.stats.dominantColor }}
+                        />
+                        <span className="font-medium font-mono text-sm">
+                          {histogramData.stats.dominantColor}
+                        </span>
+                      </div>
+                    </div>
+                  </>
+                ) : null}
               </div>
             </div>
           </div>
