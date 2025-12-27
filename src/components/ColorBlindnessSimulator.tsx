@@ -67,9 +67,9 @@ export default function ColorBlindnessSimulator() {
     // Color blindness transformation matrices
     const matrices: Record<ColorBlindnessType, number[]> = {
       normal: [
-        1.1, -0.1, 0, 0,  // Slight boost to test if matrix is applied
-        0, 1.1, -0.1, 0,
-        0, 0, 1.1, 0,
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
         0, 0, 0, 1
       ],
       protanopia: [
@@ -119,7 +119,9 @@ export default function ColorBlindnessSimulator() {
   }, []);
 
   // Process image with color blindness simulation
-  const processImage = useCallback(async (file: File) => {
+  const processImage = useCallback(async (file: File, simulationType?: ColorBlindnessType) => {
+    const simType = simulationType || currentSimulation;
+
     setIsProcessing(true);
     setError("");
     setSimulatedUrl(null); // Clear previous result
@@ -161,7 +163,7 @@ export default function ColorBlindnessSimulator() {
       const originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
       // Apply color blindness simulation
-      const simulatedImageData = applyColorBlindnessFilter(originalImageData, currentSimulation);
+      const simulatedImageData = applyColorBlindnessFilter(originalImageData, simType);
 
       // Clear and draw simulated image
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -186,12 +188,14 @@ export default function ColorBlindnessSimulator() {
 
   // Handle simulation change
   const handleSimulationChange = useCallback((type: ColorBlindnessType) => {
+    if (isProcessing) return; // Prevent clicks during processing
+
     setCurrentSimulation(type);
     // Re-process if we have an image
     if (originalFile) {
-      processImage(originalFile);
+      processImage(originalFile, type);
     }
-  }, [originalFile, processImage]);
+  }, [originalFile, processImage, isProcessing]);
 
   // Drag and drop handlers
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -291,11 +295,12 @@ export default function ColorBlindnessSimulator() {
               <button
                 key={type}
                 onClick={() => handleSimulationChange(type)}
+                disabled={isProcessing}
                 className={`p-4 rounded-lg border-2 text-left transition-all ${
                   currentSimulation === type
                     ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                     : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                }`}
+                } ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <h4 className="font-medium text-gray-900 dark:text-white">
                   {simulations[type].name}
