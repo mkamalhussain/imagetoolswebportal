@@ -257,6 +257,7 @@ export default function MemeGenerator() {
             <button
               key={template.id}
               onClick={() => selectTemplate(template)}
+              onError={(e) => console.log('Template image failed to load:', template.url)}
               className={`relative group rounded-lg overflow-hidden border-2 transition-all ${
                 selectedTemplate?.id === template.id
                   ? 'border-blue-500 ring-2 ring-blue-300'
