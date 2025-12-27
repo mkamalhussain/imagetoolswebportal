@@ -25,6 +25,7 @@ const ImageUpscaler = dynamic(() => import("@/components/ImageUpscaler"), { ssr:
 const WatermarkRemover = dynamic(() => import("@/components/WatermarkRemover"), { ssr: false });
 const PersonalityAnalyzer = dynamic(() => import("@/components/PersonalityAnalyzer"), { ssr: false });
 const QRCodeTool = dynamic(() => import("@/components/QRCodeTool"), { ssr: false });
+const ImageMoodAnalyzer = dynamic(() => import("@/components/ImageMoodAnalyzer"), { ssr: false });
 
 export default function ClientModuleRenderer({ slug }: Props) {
   if (slug === "image-pixel-sorter") {
@@ -86,6 +87,9 @@ export default function ClientModuleRenderer({ slug }: Props) {
   }
   if (slug === "qr-code-tool") {
     return <QRCodeTool />;
+  }
+  if (slug === "image-mood-analyzer") {
+    return <ImageMoodAnalyzer />;
   }
   return <p className="text-gray-700">This module is coming soon.</p>;
 }
