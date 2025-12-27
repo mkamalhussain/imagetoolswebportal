@@ -13,9 +13,14 @@ interface MoodResult {
     warmth: number;
     complexity: number;
     contrast: number;
+    energy: number;
+    harmony: number;
+    moodScore: number;
   };
   dominantColors: Array<{color: string, percentage: number, name: string}>;
   composition: string;
+  insights: string[];
+  recommendations: string[];
 }
 
 export default function ImageMoodAnalyzer() {
@@ -210,6 +215,19 @@ export default function ImageMoodAnalyzer() {
       }
       const contrast = contrastSum / (pixelCount / 10);
 
+      // Calculate energy (based on color variance and contrast)
+      const energy = (avgSaturation * 0.4 + contrast * 0.4 + (1 - avgBrightness) * 0.2);
+
+      // Calculate harmony (based on color distribution and balance)
+      const colorVariance = dominantColors.reduce((sum, color, index) => {
+        const weight = (5 - index) / 15; // Weight top colors more
+        return sum + (color.percentage / 100) * weight;
+      }, 0);
+      const harmony = 1 - Math.abs(0.5 - avgSaturation) - Math.abs(0.5 - avgBrightness) * 0.3 + colorVariance * 0.2;
+
+      // Overall mood score
+      const moodScore = (avgBrightness * 0.2 + avgSaturation * 0.2 + harmony * 0.3 + energy * 0.3);
+
       // Calculate complexity (edge detection approximation)
       let complexity = 0;
       for (let y = 1; y < canvas.height - 1; y++) {
@@ -242,7 +260,10 @@ export default function ImageMoodAnalyzer() {
         saturation: avgSaturation,
         warmth: avgWarmth,
         complexity,
-        contrast: contrast / 255
+        contrast: contrast / 255,
+        energy,
+        harmony: Math.max(0, Math.min(1, harmony)),
+        moodScore: Math.max(0, Math.min(1, moodScore))
       };
 
       let primaryMood = "neutral";
@@ -294,13 +315,49 @@ export default function ImageMoodAnalyzer() {
         }
       }
 
+      // Generate insights
+      const insights: string[] = [];
+      if (avgBrightness > 0.7) insights.push("High brightness suggests energy and positivity");
+      if (avgBrightness < 0.3) insights.push("Low brightness creates a somber, introspective atmosphere");
+      if (avgSaturation > 0.7) insights.push("Vibrant colors indicate emotional intensity");
+      if (avgSaturation < 0.3) insights.push("Muted colors suggest calmness and subtlety");
+      if (avgWarmth > 1.5) insights.push("Warm tones evoke comfort and approachability");
+      if (avgWarmth < 0.8) insights.push("Cool tones suggest distance and contemplation");
+      if (complexity > 150) insights.push("High detail level suggests complexity and interest");
+      if (complexity < 50) insights.push("Minimalist composition focuses attention");
+      if (composition === "centered") insights.push("Centered composition suggests stability and focus");
+      if (composition === "rule-of-thirds") insights.push("Dynamic composition creates visual tension");
+
+      // Generate recommendations
+      const recommendations: string[] = [];
+      if (primaryMood === "melancholic") {
+        recommendations.push("Consider adding warm accents to brighten the mood");
+        recommendations.push("Try complementary colors to balance the cool tones");
+      }
+      if (primaryMood === "energetic") {
+        recommendations.push("The vibrant energy works well for dynamic presentations");
+        recommendations.push("Consider using this for motivational or action-oriented content");
+      }
+      if (primaryMood === "calm") {
+        recommendations.push("Perfect for relaxation, meditation, or peaceful content");
+        recommendations.push("Maintain the serene atmosphere for wellness applications");
+      }
+      if (analysis.moodScore < 0.3) {
+        recommendations.push("Consider lightening the image to improve emotional impact");
+      }
+      if (analysis.harmony < 0.4) {
+        recommendations.push("Color balance could be improved for better visual harmony");
+      }
+
       const result: MoodResult = {
         primaryMood,
         confidence,
         secondaryMoods: secondaryMoods.slice(0, 3),
         analysis,
         dominantColors,
-        composition
+        composition,
+        insights: insights.slice(0, 4),
+        recommendations: recommendations.slice(0, 3)
       };
 
       setMoodResult(result);
@@ -308,12 +365,19 @@ export default function ImageMoodAnalyzer() {
       // Copy the analyzed image to the display canvas
       const displayCanvas = canvasRef.current;
       if (displayCanvas) {
+        console.log("Copying analysis result to display canvas");
         const displayCtx = displayCanvas.getContext('2d');
         if (displayCtx) {
           displayCanvas.width = canvas.width;
           displayCanvas.height = canvas.height;
+          displayCtx.clearRect(0, 0, displayCanvas.width, displayCanvas.height);
           displayCtx.drawImage(canvas, 0, 0);
+          console.log("Image copied to display canvas successfully");
+        } else {
+          console.error("Could not get display canvas context");
         }
+      } else {
+        console.error("Display canvas ref is null");
       }
 
       setSourceUrl(canvas.toDataURL('image/png'));
@@ -368,6 +432,45 @@ export default function ImageMoodAnalyzer() {
         ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
       }
     }
+  }, []);
+
+  // Download analysis report
+  const downloadAnalysis = useCallback((result: MoodResult) => {
+    const reportData = {
+      timestamp: new Date().toISOString(),
+      primaryMood: result.primaryMood,
+      confidence: Math.round(result.confidence * 100) + '%',
+      secondaryMoods: result.secondaryMoods,
+      technicalAnalysis: {
+        brightness: Math.round(result.analysis.brightness * 100) + '%',
+        saturation: Math.round(result.analysis.saturation * 100) + '%',
+        warmth: result.analysis.warmth.toFixed(2),
+        energy: Math.round(result.analysis.energy * 100) + '%',
+        harmony: Math.round(result.analysis.harmony * 100) + '%',
+        moodScore: Math.round(result.analysis.moodScore * 100) + '%',
+        complexity: Math.round(result.analysis.complexity),
+        composition: result.composition
+      },
+      dominantColors: result.dominantColors.map(color => ({
+        name: color.name,
+        hex: color.color,
+        percentage: color.percentage + '%'
+      })),
+      insights: result.insights,
+      recommendations: result.recommendations
+    };
+
+    const reportJson = JSON.stringify(reportData, null, 2);
+    const blob = new Blob([reportJson], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `mood-analysis-${Date.now()}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   }, []);
 
   const getMoodEmoji = (mood: string): string => {
@@ -476,9 +579,14 @@ export default function ImageMoodAnalyzer() {
               {isAnalyzing ? 'Analyzing Image Mood...' : 'Analysis Results'}
             </h3>
             {!isAnalyzing && (
-              <Button variant="secondary" onClick={clearAll}>
-                Analyze Another Image
-              </Button>
+              <div className="flex space-x-3">
+                <Button variant="secondary" onClick={clearAll}>
+                  Analyze Another Image
+                </Button>
+                <Button variant="secondary" onClick={() => moodResult && downloadAnalysis(moodResult)}>
+                  📥 Download Report
+                </Button>
+              </div>
             )}
           </div>
 
@@ -567,6 +675,18 @@ export default function ImageMoodAnalyzer() {
                       <span className="ml-2 font-medium">{moodResult.analysis.warmth.toFixed(1)}</span>
                     </div>
                     <div>
+                      <span className="text-gray-600 dark:text-gray-400">Energy:</span>
+                      <span className="ml-2 font-medium">{Math.round(moodResult.analysis.energy * 100)}%</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600 dark:text-gray-400">Harmony:</span>
+                      <span className="ml-2 font-medium">{Math.round(moodResult.analysis.harmony * 100)}%</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600 dark:text-gray-400">Mood Score:</span>
+                      <span className="ml-2 font-medium">{Math.round(moodResult.analysis.moodScore * 100)}%</span>
+                    </div>
+                    <div>
                       <span className="text-gray-600 dark:text-gray-400">Complexity:</span>
                       <span className="ml-2 font-medium">{Math.round(moodResult.analysis.complexity)}</span>
                     </div>
@@ -576,6 +696,36 @@ export default function ImageMoodAnalyzer() {
                     </div>
                   </div>
                 </div>
+
+                {/* Insights */}
+                {moodResult.insights.length > 0 && (
+                  <div>
+                    <h4 className="font-medium text-gray-900 dark:text-white mb-3">AI Insights</h4>
+                    <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                      {moodResult.insights.map((insight, index) => (
+                        <li key={index} className="flex items-start">
+                          <span className="text-blue-500 mr-2">💡</span>
+                          {insight}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Recommendations */}
+                {moodResult.recommendations.length > 0 && (
+                  <div>
+                    <h4 className="font-medium text-gray-900 dark:text-white mb-3">Recommendations</h4>
+                    <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                      {moodResult.recommendations.map((rec, index) => (
+                        <li key={index} className="flex items-start">
+                          <span className="text-green-500 mr-2">✓</span>
+                          {rec}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
                 {/* Dominant Colors */}
                 <div>
