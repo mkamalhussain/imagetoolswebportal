@@ -95,7 +95,7 @@ export default function QRCodeTool() {
   // Scan QR Code from uploaded image
   const scanQR = useCallback(async (file: File) => {
     if (!jsQR) {
-      setError("QR scanning library not loaded");
+      setError("QR scanning library not loaded. Please wait and try again.");
       return;
     }
 
@@ -105,39 +105,79 @@ export default function QRCodeTool() {
 
     try {
       const canvas = canvasRef.current;
-      if (!canvas) return;
+      if (!canvas) {
+        setError("Canvas not available");
+        return;
+      }
 
       const ctx = canvas.getContext("2d");
-      if (!ctx) return;
+      if (!ctx) {
+        setError("Canvas context not available");
+        return;
+      }
 
       // Load image
       const img = new Image();
       img.onload = () => {
-        // Set canvas size to match image
-        canvas.width = img.width;
-        canvas.height = img.height;
+        try {
+          // Validate image dimensions
+          if (img.width === 0 || img.height === 0) {
+            setError("Invalid image dimensions");
+            return;
+          }
 
-        // Draw image to canvas
-        ctx.drawImage(img, 0, 0);
+          // Set canvas size to match image (with reasonable limits)
+          const maxSize = 2048;
+          let { width, height } = img;
 
-        // Get image data
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          if (width > maxSize || height > maxSize) {
+            const ratio = Math.min(maxSize / width, maxSize / height);
+            width = Math.floor(width * ratio);
+            height = Math.floor(height * ratio);
+          }
 
-        // Scan for QR code
-        const code = jsQR(imageData.data, imageData.width, imageData.height);
+          canvas.width = width;
+          canvas.height = height;
 
-        if (code) {
-          setScannedText(code.data);
-          setQrImageUrl(canvas.toDataURL('image/png'));
-        } else {
-          setError("No QR code found in the image");
+          // Clear canvas first
+          ctx.clearRect(0, 0, width, height);
+
+          // Draw image to canvas
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Get image data
+          const imageData = ctx.getImageData(0, 0, width, height);
+
+          // Validate image data
+          if (!imageData || !imageData.data || imageData.data.length === 0) {
+            setError("Failed to read image data");
+            return;
+          }
+
+          // Scan for QR code
+          const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+          if (code && code.data) {
+            setScannedText(code.data);
+            setQrImageUrl(canvas.toDataURL('image/png'));
+          } else {
+            setError("No QR code found in the image. Try a clearer image or different angle.");
+          }
+        } catch (scanError) {
+          console.error("QR scan error:", scanError);
+          setError("Failed to process the image. Please try a different image.");
         }
       };
+
+      img.onerror = () => {
+        setError("Failed to load image. Please try a different image file.");
+      };
+
       img.src = URL.createObjectURL(file);
 
     } catch (err) {
-      setError("Failed to scan QR code");
-      console.error(err);
+      console.error("Scan setup error:", err);
+      setError("Failed to scan QR code. Please try again.");
     } finally {
       setIsProcessing(false);
     }
@@ -343,6 +383,11 @@ export default function QRCodeTool() {
       {/* Scan Mode */}
       {mode === 'scan' && (
         <div className="space-y-6">
+          {!jsQR && (
+            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <p className="text-blue-700 dark:text-blue-400">Loading QR scanning library...</p>
+            </div>
+          )}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Upload Image with QR Code
@@ -366,8 +411,9 @@ export default function QRCodeTool() {
               <Button
                 className="mt-4"
                 onClick={() => fileInputRef.current?.click()}
+                disabled={!jsQR || isProcessing}
               >
-                Select Image
+                {isProcessing ? "Processing..." : "Select Image"}
               </Button>
             </div>
             <input
