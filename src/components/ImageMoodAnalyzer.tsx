@@ -2,6 +2,10 @@
 
 import React, { useCallback, useRef, useState } from "react";
 import Button from "@/components/Button";
+// @ts-ignore
+import jsPDF from 'jspdf';
+// @ts-ignore
+import html2canvas from 'html2canvas';
 
 interface MoodResult {
   primaryMood: string;
@@ -362,22 +366,37 @@ export default function ImageMoodAnalyzer() {
 
       setMoodResult(result);
 
+      // Small delay to ensure display canvas is fully rendered
+      await new Promise(resolve => setTimeout(resolve, 100));
+
       // Copy the analyzed image to the display canvas
+      console.log("Attempting to copy analysis result to display canvas");
+      console.log("canvasRef.current exists:", !!canvasRef.current);
+
       const displayCanvas = canvasRef.current;
       if (displayCanvas) {
-        console.log("Copying analysis result to display canvas");
-        const displayCtx = displayCanvas.getContext('2d');
-        if (displayCtx) {
-          displayCanvas.width = canvas.width;
-          displayCanvas.height = canvas.height;
-          displayCtx.clearRect(0, 0, displayCanvas.width, displayCanvas.height);
-          displayCtx.drawImage(canvas, 0, 0);
-          console.log("Image copied to display canvas successfully");
-        } else {
-          console.error("Could not get display canvas context");
+        console.log("Display canvas found, copying image...");
+        try {
+          const displayCtx = displayCanvas.getContext('2d');
+          if (displayCtx) {
+            displayCanvas.width = canvas.width;
+            displayCanvas.height = canvas.height;
+            displayCtx.clearRect(0, 0, displayCanvas.width, displayCanvas.height);
+            displayCtx.drawImage(canvas, 0, 0);
+            console.log("Image copied to display canvas successfully");
+            console.log("Display canvas dimensions:", displayCanvas.width, displayCanvas.height);
+          } else {
+            console.error("Could not get display canvas context");
+          }
+        } catch (copyError) {
+          console.error("Error copying to display canvas:", copyError);
         }
       } else {
-        console.error("Display canvas ref is null");
+        console.error("Display canvas ref is null - canvas may not be rendered yet");
+        console.log("Current render state - moodResult:", !!moodResult, "isAnalyzing:", isAnalyzing);
+        // Try to set the source URL directly as fallback
+        setSourceUrl(canvas.toDataURL('image/png'));
+        console.log("Set source URL as fallback");
       }
 
       setSourceUrl(canvas.toDataURL('image/png'));
@@ -434,43 +453,195 @@ export default function ImageMoodAnalyzer() {
     }
   }, []);
 
-  // Download analysis report
-  const downloadAnalysis = useCallback((result: MoodResult) => {
-    const reportData = {
-      timestamp: new Date().toISOString(),
-      primaryMood: result.primaryMood,
-      confidence: Math.round(result.confidence * 100) + '%',
-      secondaryMoods: result.secondaryMoods,
-      technicalAnalysis: {
-        brightness: Math.round(result.analysis.brightness * 100) + '%',
-        saturation: Math.round(result.analysis.saturation * 100) + '%',
-        warmth: result.analysis.warmth.toFixed(2),
-        energy: Math.round(result.analysis.energy * 100) + '%',
-        harmony: Math.round(result.analysis.harmony * 100) + '%',
-        moodScore: Math.round(result.analysis.moodScore * 100) + '%',
-        complexity: Math.round(result.analysis.complexity),
-        composition: result.composition
-      },
-      dominantColors: result.dominantColors.map(color => ({
-        name: color.name,
-        hex: color.color,
-        percentage: color.percentage + '%'
-      })),
-      insights: result.insights,
-      recommendations: result.recommendations
-    };
+  // Download analysis report as PDF
+  const downloadAnalysis = useCallback(async (result: MoodResult) => {
+    const pdf = new jsPDF();
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    let yPosition = 20;
 
-    const reportJson = JSON.stringify(reportData, null, 2);
-    const blob = new Blob([reportJson], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
+    // Title
+    pdf.setFontSize(24);
+    pdf.setTextColor(40, 40, 40);
+    pdf.text('Image Mood Analysis Report', pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 15;
 
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `mood-analysis-${Date.now()}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    // Timestamp
+    pdf.setFontSize(10);
+    pdf.setTextColor(100, 100, 100);
+    pdf.text(`Generated on: ${new Date().toLocaleString()}`, pageWidth / 2, yPosition, { align: 'center' });
+    yPosition += 20;
+
+    // Primary Mood Section
+    pdf.setFontSize(16);
+    pdf.setTextColor(40, 40, 40);
+    pdf.text('Primary Mood Analysis', 20, yPosition);
+    yPosition += 10;
+
+    pdf.setFontSize(14);
+    const moodEmoji = getMoodEmoji(result.primaryMood);
+    pdf.text(`${moodEmoji} ${result.primaryMood.charAt(0).toUpperCase() + result.primaryMood.slice(1)}`, 25, yPosition);
+    pdf.setFontSize(10);
+    pdf.text(`Confidence: ${Math.round(result.confidence * 100)}%`, 25, yPosition + 5);
+    yPosition += 20;
+
+    // Secondary Moods
+    if (result.secondaryMoods.length > 0) {
+      pdf.setFontSize(12);
+      pdf.text('Secondary Moods:', 25, yPosition);
+      yPosition += 8;
+      pdf.setFontSize(10);
+      result.secondaryMoods.forEach(mood => {
+        pdf.text(`• ${getMoodEmoji(mood)} ${mood.charAt(0).toUpperCase() + mood.slice(1)}`, 30, yPosition);
+        yPosition += 6;
+      });
+      yPosition += 10;
+    }
+
+    // Technical Analysis
+    if (yPosition > pageHeight - 60) {
+      pdf.addPage();
+      yPosition = 20;
+    }
+
+    pdf.setFontSize(14);
+    pdf.setTextColor(40, 40, 40);
+    pdf.text('Technical Analysis', 20, yPosition);
+    yPosition += 10;
+
+    pdf.setFontSize(10);
+    pdf.setTextColor(60, 60, 60);
+    const techData = [
+      ['Brightness', `${Math.round(result.analysis.brightness * 100)}%`],
+      ['Saturation', `${Math.round(result.analysis.saturation * 100)}%`],
+      ['Warmth', result.analysis.warmth.toFixed(2)],
+      ['Energy', `${Math.round(result.analysis.energy * 100)}%`],
+      ['Harmony', `${Math.round(result.analysis.harmony * 100)}%`],
+      ['Mood Score', `${Math.round(result.analysis.moodScore * 100)}%`],
+      ['Complexity', Math.round(result.analysis.complexity).toString()],
+      ['Composition', result.composition.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())]
+    ];
+
+    techData.forEach(([label, value]) => {
+      pdf.text(`${label}:`, 25, yPosition);
+      pdf.text(value, 80, yPosition);
+      yPosition += 6;
+    });
+    yPosition += 10;
+
+    // Dominant Colors
+    if (yPosition > pageHeight - 40) {
+      pdf.addPage();
+      yPosition = 20;
+    }
+
+    pdf.setFontSize(14);
+    pdf.setTextColor(40, 40, 40);
+    pdf.text('Dominant Colors', 20, yPosition);
+    yPosition += 10;
+
+    pdf.setFontSize(10);
+    result.dominantColors.forEach((color, index) => {
+      pdf.text(`${index + 1}. ${color.name}`, 25, yPosition);
+      pdf.text(`${color.percentage}%`, 80, yPosition);
+      // Note: We can't easily render color swatches in jsPDF without additional libraries
+      yPosition += 6;
+    });
+    yPosition += 10;
+
+    // Insights
+    if (result.insights.length > 0) {
+      if (yPosition > pageHeight - 40) {
+        pdf.addPage();
+        yPosition = 20;
+      }
+
+      pdf.setFontSize(14);
+      pdf.setTextColor(40, 40, 40);
+      pdf.text('AI Insights', 20, yPosition);
+      yPosition += 10;
+
+      pdf.setFontSize(9);
+      pdf.setTextColor(60, 60, 60);
+      result.insights.forEach(insight => {
+        const lines = pdf.splitTextToSize(insight, pageWidth - 40);
+        lines.forEach((line: string) => {
+          pdf.text(line, 25, yPosition);
+          yPosition += 5;
+        });
+        yPosition += 2;
+      });
+      yPosition += 10;
+    }
+
+    // Recommendations
+    if (result.recommendations.length > 0) {
+      if (yPosition > pageHeight - 40) {
+        pdf.addPage();
+        yPosition = 20;
+      }
+
+      pdf.setFontSize(14);
+      pdf.setTextColor(40, 40, 40);
+      pdf.text('Recommendations', 20, yPosition);
+      yPosition += 10;
+
+      pdf.setFontSize(9);
+      pdf.setTextColor(60, 60, 60);
+      result.recommendations.forEach(rec => {
+        const lines = pdf.splitTextToSize(rec, pageWidth - 40);
+        lines.forEach((line: string) => {
+          pdf.text(line, 25, yPosition);
+          yPosition += 5;
+        });
+        yPosition += 2;
+      });
+    }
+
+    // Add image to PDF if available
+    if (canvasRef.current) {
+      try {
+        const canvas = canvasRef.current;
+        const imgData = canvas.toDataURL('image/jpeg', 0.8);
+
+        // Add image on a new page or at the end
+        if (yPosition > pageHeight - 100) {
+          pdf.addPage();
+          yPosition = 20;
+        } else {
+          yPosition += 20;
+        }
+
+        pdf.setFontSize(14);
+        pdf.text('Analyzed Image', 20, yPosition);
+        yPosition += 10;
+
+        // Calculate image dimensions to fit the page
+        const imgWidth = Math.min(pageWidth - 40, 150);
+        const imgHeight = (canvas.height / canvas.width) * imgWidth;
+
+        if (yPosition + imgHeight > pageHeight - 20) {
+          pdf.addPage();
+          yPosition = 20;
+        }
+
+        pdf.addImage(imgData, 'JPEG', 20, yPosition, imgWidth, imgHeight);
+      } catch (error) {
+        console.warn('Could not add image to PDF:', error);
+      }
+    }
+
+    // Footer
+    const totalPages = pdf.internal.pages.length - 1; // Subtract 1 because pages array includes index 0
+    for (let i = 1; i <= totalPages; i++) {
+      pdf.setPage(i);
+      pdf.setFontSize(8);
+      pdf.setTextColor(150, 150, 150);
+      pdf.text(`Image Mood Analyzer Report - Page ${i} of ${totalPages}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
+    }
+
+    // Download the PDF
+    pdf.save(`mood-analysis-report-${Date.now()}.pdf`);
   }, []);
 
   const getMoodEmoji = (mood: string): string => {
@@ -584,7 +755,7 @@ export default function ImageMoodAnalyzer() {
                   Analyze Another Image
                 </Button>
                 <Button variant="secondary" onClick={() => moodResult && downloadAnalysis(moodResult)}>
-                  📥 Download Report
+                  📄 Download PDF Report
                 </Button>
               </div>
             )}
