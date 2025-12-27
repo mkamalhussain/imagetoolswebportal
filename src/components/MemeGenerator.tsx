@@ -107,12 +107,23 @@ export default function MemeGenerator() {
 
     setIsGenerating(true);
 
+    // Small delay to ensure canvas is fully rendered
+    await new Promise(resolve => setTimeout(resolve, 100));
+
     try {
       const canvas = canvasRef.current;
-      if (!canvas) return;
+      if (!canvas) {
+        console.error("Canvas ref is null during meme generation");
+        setIsGenerating(false);
+        return;
+      }
 
       const ctx = canvas.getContext("2d");
-      if (!ctx) return;
+      if (!ctx) {
+        console.error("Canvas context not available during meme generation");
+        setIsGenerating(false);
+        return;
+      }
 
       const imageUrl = customImage || selectedTemplate?.url;
       if (!imageUrl) return;
@@ -279,6 +290,22 @@ export default function MemeGenerator() {
             className="hidden"
           />
         </div>
+
+        {/* Custom Image Preview */}
+        {customImage && !selectedTemplate && (
+          <div className="mt-4">
+            <h4 className="text-md font-medium text-gray-900 dark:text-white mb-2">Your Uploaded Image:</h4>
+            <div className="flex justify-center">
+              <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+                <img
+                  src={customImage}
+                  alt="Your uploaded image"
+                  className="max-w-full h-auto max-h-64 rounded border border-gray-200 dark:border-gray-600"
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Text Input */}
