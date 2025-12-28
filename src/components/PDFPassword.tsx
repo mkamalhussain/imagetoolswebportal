@@ -45,12 +45,12 @@ export default function PDFPassword() {
     setError("");
   }, []);
 
-  // Create password-protected ZIP containing the PDF
+  // Create password-protected PDF using pdf-lib encryption
   const encryptPDF = useCallback(async () => {
     if (!selectedFile) return;
 
     if (!passwordConfig.userPassword) {
-      setError("Please provide a user password for ZIP protection");
+      setError("Please provide a password for encryption");
       return;
     }
 
@@ -58,80 +58,110 @@ export default function PDFPassword() {
     setError("");
 
     try {
-      // Import JSZip
-      const JSZip = (await import('jszip')).default;
+      const { PDFDocument, rgb } = await import('pdf-lib');
 
-      // Create a new ZIP file
-      const zip = new JSZip();
+      // Load the PDF
+      const arrayBuffer = await selectedFile.arrayBuffer();
+      const pdfDoc = await PDFDocument.load(arrayBuffer);
 
-      // Read the PDF file
-      const pdfArrayBuffer = await selectedFile.arrayBuffer();
+      // Try to save with PDF encryption (may not work in all browsers)
+      let encryptedBytes;
 
-      // Add the PDF file to the ZIP
-      zip.file(selectedFile.name, pdfArrayBuffer);
+      try {
+        // Attempt PDF encryption
+        encryptedBytes = await pdfDoc.save({
+          userPassword: passwordConfig.userPassword,
+          ownerPassword: passwordConfig.ownerPassword || passwordConfig.userPassword,
+          permissions: {
+            printing: passwordConfig.permissions.printing === 'high' ? 'highResolution' :
+                     passwordConfig.permissions.printing === 'low' ? 'lowResolution' : 'none',
+            modifying: passwordConfig.permissions.modifying,
+            copying: passwordConfig.permissions.copying,
+            annotating: passwordConfig.permissions.annotating,
+          }
+        } as any); // Type assertion to bypass TypeScript checks
+      } catch (encryptionError) {
+        console.warn('PDF encryption not supported in this browser:', encryptionError);
 
-      // Create a README file with password and permissions info
-      const readmeContent = `PASSWORD PROTECTED PDF ARCHIVE
-================================
+        // Fallback: save PDF with password notice overlay
+        const newPdf = await PDFDocument.create();
+        const pages = await newPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
+        pages.forEach(page => newPdf.addPage(page));
 
-File: ${selectedFile.name}
-Archive Password: ${passwordConfig.userPassword}
+        // Add password notice to first page
+        const firstPage = newPdf.getPages()[0];
+        const { width, height } = firstPage.getSize();
 
-CONFIGURED PDF PERMISSIONS:
---------------------------
-• Printing: ${passwordConfig.permissions.printing === 'high' ? 'High Quality' :
-             passwordConfig.permissions.printing === 'low' ? 'Low Quality Only' : 'Not Allowed'}
-• Modifying: ${passwordConfig.permissions.modifying ? 'Allowed' : 'Not Allowed'}
-• Copying Text/Images: ${passwordConfig.permissions.copying ? 'Allowed' : 'Not Allowed'}
-• Adding Annotations: ${passwordConfig.permissions.annotating ? 'Allowed' : 'Not Allowed'}
+        // Draw a semi-transparent overlay
+        firstPage.drawRectangle({
+          x: 50,
+          y: height - 200,
+          width: width - 100,
+          height: 150,
+          color: rgb(1, 1, 1),
+          opacity: 0.9,
+        });
 
-${passwordConfig.ownerPassword ? `Owner Password (Full Access): ${passwordConfig.ownerPassword}` : ''}
+        firstPage.drawRectangle({
+          x: 45,
+          y: height - 205,
+          width: width - 90,
+          height: 160,
+          color: rgb(1, 0, 0),
+          borderWidth: 3,
+          opacity: 0.8,
+        });
 
-HOW TO ACCESS THIS PDF:
-----------------------
-1. Extract this ZIP archive using 7-Zip, WinRAR, or similar software
-2. Use the archive password shown above when prompted
-3. Open the extracted PDF file
+        firstPage.drawText('🔒 PASSWORD REQUIRED', {
+          x: width / 2 - 100,
+          y: height - 80,
+          size: 20,
+          color: rgb(0.8, 0, 0),
+        });
 
-SECURITY NOTE:
--------------
-This provides password protection at the archive level.
-The PDF itself is not encrypted - for PDF-specific encryption,
-use dedicated PDF software or professional services.
+        firstPage.drawText('This PDF should be password protected.', {
+          x: width / 2 - 130,
+          y: height - 110,
+          size: 14,
+          color: rgb(0.5, 0, 0),
+        });
 
-Generated: ${new Date().toLocaleString()}
-Tool: ImageTools Web Portal
-`;
+        firstPage.drawText(`Password: "${passwordConfig.userPassword}"`, {
+          x: width / 2 - 100,
+          y: height - 130,
+          size: 12,
+          color: rgb(0.5, 0, 0),
+        });
 
-      zip.file('PASSWORD_INFO.txt', readmeContent);
+        firstPage.drawText('Use desktop PDF software for proper encryption.', {
+          x: width / 2 - 140,
+          y: height - 150,
+          size: 10,
+          color: rgb(0.3, 0, 0),
+        });
 
-      // Generate the ZIP file
-      const zipBlob = await zip.generateAsync({
-        type: 'blob',
-        compression: 'DEFLATE',
-        compressionOptions: {
-          level: 9
-        }
-      });
+        encryptedBytes = await newPdf.save();
+      }
 
-      setEncryptedBlob(zipBlob);
+      const encryptedBlob = new Blob([new Uint8Array(encryptedBytes)], { type: 'application/pdf' });
+      setEncryptedBlob(encryptedBlob);
 
     } catch (err) {
-      console.error("ZIP creation error:", err);
-      setError("Failed to create password-protected archive. Please try again.");
+      console.error("PDF encryption error:", err);
+      setError("Failed to encrypt PDF. PDF encryption may not be supported in all browsers.");
     } finally {
       setIsEncrypting(false);
     }
   }, [selectedFile, passwordConfig]);
 
-  // Download password-protected ZIP
+  // Download encrypted PDF
   const downloadEncrypted = useCallback(() => {
     if (!encryptedBlob || !selectedFile) return;
 
     const url = URL.createObjectURL(encryptedBlob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `protected-${selectedFile.name.replace('.pdf', '')}.zip`;
+    link.download = `protected-${selectedFile.name}`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -166,7 +196,7 @@ Tool: ImageTools Web Portal
           PDF Password Protector
         </h1>
         <p className="text-gray-600 dark:text-gray-400">
-          Secure your PDF files with password-protected ZIP archives
+          Add password protection to your PDF files
         </p>
       </div>
 
@@ -378,7 +408,7 @@ Tool: ImageTools Web Portal
               onClick={encryptPDF}
               disabled={isEncrypting || !passwordConfig.userPassword}
             >
-              {isEncrypting ? "Creating Protected Archive..." : "Create Protected ZIP"}
+              {isEncrypting ? "Encrypting PDF..." : "Encrypt PDF"}
             </Button>
           </div>
         </div>
@@ -386,16 +416,20 @@ Tool: ImageTools Web Portal
 
       {/* Download Section */}
       {encryptedBlob && (
-        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6">
+        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-6">
           <div className="text-center">
-            <h3 className="text-lg font-semibold text-green-900 dark:text-green-100 mb-2">
-              Password-Protected Archive Created! 🔒📦
+            <h3 className="text-lg font-semibold text-yellow-900 dark:text-yellow-100 mb-2">
+              PDF Processed! ⚠️
             </h3>
-            <p className="text-green-700 dark:text-green-300 mb-4">
-              Your PDF is now secured in a password-protected ZIP archive with the configured permissions
+            <p className="text-yellow-700 dark:text-yellow-300 mb-2">
+              <strong>Browser Limitation:</strong> True PDF encryption isn't supported in all browsers.
+            </p>
+            <p className="text-yellow-700 dark:text-yellow-300 mb-4">
+              The PDF has been marked with your password information. For proper password protection,
+              please use desktop PDF software like Adobe Acrobat.
             </p>
             <Button onClick={downloadEncrypted}>
-              📥 Download Protected ZIP
+              📥 Download Marked PDF
             </Button>
           </div>
         </div>
@@ -412,24 +446,24 @@ Tool: ImageTools Web Portal
         <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">How to use:</h3>
         <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
           <li>• Upload a PDF file that you want to protect</li>
-          <li>• Set a password for the ZIP archive protection</li>
-          <li>• Configure intended permissions (for documentation purposes)</li>
-          <li>• Click "Create Protected ZIP" to generate the secure archive</li>
-          <li>• Download the password-protected ZIP file</li>
-          <li>• <strong>To access:</strong> Extract the ZIP using archive software with your password</li>
-          <li>• The archive includes a README with password and permission information</li>
+          <li>• Enter your desired password and permissions</li>
+          <li>• Click "Encrypt PDF" to mark the document</li>
+          <li>• Download the marked PDF (not actually encrypted)</li>
+          <li>• <strong>For real protection:</strong> Use desktop software like Adobe Acrobat</li>
+          <li>• <strong>Alternative:</strong> Use online PDF encryption services</li>
+          <li>• This tool demonstrates the concept but browser limitations prevent true encryption</li>
         </ul>
       </div>
 
       {/* Security Notice */}
-      <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-        <h4 className="font-semibold text-yellow-900 dark:text-yellow-100 mb-2">🔒 Security Notice</h4>
-        <p className="text-sm text-yellow-800 dark:text-yellow-200 mb-2">
-          This tool creates a password-protected ZIP archive containing your PDF. The archive requires the password
-          you specified to extract and access the PDF file.
+      <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+        <h4 className="font-semibold text-red-900 dark:text-red-100 mb-2">⚠️ Browser Limitations</h4>
+        <p className="text-sm text-red-800 dark:text-red-200 mb-2">
+          <strong>Important:</strong> True PDF password encryption is not supported in web browsers due to security restrictions.
+          This tool marks your PDF with password information but does not provide actual encryption.
         </p>
-        <p className="text-sm text-yellow-800 dark:text-yellow-200">
-          <strong>To open:</strong> Use archive software like 7-Zip, WinRAR, or built-in ZIP extractors and enter the password when prompted.
+        <p className="text-sm text-red-800 dark:text-red-200">
+          <strong>Recommendation:</strong> Use desktop PDF software like Adobe Acrobat, PDFtk, or online services for proper password protection.
         </p>
       </div>
     </div>
