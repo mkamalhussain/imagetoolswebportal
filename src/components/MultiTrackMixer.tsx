@@ -14,6 +14,7 @@ interface TrackSettings {
   isPlaying: boolean;
   duration: number;
   currentTime: number;
+  loaded: boolean;
 }
 
 export default function MultiTrackMixer() {
@@ -122,6 +123,7 @@ export default function MultiTrackMixer() {
       const cleanup = () => {
         audio.removeEventListener('loadedmetadata', onLoaded);
         audio.removeEventListener('error', onError);
+        audio.removeEventListener('canplay', onCanPlay);
         URL.revokeObjectURL(url);
       };
 
@@ -137,6 +139,16 @@ export default function MultiTrackMixer() {
         }
       };
 
+      const onCanPlay = () => {
+        cleanup();
+        const duration = audio.duration;
+        if (duration > 0 && duration < Infinity && !isNaN(duration)) {
+          resolve(duration);
+        } else {
+          resolve(0); // Still resolve with 0, but don't log warning for canplay
+        }
+      };
+
       const onError = (e: Event) => {
         console.warn(`Error loading audio metadata for ${file.name}:`, e);
         cleanup();
@@ -144,16 +156,17 @@ export default function MultiTrackMixer() {
       };
 
       audio.addEventListener('loadedmetadata', onLoaded);
+      audio.addEventListener('canplay', onCanPlay);
       audio.addEventListener('error', onError);
       audio.preload = 'metadata';
       audio.src = url;
 
-      // Timeout after 5 seconds
+      // Timeout after 10 seconds (increased from 5)
       setTimeout(() => {
         console.warn(`Timeout loading audio metadata for ${file.name}`);
         cleanup();
         resolve(0);
-      }, 5000);
+      }, 10000);
     });
   };
 
@@ -184,7 +197,8 @@ export default function MultiTrackMixer() {
           color: colors[(tracks.length + validatedTracks.length) % colors.length],
           isPlaying: false,
           duration: duration || 0,
-          currentTime: 0
+          currentTime: 0,
+          loaded: true // Track was successfully validated and accepted
         });
       } else {
         console.warn(`Skipping invalid/corrupted audio file: ${file.name}`);
@@ -794,7 +808,7 @@ export default function MultiTrackMixer() {
                               ? 'bg-green-500 animate-pulse'
                               : track.mute || getEffectiveVolume(track) === 0
                               ? 'bg-gray-400'
-                              : track.duration > 0
+                              : track.loaded
                               ? 'bg-blue-500'
                               : 'bg-gray-300'
                           }`}
@@ -803,7 +817,7 @@ export default function MultiTrackMixer() {
                               ? 'Playing'
                               : track.mute || getEffectiveVolume(track) === 0
                               ? 'Muted/Silent'
-                              : track.duration > 0
+                              : track.loaded
                               ? 'Ready to play'
                               : 'Loading...'
                           }
@@ -814,7 +828,7 @@ export default function MultiTrackMixer() {
                       <div className="flex-1 h-4 bg-gray-200 dark:bg-gray-700 rounded-sm overflow-hidden border border-gray-300 dark:border-gray-600 relative">
                         {(() => {
                           const isActive = (isPreviewing || currentPreviewTrack === index) && !track.mute && getEffectiveVolume(track) > 0;
-                          const isLoaded = track.duration > 0;
+                          const isLoaded = track.loaded;
                           const isMuted = track.mute || getEffectiveVolume(track) === 0;
 
                           return (
