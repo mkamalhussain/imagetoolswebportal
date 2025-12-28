@@ -218,9 +218,9 @@ export default function PerspectiveCorrection() {
 
     const rect = canvas.getBoundingClientRect();
 
-    // Calculate scaling factor between displayed size and actual pixel size
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
+    // Calculate scaling factor between actual pixel size and displayed size
+    const scaleX = rect.width / canvas.width;
+    const scaleY = rect.height / canvas.height;
 
     // Mouse coordinates in display space (same as corner positioning)
     const mouseX = e.clientX - rect.left;
@@ -255,9 +255,9 @@ export default function PerspectiveCorrection() {
 
     const rect = canvas.getBoundingClientRect();
 
-    // Calculate scaling factor between displayed size and actual pixel size
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
+    // Calculate scaling factor between actual pixel size and displayed size
+    const scaleX = rect.width / canvas.width;
+    const scaleY = rect.height / canvas.height;
 
     // Mouse coordinates in display space
     const mouseX = e.clientX - rect.left;
