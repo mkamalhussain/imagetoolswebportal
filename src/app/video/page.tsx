@@ -1,19 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { modules } from "@/data/modules";
-import { pdfModules } from "@/data/pdfModules";
-import { audioModules } from "@/data/audioModules";
 import { videoModules } from "@/data/videoModules";
-import React, { useState } from 'react'; // Import useState
+import React, { useState } from 'react';
 
-export default function Home() {
+export default function VideoPage() {
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [activeTab, setActiveTab] = useState<'image' | 'pdf' | 'audio' | 'video'>('image');
 
-  const currentModules = activeTab === 'image' ? modules : activeTab === 'pdf' ? pdfModules : activeTab === 'audio' ? audioModules : videoModules;
-
-  const filteredModules = currentModules.filter(module =>
+  const filteredModules = videoModules.filter(module =>
     module.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     module.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -26,57 +20,11 @@ export default function Home() {
       <div className="absolute bottom-0 left-1/3 w-64 h-64 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000 dark:bg-yellow-600"></div>
 
       <h1 className="text-5xl font-extrabold text-gray-900 dark:text-white mb-4 text-center relative z-10">
-        {activeTab === 'image' ? 'Image Tools' : activeTab === 'pdf' ? 'PDF Tools' : activeTab === 'audio' ? 'Audio Tools' : 'Video Tools'}
+        Video Tools
       </h1>
       <p className="text-xl text-gray-600 dark:text-gray-300 mb-6 text-center relative z-10">
-        Free Online {activeTab === 'image' ? 'Image' : activeTab === 'pdf' ? 'PDF' : activeTab === 'audio' ? 'Audio' : 'Video'} Tools
+        Free Online Video Tools
       </p>
-
-      {/* Tab Navigation */}
-      <div className="flex justify-center mb-10 relative z-10">
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-1 shadow-lg border border-gray-200 dark:border-gray-700">
-          <button
-            onClick={() => setActiveTab('image')}
-            className={`px-6 py-2 rounded-md font-medium transition-all ${
-              activeTab === 'image'
-                ? 'bg-blue-600 text-white shadow-md'
-                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
-            }`}
-          >
-            🖼️ Image Tools
-          </button>
-          <button
-            onClick={() => setActiveTab('pdf')}
-            className={`px-6 py-2 rounded-md font-medium transition-all ${
-              activeTab === 'pdf'
-                ? 'bg-blue-600 text-white shadow-md'
-                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
-            }`}
-          >
-            📄 PDF Tools
-          </button>
-          <button
-            onClick={() => setActiveTab('audio')}
-            className={`px-6 py-2 rounded-md font-medium transition-all ${
-              activeTab === 'audio'
-                ? 'bg-blue-600 text-white shadow-md'
-                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
-            }`}
-          >
-            🎵 Audio Tools
-          </button>
-          <button
-            onClick={() => setActiveTab('video')}
-            className={`px-6 py-2 rounded-md font-medium transition-all ${
-              activeTab === 'video'
-                ? 'bg-blue-600 text-white shadow-md'
-                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
-            }`}
-          >
-            🎥 Video Tools
-          </button>
-        </div>
-      </div>
 
       {/* Google AdSense Top Banner */}
       <div className="w-full max-w-4xl mb-8 relative z-10">
@@ -89,7 +37,7 @@ export default function Home() {
       <div className="w-full max-w-2xl flex items-center mb-16 relative z-10">
         <input
           type="text"
-          placeholder="Search"
+          placeholder="Search Video Tools"
           className="flex-grow p-3 border border-gray-300 dark:border-gray-700 rounded-l-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -103,7 +51,7 @@ export default function Home() {
         {filteredModules.map((m) => (
           <Link
             key={m.slug}
-            href={activeTab === 'image' ? `/modules/${m.slug}` : activeTab === 'pdf' ? `/pdf/${m.slug}` : activeTab === 'audio' ? `/audio/${m.slug}` : `/video/${m.slug}`}
+            href={`/video/${m.slug}`}
             className="flex flex-col items-center p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-100 dark:border-gray-700 transform hover:-translate-y-1"
           >
             <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mb-4" dangerouslySetInnerHTML={{ __html: m.icon || '' }}>
