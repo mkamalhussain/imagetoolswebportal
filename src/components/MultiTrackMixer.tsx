@@ -69,7 +69,41 @@ export default function MultiTrackMixer() {
     };
   }, []); // Empty dependency array for cleanup on unmount
 
-  const handleFileSelect = (files: FileList) => {
+  const validateAudioFile = (file: File): Promise<boolean> => {
+    return new Promise((resolve) => {
+      const audio = new Audio();
+      const url = URL.createObjectURL(file);
+
+      const cleanup = () => {
+        audio.removeEventListener('loadedmetadata', onLoaded);
+        audio.removeEventListener('error', onError);
+        URL.revokeObjectURL(url);
+      };
+
+      const onLoaded = () => {
+        cleanup();
+        resolve(audio.duration > 0 && !isNaN(audio.duration));
+      };
+
+      const onError = () => {
+        cleanup();
+        resolve(false);
+      };
+
+      audio.addEventListener('loadedmetadata', onLoaded);
+      audio.addEventListener('error', onError);
+      audio.preload = 'metadata';
+      audio.src = url;
+
+      // Timeout after 5 seconds
+      setTimeout(() => {
+        cleanup();
+        resolve(false);
+      }, 5000);
+    });
+  };
+
+  const handleFileSelect = async (files: FileList) => {
     const audioFiles = Array.from(files).filter(file => file.type.startsWith('audio/'));
 
     if (audioFiles.length === 0) {
@@ -77,7 +111,29 @@ export default function MultiTrackMixer() {
       return;
     }
 
-    const newTracks: TrackSettings[] = audioFiles.map((file, index) => ({
+    setError(null);
+
+    // Validate each audio file
+    const validatedFiles: File[] = [];
+    for (const file of audioFiles) {
+      const isValid = await validateAudioFile(file);
+      if (isValid) {
+        validatedFiles.push(file);
+      } else {
+        console.warn(`Skipping invalid/corrupted audio file: ${file.name}`);
+      }
+    }
+
+    if (validatedFiles.length === 0) {
+      setError('No valid audio files found. Please check that your files are not corrupted and are in a supported format (MP3, WAV, M4A, etc.)');
+      return;
+    }
+
+    if (validatedFiles.length < audioFiles.length) {
+      setError(`${validatedFiles.length} of ${audioFiles.length} files were valid and added. Some files were skipped due to format issues.`);
+    }
+
+    const newTracks: TrackSettings[] = validatedFiles.map((file, index) => ({
       file,
       volume: 1,
       pan: 0,
@@ -91,7 +147,6 @@ export default function MultiTrackMixer() {
     }));
 
     setTracks(prev => [...prev, ...newTracks]);
-    setError(null);
   };
 
   const removeTrack = (index: number) => {
@@ -232,7 +287,26 @@ export default function MultiTrackMixer() {
             }, { once: true });
 
             audio.addEventListener('error', (e) => {
-              reject(new Error(`Audio load error: ${audio.error?.message || 'Unknown error'}`));
+              let errorMessage = 'Unknown audio error';
+              if (audio.error) {
+                switch (audio.error.code) {
+                  case MediaError.MEDIA_ERR_ABORTED:
+                    errorMessage = 'Audio loading was aborted';
+                    break;
+                  case MediaError.MEDIA_ERR_NETWORK:
+                    errorMessage = 'Network error while loading audio';
+                    break;
+                  case MediaError.MEDIA_ERR_DECODE:
+                    errorMessage = 'Audio format not supported or file is corrupted';
+                    break;
+                  case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
+                    errorMessage = 'Audio source not supported';
+                    break;
+                  default:
+                    errorMessage = audio.error.message || 'Unknown audio error';
+                }
+              }
+              reject(new Error(`Audio load error: ${errorMessage}`));
             }, { once: true });
           }),
           new Promise<never>((_, reject) =>
@@ -348,7 +422,26 @@ export default function MultiTrackMixer() {
             }, { once: true });
 
             audio.addEventListener('error', (e) => {
-              reject(new Error(`Audio load error: ${audio.error?.message || 'Unknown error'}`));
+              let errorMessage = 'Unknown audio error';
+              if (audio.error) {
+                switch (audio.error.code) {
+                  case MediaError.MEDIA_ERR_ABORTED:
+                    errorMessage = 'Audio loading was aborted';
+                    break;
+                  case MediaError.MEDIA_ERR_NETWORK:
+                    errorMessage = 'Network error while loading audio';
+                    break;
+                  case MediaError.MEDIA_ERR_DECODE:
+                    errorMessage = 'Audio format not supported or file is corrupted';
+                    break;
+                  case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
+                    errorMessage = 'Audio source not supported';
+                    break;
+                  default:
+                    errorMessage = audio.error.message || 'Unknown audio error';
+                }
+              }
+              reject(new Error(`Audio load error: ${errorMessage}`));
             }, { once: true });
           }),
           new Promise<never>((_, reject) =>
