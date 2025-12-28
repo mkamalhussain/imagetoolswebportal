@@ -25,6 +25,35 @@ export default function PerspectiveCorrection() {
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const correctionCanvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  // Draw image to canvas when both are available
+  useEffect(() => {
+    if (originalImage && canvasRef.current && sourceUrl) {
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext("2d");
+
+      if (ctx) {
+        console.log('Drawing image to canvas in useEffect:', originalImage.width, 'x', originalImage.height);
+        canvas.width = originalImage.width;
+        canvas.height = originalImage.height;
+        ctx.drawImage(originalImage, 0, 0);
+        console.log('Canvas after drawing in useEffect:', canvas.width, 'x', canvas.height);
+
+        // Adjust corners based on actual canvas size
+        const margin = 50;
+        const newCorners = [
+          { x: margin, y: margin },
+          { x: originalImage.width - margin, y: margin },
+          { x: originalImage.width - margin, y: originalImage.height - margin },
+          { x: margin, y: originalImage.height - margin }
+        ];
+        console.log('Adjusting corners in useEffect:', newCorners);
+        setCorners(newCorners);
+      } else {
+        console.error('Could not get canvas context in useEffect');
+      }
+    }
+  }, [originalImage, sourceUrl]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Load image and set up corners
@@ -43,33 +72,16 @@ export default function PerspectiveCorrection() {
       setOriginalImage(img);
       setSourceUrl(URL.createObjectURL(file));
 
-      // Set up initial corner positions based on image dimensions
-      const canvas = canvasRef.current;
-      if (canvas) {
-        canvas.width = img.width;
-        canvas.height = img.height;
-
-        // Draw the image on the canvas for display
-        const ctx = canvas.getContext("2d");
-        if (ctx) {
-          console.log('Drawing image to canvas:', img.width, 'x', img.height);
-          ctx.drawImage(img, 0, 0);
-          console.log('Canvas after drawing:', canvas.width, 'x', canvas.height);
-        } else {
-          console.error('Could not get canvas context');
-        }
-
-        // Initialize corners as a rectangle
-        const margin = 50;
-        const newCorners = [
-          { x: margin, y: margin },
-          { x: img.width - margin, y: margin },
-          { x: img.width - margin, y: img.height - margin },
-          { x: margin, y: img.height - margin }
-        ];
-        console.log('Setting corners:', newCorners);
-        setCorners(newCorners);
-      }
+      // Initialize corners as a rectangle (will be adjusted when canvas is ready)
+      const margin = 50;
+      const newCorners = [
+        { x: margin, y: margin },
+        { x: img.width - margin, y: margin },
+        { x: img.width - margin, y: img.height - margin },
+        { x: margin, y: img.height - margin }
+      ];
+      console.log('Setting initial corners:', newCorners);
+      setCorners(newCorners);
 
     } catch (err) {
       console.error("Image loading error:", err);
