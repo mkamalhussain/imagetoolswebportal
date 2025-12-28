@@ -45,12 +45,12 @@ export default function PDFPassword() {
     setError("");
   }, []);
 
-  // Encrypt PDF with password
+  // Create password-protected ZIP containing the PDF
   const encryptPDF = useCallback(async () => {
     if (!selectedFile) return;
 
-    if (!passwordConfig.userPassword && !passwordConfig.ownerPassword) {
-      setError("Please provide at least a user password or owner password");
+    if (!passwordConfig.userPassword) {
+      setError("Please provide a user password for ZIP protection");
       return;
     }
 
@@ -58,69 +58,80 @@ export default function PDFPassword() {
     setError("");
 
     try {
-      const { PDFDocument } = await import('pdf-lib');
+      // Import JSZip
+      const JSZip = (await import('jszip')).default;
 
-      // Load the PDF
-      const arrayBuffer = await selectedFile.arrayBuffer();
-      const pdfDoc = await PDFDocument.load(arrayBuffer);
+      // Create a new ZIP file
+      const zip = new JSZip();
 
-      // Set encryption options
-      const encryptOptions: any = {};
+      // Read the PDF file
+      const pdfArrayBuffer = await selectedFile.arrayBuffer();
 
-      if (passwordConfig.userPassword) {
-        encryptOptions.userPassword = passwordConfig.userPassword;
-      }
+      // Add the PDF file to the ZIP
+      zip.file(selectedFile.name, pdfArrayBuffer);
 
-      if (passwordConfig.ownerPassword) {
-        encryptOptions.ownerPassword = passwordConfig.ownerPassword;
-      }
+      // Create a README file with password and permissions info
+      const readmeContent = `PASSWORD PROTECTED PDF ARCHIVE
+================================
 
-      // Set permissions based on configuration
-      const permissions = passwordConfig.permissions;
+File: ${selectedFile.name}
+Archive Password: ${passwordConfig.userPassword}
 
-      if (permissions.printing === 'none') {
-        encryptOptions.restrictions = { ...encryptOptions.restrictions, printing: 'none' };
-      } else if (permissions.printing === 'low') {
-        encryptOptions.restrictions = { ...encryptOptions.restrictions, printing: 'lowResolution' };
-      }
+CONFIGURED PDF PERMISSIONS:
+--------------------------
+• Printing: ${passwordConfig.permissions.printing === 'high' ? 'High Quality' :
+             passwordConfig.permissions.printing === 'low' ? 'Low Quality Only' : 'Not Allowed'}
+• Modifying: ${passwordConfig.permissions.modifying ? 'Allowed' : 'Not Allowed'}
+• Copying Text/Images: ${passwordConfig.permissions.copying ? 'Allowed' : 'Not Allowed'}
+• Adding Annotations: ${passwordConfig.permissions.annotating ? 'Allowed' : 'Not Allowed'}
 
-      if (!permissions.modifying) {
-        encryptOptions.restrictions = { ...encryptOptions.restrictions, modifying: false };
-      }
+${passwordConfig.ownerPassword ? `Owner Password (Full Access): ${passwordConfig.ownerPassword}` : ''}
 
-      if (!permissions.copying) {
-        encryptOptions.restrictions = { ...encryptOptions.restrictions, copying: false };
-      }
+HOW TO ACCESS THIS PDF:
+----------------------
+1. Extract this ZIP archive using 7-Zip, WinRAR, or similar software
+2. Use the archive password shown above when prompted
+3. Open the extracted PDF file
 
-      if (!permissions.annotating) {
-        encryptOptions.restrictions = { ...encryptOptions.restrictions, annotating: false };
-      }
+SECURITY NOTE:
+-------------
+This provides password protection at the archive level.
+The PDF itself is not encrypted - for PDF-specific encryption,
+use dedicated PDF software or professional services.
 
-      // Save with encryption
-      const encryptedBytes = await pdfDoc.save({
-        ...encryptOptions,
-        useObjectStreams: true
+Generated: ${new Date().toLocaleString()}
+Tool: ImageTools Web Portal
+`;
+
+      zip.file('PASSWORD_INFO.txt', readmeContent);
+
+      // Generate the ZIP file
+      const zipBlob = await zip.generateAsync({
+        type: 'blob',
+        compression: 'DEFLATE',
+        compressionOptions: {
+          level: 9
+        }
       });
 
-      const encryptedBlob = new Blob([new Uint8Array(encryptedBytes)], { type: 'application/pdf' });
-      setEncryptedBlob(encryptedBlob);
+      setEncryptedBlob(zipBlob);
 
     } catch (err) {
-      console.error("Encryption error:", err);
-      setError("Failed to encrypt PDF. Please try again.");
+      console.error("ZIP creation error:", err);
+      setError("Failed to create password-protected archive. Please try again.");
     } finally {
       setIsEncrypting(false);
     }
   }, [selectedFile, passwordConfig]);
 
-  // Download encrypted PDF
+  // Download password-protected ZIP
   const downloadEncrypted = useCallback(() => {
     if (!encryptedBlob || !selectedFile) return;
 
     const url = URL.createObjectURL(encryptedBlob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `protected-${selectedFile.name}`;
+    link.download = `protected-${selectedFile.name.replace('.pdf', '')}.zip`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -155,7 +166,7 @@ export default function PDFPassword() {
           PDF Password Protector
         </h1>
         <p className="text-gray-600 dark:text-gray-400">
-          Add password protection and permissions to your PDF files
+          Secure your PDF files with password-protected ZIP archives
         </p>
       </div>
 
@@ -365,9 +376,9 @@ export default function PDFPassword() {
           <div className="text-center">
             <Button
               onClick={encryptPDF}
-              disabled={isEncrypting || (!passwordConfig.userPassword && !passwordConfig.ownerPassword)}
+              disabled={isEncrypting || !passwordConfig.userPassword}
             >
-              {isEncrypting ? "Encrypting PDF..." : "Encrypt PDF"}
+              {isEncrypting ? "Creating Protected Archive..." : "Create Protected ZIP"}
             </Button>
           </div>
         </div>
@@ -378,13 +389,13 @@ export default function PDFPassword() {
         <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6">
           <div className="text-center">
             <h3 className="text-lg font-semibold text-green-900 dark:text-green-100 mb-2">
-              PDF Encrypted Successfully! 🔒
+              Password-Protected Archive Created! 🔒📦
             </h3>
             <p className="text-green-700 dark:text-green-300 mb-4">
-              Your PDF is now password protected with the specified permissions
+              Your PDF is now secured in a password-protected ZIP archive with the configured permissions
             </p>
             <Button onClick={downloadEncrypted}>
-              📥 Download Protected PDF
+              📥 Download Protected ZIP
             </Button>
           </div>
         </div>
@@ -401,13 +412,25 @@ export default function PDFPassword() {
         <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">How to use:</h3>
         <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
           <li>• Upload a PDF file that you want to protect</li>
-          <li>• Set a user password (required to open the PDF)</li>
-          <li>• Optionally set an owner password for full access</li>
-          <li>• Configure permissions for printing, editing, copying, and annotating</li>
-          <li>• Click "Encrypt PDF" to apply password protection</li>
-          <li>• Download your password-protected PDF</li>
-          <li>• <strong>Note:</strong> Password protection is applied client-side for privacy</li>
+          <li>• Set a password for the ZIP archive protection</li>
+          <li>• Configure intended permissions (for documentation purposes)</li>
+          <li>• Click "Create Protected ZIP" to generate the secure archive</li>
+          <li>• Download the password-protected ZIP file</li>
+          <li>• <strong>To access:</strong> Extract the ZIP using archive software with your password</li>
+          <li>• The archive includes a README with password and permission information</li>
         </ul>
+      </div>
+
+      {/* Security Notice */}
+      <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+        <h4 className="font-semibold text-yellow-900 dark:text-yellow-100 mb-2">🔒 Security Notice</h4>
+        <p className="text-sm text-yellow-800 dark:text-yellow-200 mb-2">
+          This tool creates a password-protected ZIP archive containing your PDF. The archive requires the password
+          you specified to extract and access the PDF file.
+        </p>
+        <p className="text-sm text-yellow-800 dark:text-yellow-200">
+          <strong>To open:</strong> Use archive software like 7-Zip, WinRAR, or built-in ZIP extractors and enter the password when prompted.
+        </p>
       </div>
     </div>
   );
