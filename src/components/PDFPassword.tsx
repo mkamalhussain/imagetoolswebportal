@@ -34,8 +34,8 @@ export default function PDFPassword() {
   const [error, setError] = useState<string>("");
   const [activeTab, setActiveTab] = useState<'encrypt' | 'decrypt'>('encrypt');
   const [showAlternatives, setShowAlternatives] = useState(false);
-
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const encryptFileInputRef = React.useRef<HTMLInputElement>(null);
+  const decryptFileInputRef = React.useRef<HTMLInputElement>(null);
 
   // Handle file selection
   const handleFileSelect = useCallback((file: File) => {
@@ -400,13 +400,13 @@ export default function PDFPassword() {
             </div>
             <Button
               className="mt-4"
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => encryptFileInputRef.current?.click()}
             >
               Select PDF File
             </Button>
           </div>
           <input
-            ref={fileInputRef}
+            ref={encryptFileInputRef}
             type="file"
             accept=".pdf,application/pdf"
             onChange={(e) => {
@@ -440,22 +440,22 @@ export default function PDFPassword() {
             </div>
             <Button
               className="mt-4"
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => decryptFileInputRef.current?.click()}
             >
               Select Encrypted File
             </Button>
           </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".encrypted,*/*"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) handleFileSelect(file);
-                setEncryptedBlob(null);
-              }}
-              className="hidden"
-            />
+          <input
+            ref={decryptFileInputRef}
+            type="file"
+            accept=".encrypted,*/*"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleFileSelect(file);
+              setEncryptedBlob(null);
+            }}
+            className="hidden"
+          />
         </div>
       )}
 
