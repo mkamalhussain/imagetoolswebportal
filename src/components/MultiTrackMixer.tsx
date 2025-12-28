@@ -33,27 +33,37 @@ export default function MultiTrackMixer() {
 
   // Create blob URLs for tracks
   const [trackUrls, setTrackUrls] = useState<Map<number, string>>(new Map());
+  const [currentBlobUrls, setCurrentBlobUrls] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    // Create blob URLs for all tracks
+    // Revoke old URLs first
+    currentBlobUrls.forEach(url => {
+      URL.revokeObjectURL(url);
+    });
+
+    // Create new blob URLs for all tracks
     const newUrls = new Map<number, string>();
+    const newBlobUrlSet = new Set<string>();
+
     tracks.forEach((track, index) => {
       const url = URL.createObjectURL(track.file);
       newUrls.set(index, url);
+      newBlobUrlSet.add(url);
     });
-    setTrackUrls(newUrls);
 
-    // Cleanup function - revoke old URLs that are no longer needed
+    setTrackUrls(newUrls);
+    setCurrentBlobUrls(newBlobUrlSet);
+
+    // Cleanup function - will revoke URLs on next effect run or unmount
     return () => {
-      // We'll clean up URLs when component unmounts or when tracks change significantly
-      // For now, keep them alive during re-renders
+      // URLs will be revoked in the next effect run
     };
   }, [tracks]);
 
   // Cleanup URLs when component unmounts
   useEffect(() => {
     return () => {
-      trackUrls.forEach(url => {
+      currentBlobUrls.forEach(url => {
         URL.revokeObjectURL(url);
       });
     };
@@ -121,26 +131,35 @@ export default function MultiTrackMixer() {
     const [movedTrack] = newTracks.splice(fromIndex, 1);
     newTracks.splice(toIndex, 0, movedTrack);
     setTracks(newTracks);
+
+    // URLs stay with their tracks, just update the mapping
+    const newUrls = new Map<number, string>();
+    newTracks.forEach((track, index) => {
+      // Find the original index of this track
+      const originalIndex = tracks.findIndex(t => t === track);
+      const url = trackUrls.get(originalIndex);
+      if (url) {
+        newUrls.set(index, url);
+      }
+    });
+    setTrackUrls(newUrls);
   };
 
   const previewTrack = async (index: number) => {
-    const trackUrl = trackUrls.get(index);
-    if (!previewAudioRef.current || !trackUrl) {
-      console.error('Audio not ready for preview:', { hasRef: !!previewAudioRef.current, hasUrl: !!trackUrl, index });
-      setError('Audio not ready for preview. Please wait a moment and try again.');
-      return;
-    }
-
     if (!tracks[index]) {
       setError('Track not found');
       return;
     }
 
+    const track = tracks[index];
+
     try {
       // Stop current preview
       if (currentPreviewTrack !== null) {
-        previewAudioRef.current.pause();
-        previewAudioRef.current.currentTime = 0;
+        if (previewAudioRef.current) {
+          previewAudioRef.current.pause();
+          previewAudioRef.current.currentTime = 0;
+        }
         updateTrack(currentPreviewTrack, { isPlaying: false, currentTime: 0 });
       }
 
@@ -154,52 +173,67 @@ export default function MultiTrackMixer() {
       setCurrentPreviewTrack(index);
       updateTrack(index, { isPlaying: true });
 
+      if (!previewAudioRef.current) {
+        throw new Error('Audio element not available');
+      }
+
       const audio = previewAudioRef.current;
-      const track = tracks[index];
 
-      // Clear any existing source first
-      audio.src = '';
-      audio.load(); // Reset the audio element
+      // Create a fresh blob URL for this specific preview
+      const freshUrl = URL.createObjectURL(track.file);
 
-      // Set the new source
-      audio.src = trackUrl;
-      audio.volume = getEffectiveVolume(track);
-      audio.currentTime = 0;
+      try {
+        // Clear any existing source first
+        audio.src = '';
+        audio.load(); // Reset the audio element
 
-      // Wait for the audio to be ready with timeout
-      await Promise.race([
-        new Promise((resolve, reject) => {
-          const onCanPlay = () => {
-            audio.removeEventListener('canplay', onCanPlay);
-            audio.removeEventListener('error', onError);
-            resolve(void 0);
-          };
-          const onError = (e: Event) => {
-            audio.removeEventListener('canplay', onCanPlay);
-            audio.removeEventListener('error', onError);
-            reject(new Error('Audio failed to load'));
-          };
+        // Set the new source
+        audio.src = freshUrl;
+        audio.volume = getEffectiveVolume(track);
+        audio.currentTime = 0;
 
-          audio.addEventListener('canplay', onCanPlay);
-          audio.addEventListener('error', onError);
-        }),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Audio loading timeout')), 5000)
-        )
-      ]);
+        // Wait for the audio to be ready with timeout
+        await Promise.race([
+          new Promise((resolve, reject) => {
+            const onCanPlay = () => {
+              audio.removeEventListener('canplay', onCanPlay);
+              audio.removeEventListener('error', onError);
+              resolve(void 0);
+            };
+            const onError = (e: Event) => {
+              audio.removeEventListener('canplay', onCanPlay);
+              audio.removeEventListener('error', onError);
+              reject(new Error('Audio failed to load'));
+            };
 
-      // Start playback
-      await audio.play();
+            audio.addEventListener('canplay', onCanPlay);
+            audio.addEventListener('error', onError);
+          }),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Audio loading timeout')), 5000)
+          )
+        ]);
 
-      // Stop after 10 seconds
-      setTimeout(() => {
-        if (audio && !audio.paused) {
-          audio.pause();
-          audio.currentTime = 0;
-          updateTrack(index, { isPlaying: false, currentTime: 0 });
-          setCurrentPreviewTrack(null);
-        }
-      }, 10000);
+        // Start playback
+        await audio.play();
+
+        // Stop after 10 seconds
+        setTimeout(() => {
+          if (audio && !audio.paused) {
+            audio.pause();
+            audio.currentTime = 0;
+            updateTrack(index, { isPlaying: false, currentTime: 0 });
+            setCurrentPreviewTrack(null);
+          }
+          // Clean up the fresh URL
+          URL.revokeObjectURL(freshUrl);
+        }, 10000);
+
+      } catch (playError) {
+        // Clean up the fresh URL on error
+        URL.revokeObjectURL(freshUrl);
+        throw playError;
+      }
 
     } catch (err) {
       console.error('Preview error:', err);
@@ -221,28 +255,33 @@ export default function MultiTrackMixer() {
     try {
       // For mix preview, we'll simulate by playing the first non-muted track
       // In a real implementation, this would mix all tracks together
-      const playableTrackIndex = tracks.findIndex((track, index) =>
-        !track.mute && trackUrls.get(index) && getEffectiveVolume(track) > 0
+      const playableTrack = tracks.find(track =>
+        !track.mute && getEffectiveVolume(track) > 0
       );
 
-      if (playableTrackIndex === -1) {
+      if (!playableTrack) {
         setError('No tracks available for preview (all muted or at zero volume)');
         setIsPreviewing(false);
         return;
       }
 
-      const trackUrl = trackUrls.get(playableTrackIndex);
-      if (previewAudioRef.current && trackUrl) {
-        const audio = previewAudioRef.current;
-        const track = tracks[playableTrackIndex];
+      if (!previewAudioRef.current) {
+        throw new Error('Audio element not available');
+      }
 
+      const audio = previewAudioRef.current;
+
+      // Create a fresh blob URL for this specific preview
+      const freshUrl = URL.createObjectURL(playableTrack.file);
+
+      try {
         // Clear any existing source first
         audio.src = '';
         audio.load(); // Reset the audio element
 
         // Set the new source
-        audio.src = trackUrl;
-        audio.volume = getEffectiveVolume(track);
+        audio.src = freshUrl;
+        audio.volume = getEffectiveVolume(playableTrack);
         audio.currentTime = 0;
 
         // Wait for the audio to be ready with timeout
@@ -276,7 +315,14 @@ export default function MultiTrackMixer() {
             audio.currentTime = 0;
           }
           setIsPreviewing(false);
+          // Clean up the fresh URL
+          URL.revokeObjectURL(freshUrl);
         }, 10000);
+
+      } catch (playError) {
+        // Clean up the fresh URL on error
+        URL.revokeObjectURL(freshUrl);
+        throw playError;
       }
 
     } catch (err) {
