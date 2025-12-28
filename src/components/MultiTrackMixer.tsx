@@ -127,10 +127,18 @@ export default function MultiTrackMixer() {
 
       const onLoaded = () => {
         cleanup();
-        resolve(audio.duration > 0 && !isNaN(audio.duration) ? audio.duration : 0);
+        const duration = audio.duration;
+        // Check for valid finite duration
+        if (duration > 0 && duration < Infinity && !isNaN(duration)) {
+          resolve(duration);
+        } else {
+          console.warn(`Invalid duration for ${file.name}: ${duration}`);
+          resolve(0);
+        }
       };
 
-      const onError = () => {
+      const onError = (e: Event) => {
+        console.warn(`Error loading audio metadata for ${file.name}:`, e);
         cleanup();
         resolve(0);
       };
@@ -142,6 +150,7 @@ export default function MultiTrackMixer() {
 
       // Timeout after 5 seconds
       setTimeout(() => {
+        console.warn(`Timeout loading audio metadata for ${file.name}`);
         cleanup();
         resolve(0);
       }, 5000);
@@ -555,6 +564,9 @@ export default function MultiTrackMixer() {
 
 
   const formatTime = (time: number) => {
+    if (!time || time <= 0 || !isFinite(time)) {
+      return '--:--';
+    }
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
@@ -772,21 +784,62 @@ export default function MultiTrackMixer() {
 
                   {/* Level Meter - Visual representation */}
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-xs text-gray-500 dark:text-gray-400 w-12">LEVEL</span>
-                    <div className="flex-1 h-6 bg-gray-200 dark:bg-gray-700 rounded-md overflow-hidden border border-gray-300 dark:border-gray-600 relative">
-                      <div
-                        className={`h-full transition-all duration-300 ${
-                          isPreviewing && !track.mute && getEffectiveVolume(track) > 0
-                            ? 'bg-gradient-to-r from-green-500 via-yellow-500 to-red-500 shadow-lg'
-                            : 'bg-gray-400 dark:bg-gray-600'
-                        }`}
-                        style={{
-                          width: isPreviewing && !track.mute && getEffectiveVolume(track) > 0 ? '80%' : '15%'
-                        }}
-                      ></div>
-                      {isPreviewing && !track.mute && getEffectiveVolume(track) > 0 && (
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse rounded-md"></div>
-                      )}
+                    <span className="text-xs text-gray-500 dark:text-gray-400 w-12" title="Audio Level Indicator">LEVEL</span>
+                    <div className="flex-1 flex items-center gap-1">
+                      {/* Status indicator */}
+                      <div className="flex items-center gap-1">
+                        <div
+                          className={`w-2 h-2 rounded-full ${
+                            (isPreviewing || currentPreviewTrack === index) && !track.mute && getEffectiveVolume(track) > 0
+                              ? 'bg-green-500 animate-pulse'
+                              : track.mute || getEffectiveVolume(track) === 0
+                              ? 'bg-gray-400'
+                              : track.duration > 0
+                              ? 'bg-blue-500'
+                              : 'bg-gray-300'
+                          }`}
+                          title={
+                            (isPreviewing || currentPreviewTrack === index) && !track.mute && getEffectiveVolume(track) > 0
+                              ? 'Playing'
+                              : track.mute || getEffectiveVolume(track) === 0
+                              ? 'Muted/Silent'
+                              : track.duration > 0
+                              ? 'Ready to play'
+                              : 'Loading...'
+                          }
+                        ></div>
+                      </div>
+
+                      {/* Level bar */}
+                      <div className="flex-1 h-4 bg-gray-200 dark:bg-gray-700 rounded-sm overflow-hidden border border-gray-300 dark:border-gray-600 relative">
+                        {(() => {
+                          const isActive = (isPreviewing || currentPreviewTrack === index) && !track.mute && getEffectiveVolume(track) > 0;
+                          const isLoaded = track.duration > 0;
+                          const isMuted = track.mute || getEffectiveVolume(track) === 0;
+
+                          return (
+                            <>
+                              <div
+                                className={`h-full transition-all duration-300 ${
+                                  isActive
+                                    ? 'bg-gradient-to-r from-green-500 via-yellow-500 to-red-500'
+                                    : isMuted
+                                    ? 'bg-gray-400 dark:bg-gray-600'
+                                    : isLoaded
+                                    ? 'bg-blue-400 dark:bg-blue-600'
+                                    : 'bg-gray-300 dark:bg-gray-500'
+                                }`}
+                                style={{
+                                  width: isActive ? '85%' : isLoaded ? '60%' : '20%'
+                                }}
+                              ></div>
+                              {isActive && (
+                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse rounded-sm pointer-events-none"></div>
+                              )}
+                            </>
+                          );
+                        })()}
+                      </div>
                     </div>
                   </div>
                 </div>
