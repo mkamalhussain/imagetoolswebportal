@@ -39,19 +39,22 @@ export default function PDFPassword() {
 
   // Handle file selection
   const handleFileSelect = useCallback((file: File) => {
+    console.log(`File selected: ${file.name}, type: ${file.type}, activeTab: ${activeTab}, activeTab ref:`, activeTab);
+
     if (activeTab === 'encrypt') {
+      console.log('Validating for encrypt tab (PDF required)');
       // Encrypt tab: must be PDF
       if (file.type !== 'application/pdf') {
+        console.log(`File type ${file.type} is not PDF, rejecting`);
         setError("Please select a PDF file");
         return;
       }
+      console.log('PDF file accepted for encryption');
     } else {
-      // Decrypt tab: can be any file (encrypted files might not have proper MIME type)
-      // But let's check for .encrypted extension if possible
-      if (file.name && !file.name.toLowerCase().endsWith('.encrypted') && file.type !== 'application/octet-stream') {
-        setError("Please select an encrypted file (.encrypted)");
-        return;
-      }
+      console.log('Validating for decrypt tab - accepting any file for decryption');
+      // Decrypt tab: accept any file since encrypted files can have various MIME types
+      // The decryption function will handle validation of the file format
+      console.log('File accepted for decryption');
     }
 
     setSelectedFile(file);
@@ -292,7 +295,10 @@ export default function PDFPassword() {
         <div className="flex justify-center mb-6">
           <div className="bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
             <button
-              onClick={() => setActiveTab('encrypt')}
+              onClick={() => {
+                console.log('Switching to encrypt tab');
+                setActiveTab('encrypt');
+              }}
               className={`px-6 py-2 rounded-md font-medium transition-colors ${
                 activeTab === 'encrypt'
                   ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
@@ -302,7 +308,10 @@ export default function PDFPassword() {
               🔒 Encrypt PDF
             </button>
             <button
-              onClick={() => setActiveTab('decrypt')}
+              onClick={() => {
+                console.log('Switching to decrypt tab');
+                setActiveTab('decrypt');
+              }}
               className={`px-6 py-2 rounded-md font-medium transition-colors ${
                 activeTab === 'decrypt'
                   ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
@@ -312,6 +321,15 @@ export default function PDFPassword() {
               🔓 Decrypt File
             </button>
           </div>
+        </div>
+
+        {/* Current Tab Indicator */}
+        <div className="text-center mb-4">
+          <span className="text-sm text-gray-600 dark:text-gray-400">
+            Current tab: <strong className={activeTab === 'encrypt' ? 'text-blue-600' : 'text-green-600'}>
+              {activeTab === 'encrypt' ? '🔒 Encrypt PDF' : '🔓 Decrypt File'}
+            </strong>
+          </span>
         </div>
 
         {/* Important Notice */}
@@ -422,6 +440,7 @@ export default function PDFPassword() {
             accept=".pdf,application/pdf"
             onChange={(e) => {
               const file = e.target.files?.[0];
+              console.log('Encrypt file input changed:', file?.name);
               if (file) handleFileSelect(file);
               setDecryptedBlob(null);
             }}
@@ -462,6 +481,7 @@ export default function PDFPassword() {
             accept=".encrypted,*/*"
             onChange={(e) => {
               const file = e.target.files?.[0];
+              console.log('Decrypt file input changed:', file?.name);
               if (file) handleFileSelect(file);
               setEncryptedBlob(null);
             }}
