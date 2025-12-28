@@ -26,8 +26,8 @@ export default function MultiTrackMixer() {
   const [currentPreviewTrack, setCurrentPreviewTrack] = useState<number | null>(null);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
-  const previewAudioRef = useRef<HTMLAudioElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
 
@@ -156,9 +156,10 @@ export default function MultiTrackMixer() {
     try {
       // Stop current preview
       if (currentPreviewTrack !== null) {
-        if (previewAudioRef.current) {
-          previewAudioRef.current.pause();
-          previewAudioRef.current.currentTime = 0;
+        if (currentAudioRef.current) {
+          currentAudioRef.current.pause();
+          currentAudioRef.current.currentTime = 0;
+          currentAudioRef.current = null;
         }
         updateTrack(currentPreviewTrack, { isPlaying: false, currentTime: 0 });
       }
@@ -169,64 +170,90 @@ export default function MultiTrackMixer() {
         return;
       }
 
-      // Start new preview
-      setCurrentPreviewTrack(index);
-      updateTrack(index, { isPlaying: true });
+        // Start new preview
+        setCurrentPreviewTrack(index);
+        updateTrack(index, { isPlaying: true });
 
-      if (!previewAudioRef.current) {
-        throw new Error('Audio element not available');
-      }
+        // Create a fresh blob URL for this specific preview
+        const freshUrl = URL.createObjectURL(track.file);
 
-      const audio = previewAudioRef.current;
+        try {
+          // Create a new audio element for each preview to avoid state issues
+          const audio = new Audio();
+          currentAudioRef.current = audio;
 
-      // Create a fresh blob URL for this specific preview
-      const freshUrl = URL.createObjectURL(track.file);
-
-      try {
-        // Clear any existing source first
-        audio.src = '';
-        audio.load(); // Reset the audio element
-
-        // Set the new source
-        audio.src = freshUrl;
+        // Set properties
         audio.volume = getEffectiveVolume(track);
-        audio.currentTime = 0;
+        audio.preload = 'metadata';
+
+        // Set up event listeners
+        const cleanup = () => {
+          audio.removeEventListener('canplay', onCanPlay);
+          audio.removeEventListener('error', onError);
+          audio.removeEventListener('ended', onEnded);
+        };
+
+        const onCanPlay = () => {
+          cleanup();
+          // Start playback
+          audio.play().catch(err => {
+            console.error('Playback failed:', err);
+            throw new Error('Playback failed');
+          });
+        };
+
+        const onError = (e: Event) => {
+          cleanup();
+          console.error('Audio load error:', e, audio.error);
+          throw new Error(`Audio load error: ${audio.error?.message || 'Unknown error'}`);
+        };
+
+        const onEnded = () => {
+          cleanup();
+          currentAudioRef.current = null;
+          updateTrack(index, { isPlaying: false, currentTime: 0 });
+          setCurrentPreviewTrack(null);
+          URL.revokeObjectURL(freshUrl);
+        };
+
+        audio.addEventListener('canplay', onCanPlay);
+        audio.addEventListener('error', onError);
+        audio.addEventListener('ended', onEnded);
+
+        // Set the source last
+        audio.src = freshUrl;
 
         // Wait for the audio to be ready with timeout
         await Promise.race([
-          new Promise((resolve, reject) => {
-            const onCanPlay = () => {
-              audio.removeEventListener('canplay', onCanPlay);
-              audio.removeEventListener('error', onError);
-              resolve(void 0);
-            };
-            const onError = (e: Event) => {
-              audio.removeEventListener('canplay', onCanPlay);
-              audio.removeEventListener('error', onError);
-              reject(new Error('Audio failed to load'));
-            };
+          new Promise<void>((resolve, reject) => {
+            // Override the event handlers to resolve/reject the promise
+            audio.addEventListener('canplay', () => {
+              resolve();
+            }, { once: true });
 
-            audio.addEventListener('canplay', onCanPlay);
-            audio.addEventListener('error', onError);
+            audio.addEventListener('error', (e) => {
+              reject(new Error(`Audio load error: ${audio.error?.message || 'Unknown error'}`));
+            }, { once: true });
           }),
-          new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Audio loading timeout')), 5000)
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error('Audio loading timeout')), 8000)
           )
         ]);
 
-        // Start playback
-        await audio.play();
+        // Start playback (this should happen in the canplay handler above)
+        // The promise will resolve when canplay fires
 
-        // Stop after 10 seconds
+        // Stop after 10 seconds if not already ended
         setTimeout(() => {
-          if (audio && !audio.paused) {
+          if (audio && !audio.paused && !audio.ended) {
             audio.pause();
             audio.currentTime = 0;
+            currentAudioRef.current = null;
             updateTrack(index, { isPlaying: false, currentTime: 0 });
             setCurrentPreviewTrack(null);
+            URL.revokeObjectURL(freshUrl);
+            cleanup();
           }
-          // Clean up the fresh URL
-          URL.revokeObjectURL(freshUrl);
         }, 10000);
 
       } catch (playError) {
@@ -237,6 +264,7 @@ export default function MultiTrackMixer() {
 
     } catch (err) {
       console.error('Preview error:', err);
+      currentAudioRef.current = null;
       setError(`Failed to preview track: ${err instanceof Error ? err.message : 'Unknown error'}`);
       updateTrack(index, { isPlaying: false, currentTime: 0 });
       setCurrentPreviewTrack(null);
@@ -265,58 +293,78 @@ export default function MultiTrackMixer() {
         return;
       }
 
-      if (!previewAudioRef.current) {
-        throw new Error('Audio element not available');
-      }
-
-      const audio = previewAudioRef.current;
-
       // Create a fresh blob URL for this specific preview
       const freshUrl = URL.createObjectURL(playableTrack.file);
 
       try {
-        // Clear any existing source first
-        audio.src = '';
-        audio.load(); // Reset the audio element
+        // Create a new audio element for each preview
+        const audio = new Audio();
 
-        // Set the new source
-        audio.src = freshUrl;
+        // Set properties
         audio.volume = getEffectiveVolume(playableTrack);
-        audio.currentTime = 0;
+        audio.preload = 'metadata';
+
+        // Set up event listeners
+        const cleanup = () => {
+          audio.removeEventListener('canplay', onCanPlay);
+          audio.removeEventListener('error', onError);
+          audio.removeEventListener('ended', onEnded);
+        };
+
+        const onCanPlay = () => {
+          cleanup();
+          // Start playback
+          audio.play().catch(err => {
+            console.error('Playback failed:', err);
+            throw new Error('Playback failed');
+          });
+        };
+
+        const onError = (e: Event) => {
+          cleanup();
+          console.error('Audio load error:', e, audio.error);
+          throw new Error(`Audio load error: ${audio.error?.message || 'Unknown error'}`);
+        };
+
+        const onEnded = () => {
+          cleanup();
+          setIsPreviewing(false);
+          URL.revokeObjectURL(freshUrl);
+        };
+
+        audio.addEventListener('canplay', onCanPlay);
+        audio.addEventListener('error', onError);
+        audio.addEventListener('ended', onEnded);
+
+        // Set the source last
+        audio.src = freshUrl;
 
         // Wait for the audio to be ready with timeout
         await Promise.race([
-          new Promise((resolve, reject) => {
-            const onCanPlay = () => {
-              audio.removeEventListener('canplay', onCanPlay);
-              audio.removeEventListener('error', onError);
-              resolve(void 0);
-            };
-            const onError = (e: Event) => {
-              audio.removeEventListener('canplay', onCanPlay);
-              audio.removeEventListener('error', onError);
-              reject(new Error('Audio failed to load'));
-            };
+          new Promise<void>((resolve, reject) => {
+            // Override the event handlers to resolve/reject the promise
+            audio.addEventListener('canplay', () => {
+              resolve();
+            }, { once: true });
 
-            audio.addEventListener('canplay', onCanPlay);
-            audio.addEventListener('error', onError);
+            audio.addEventListener('error', (e) => {
+              reject(new Error(`Audio load error: ${audio.error?.message || 'Unknown error'}`));
+            }, { once: true });
           }),
-          new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Audio loading timeout')), 5000)
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error('Audio loading timeout')), 8000)
           )
         ]);
 
-        await audio.play();
-
-        // Stop after 10 seconds
+        // Stop after 10 seconds if not already ended
         setTimeout(() => {
-          if (audio && !audio.paused) {
+          if (audio && !audio.paused && !audio.ended) {
             audio.pause();
             audio.currentTime = 0;
+            setIsPreviewing(false);
+            URL.revokeObjectURL(freshUrl);
+            cleanup();
           }
-          setIsPreviewing(false);
-          // Clean up the fresh URL
-          URL.revokeObjectURL(freshUrl);
         }, 10000);
 
       } catch (playError) {
@@ -687,21 +735,6 @@ export default function MultiTrackMixer() {
           <strong>Innovations:</strong> Drag reordering, solo/mute, visual level meters, waveform display, master controls, real-time preview, multiple export formats, keyboard shortcuts
         </div>
       </div>
-
-      {/* Hidden preview audio element */}
-      <audio
-        ref={previewAudioRef}
-        className="hidden"
-        onEnded={() => {
-          if (currentPreviewTrack !== null) {
-            updateTrack(currentPreviewTrack, { isPlaying: false, currentTime: 0 });
-            setCurrentPreviewTrack(null);
-          }
-          if (isPreviewing) {
-            setIsPreviewing(false);
-          }
-        }}
-      />
     </div>
   );
 }
