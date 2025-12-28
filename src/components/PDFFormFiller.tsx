@@ -9,6 +9,8 @@ interface FormField {
   type: string;
   value: string;
   page: number;
+  options?: string[]; // For dropdown/choice fields
+  readOnly?: boolean;
 }
 
 export default function PDFFormFiller() {
@@ -63,8 +65,22 @@ export default function PDFFormFiller() {
               name: annotation.fieldName || `Field ${index + 1}`,
               type: annotation.fieldType || 'text',
               value: annotation.fieldValue || '',
-              page: pageNum
+              page: pageNum,
+              readOnly: annotation.readOnly || false
             };
+
+            // Extract options for choice/dropdown fields
+            if (annotation.fieldType === 'choice' || annotation.fieldType === 'select') {
+              const options = annotation.options || [];
+              if (options.length > 0) {
+                field.options = options.map((opt: any) => {
+                  // PDF.js options can be strings or objects with display/value
+                  return typeof opt === 'string' ? opt :
+                         opt.displayValue || opt.value || opt;
+                });
+              }
+            }
+
             fields.push(field);
           }
         });
@@ -103,24 +119,68 @@ export default function PDFFormFiller() {
     setError("");
 
     try {
-      // For now, we'll create a simple filled form representation
-      // In a full implementation, you'd use PDF-lib to actually fill form fields
-      const filledData = {
-        originalFile: selectedFile.name,
-        fields: formFields.map(field => ({
-          name: field.name,
-          value: fieldValues[field.id] || field.value,
-          page: field.page
-        })),
-        timestamp: new Date().toISOString()
-      };
+      const { PDFDocument } = await import('pdf-lib');
 
-      // Create a JSON representation (in production, you'd fill the actual PDF)
-      const jsonBlob = new Blob([JSON.stringify(filledData, null, 2)], {
-        type: 'application/json'
+      // Load the PDF
+      const arrayBuffer = await selectedFile.arrayBuffer();
+      const pdfDoc = await PDFDocument.load(arrayBuffer);
+
+      // Get the form
+      const form = pdfDoc.getForm();
+
+      // Fill form fields with user values
+      formFields.forEach(field => {
+        try {
+          const fieldValue = fieldValues[field.id] || field.value || '';
+
+          // Find the form field by name
+          const pdfField = form.getField(field.name);
+          if (pdfField) {
+            try {
+              // Set the field value based on type
+              if (field.type === 'text') {
+                // Cast to text field
+                const textField = pdfField as any;
+                if (textField.setText) {
+                  textField.setText(fieldValue);
+                }
+              } else if (field.type === 'checkbox') {
+                // Cast to checkbox field
+                const checkboxField = pdfField as any;
+                if (fieldValue === 'true') {
+                  if (checkboxField.check) checkboxField.check();
+                } else {
+                  if (checkboxField.uncheck) checkboxField.uncheck();
+                }
+              } else if ((field.type === 'choice' || field.type === 'select') && fieldValue) {
+                // Cast to choice field
+                const choiceField = pdfField as any;
+                if (choiceField.select) {
+                  choiceField.select(fieldValue);
+                } else if (choiceField.setText) {
+                  choiceField.setText(fieldValue);
+                }
+              } else {
+                // Fallback for unknown field types
+                const genericField = pdfField as any;
+                if (genericField.setText) {
+                  genericField.setText(fieldValue);
+                }
+              }
+            } catch (fieldFillError) {
+              console.warn(`Could not fill field ${field.name}:`, fieldFillError);
+            }
+          }
+        } catch (fieldError) {
+          console.warn(`Could not fill field ${field.name}:`, fieldError);
+        }
       });
 
-      setFilledBlob(jsonBlob);
+      // Save the filled PDF
+      const filledPdfBytes = await pdfDoc.save();
+      const filledBlob = new Blob([new Uint8Array(filledPdfBytes)], { type: 'application/pdf' });
+
+      setFilledBlob(filledBlob);
 
     } catch (err) {
       console.error("Form filling error:", err);
@@ -130,14 +190,14 @@ export default function PDFFormFiller() {
     }
   }, [selectedFile, formFields, fieldValues]);
 
-  // Download filled form
+  // Download filled PDF
   const downloadFilled = useCallback(() => {
     if (!filledBlob || !selectedFile) return;
 
     const url = URL.createObjectURL(filledBlob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `filled-${selectedFile.name.replace('.pdf', '.json')}`;
+    link.download = `filled-${selectedFile.name}`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -266,6 +326,7 @@ export default function PDFFormFiller() {
                         onChange={(e) => updateFieldValue(field.id, e.target.value)}
                         placeholder={`Enter ${field.name.toLowerCase()}`}
                         className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        disabled={field.readOnly}
                       />
                     ) : field.type === 'checkbox' ? (
                       <input
@@ -273,7 +334,33 @@ export default function PDFFormFiller() {
                         checked={fieldValues[field.id] === 'true'}
                         onChange={(e) => updateFieldValue(field.id, e.target.checked ? 'true' : 'false')}
                         className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        disabled={field.readOnly}
                       />
+                    ) : field.type === 'choice' || field.type === 'select' ? (
+                      field.options && field.options.length > 0 ? (
+                        <select
+                          value={fieldValues[field.id] || ''}
+                          onChange={(e) => updateFieldValue(field.id, e.target.value)}
+                          className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          disabled={field.readOnly}
+                        >
+                          <option value="">Select an option...</option>
+                          {field.options.map((option, optIndex) => (
+                            <option key={optIndex} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input
+                          type="text"
+                          value={fieldValues[field.id] || ''}
+                          onChange={(e) => updateFieldValue(field.id, e.target.value)}
+                          placeholder={`Enter ${field.name.toLowerCase()}`}
+                          className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          disabled={field.readOnly}
+                        />
+                      )
                     ) : (
                       <input
                         type="text"
@@ -281,6 +368,7 @@ export default function PDFFormFiller() {
                         onChange={(e) => updateFieldValue(field.id, e.target.value)}
                         placeholder={`Enter ${field.name.toLowerCase()}`}
                         className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        disabled={field.readOnly}
                       />
                     )}
                   </div>
@@ -295,7 +383,7 @@ export default function PDFFormFiller() {
               onClick={fillForm}
               disabled={isFilling}
             >
-              {isFilling ? "Filling Form..." : "Fill Form & Download"}
+              {isFilling ? "Filling PDF Form..." : "Fill PDF Form"}
             </Button>
           </div>
         </div>
@@ -315,13 +403,13 @@ export default function PDFFormFiller() {
         <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6">
           <div className="text-center">
             <h3 className="text-lg font-semibold text-green-900 dark:text-green-100 mb-2">
-              Form Data Extracted! 📋
+              Form Filled Successfully! ✅📝
             </h3>
             <p className="text-green-700 dark:text-green-300 mb-4">
-              Form fields have been filled with your data. Download the filled form data.
+              Your PDF form has been filled with the entered data and is ready for download.
             </p>
             <Button onClick={downloadFilled}>
-              📥 Download Form Data
+              📥 Download Filled PDF
             </Button>
           </div>
         </div>
