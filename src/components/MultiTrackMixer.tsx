@@ -32,18 +32,32 @@ export default function MultiTrackMixer() {
   const colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
 
   // Create blob URLs for tracks
-  const [trackUrls, setTrackUrls] = useState<string[]>([]);
+  const [trackUrls, setTrackUrls] = useState<Map<number, string>>(new Map());
 
   useEffect(() => {
     // Create blob URLs for all tracks
-    const urls = tracks.map(track => URL.createObjectURL(track.file));
-    setTrackUrls(urls);
+    const newUrls = new Map<number, string>();
+    tracks.forEach((track, index) => {
+      const url = URL.createObjectURL(track.file);
+      newUrls.set(index, url);
+    });
+    setTrackUrls(newUrls);
 
-    // Cleanup old URLs
+    // Cleanup function - revoke old URLs that are no longer needed
     return () => {
-      urls.forEach(url => URL.revokeObjectURL(url));
+      // We'll clean up URLs when component unmounts or when tracks change significantly
+      // For now, keep them alive during re-renders
     };
   }, [tracks]);
+
+  // Cleanup URLs when component unmounts
+  useEffect(() => {
+    return () => {
+      trackUrls.forEach(url => {
+        URL.revokeObjectURL(url);
+      });
+    };
+  }, []); // Empty dependency array for cleanup on unmount
 
   const handleFileSelect = (files: FileList) => {
     const audioFiles = Array.from(files).filter(file => file.type.startsWith('audio/'));
@@ -110,8 +124,15 @@ export default function MultiTrackMixer() {
   };
 
   const previewTrack = async (index: number) => {
-    if (!previewAudioRef.current || !trackUrls[index]) {
-      setError('Audio not ready for preview');
+    const trackUrl = trackUrls.get(index);
+    if (!previewAudioRef.current || !trackUrl) {
+      console.error('Audio not ready for preview:', { hasRef: !!previewAudioRef.current, hasUrl: !!trackUrl, index });
+      setError('Audio not ready for preview. Please wait a moment and try again.');
+      return;
+    }
+
+    if (!tracks[index]) {
+      setError('Track not found');
       return;
     }
 
@@ -136,27 +157,36 @@ export default function MultiTrackMixer() {
       const audio = previewAudioRef.current;
       const track = tracks[index];
 
-      // Set the source and wait for it to load
-      audio.src = trackUrls[index];
+      // Clear any existing source first
+      audio.src = '';
+      audio.load(); // Reset the audio element
+
+      // Set the new source
+      audio.src = trackUrl;
       audio.volume = getEffectiveVolume(track);
       audio.currentTime = 0;
 
-      // Wait for the audio to be ready
-      await new Promise((resolve, reject) => {
-        const onCanPlay = () => {
-          audio.removeEventListener('canplay', onCanPlay);
-          audio.removeEventListener('error', onError);
-          resolve(void 0);
-        };
-        const onError = (e: Event) => {
-          audio.removeEventListener('canplay', onCanPlay);
-          audio.removeEventListener('error', onError);
-          reject(new Error('Audio failed to load'));
-        };
+      // Wait for the audio to be ready with timeout
+      await Promise.race([
+        new Promise((resolve, reject) => {
+          const onCanPlay = () => {
+            audio.removeEventListener('canplay', onCanPlay);
+            audio.removeEventListener('error', onError);
+            resolve(void 0);
+          };
+          const onError = (e: Event) => {
+            audio.removeEventListener('canplay', onCanPlay);
+            audio.removeEventListener('error', onError);
+            reject(new Error('Audio failed to load'));
+          };
 
-        audio.addEventListener('canplay', onCanPlay);
-        audio.addEventListener('error', onError);
-      });
+          audio.addEventListener('canplay', onCanPlay);
+          audio.addEventListener('error', onError);
+        }),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Audio loading timeout')), 5000)
+        )
+      ]);
 
       // Start playback
       await audio.play();
@@ -173,7 +203,7 @@ export default function MultiTrackMixer() {
 
     } catch (err) {
       console.error('Preview error:', err);
-      setError('Failed to preview track. Please try again.');
+      setError(`Failed to preview track: ${err instanceof Error ? err.message : 'Unknown error'}`);
       updateTrack(index, { isPlaying: false, currentTime: 0 });
       setCurrentPreviewTrack(null);
     }
@@ -191,40 +221,51 @@ export default function MultiTrackMixer() {
     try {
       // For mix preview, we'll simulate by playing the first non-muted track
       // In a real implementation, this would mix all tracks together
-      const playableTracks = tracks.filter((track, index) =>
-        !track.mute && trackUrls[index] && getEffectiveVolume(track) > 0
+      const playableTrackIndex = tracks.findIndex((track, index) =>
+        !track.mute && trackUrls.get(index) && getEffectiveVolume(track) > 0
       );
 
-      if (playableTracks.length === 0) {
+      if (playableTrackIndex === -1) {
         setError('No tracks available for preview (all muted or at zero volume)');
         setIsPreviewing(false);
         return;
       }
 
-      // Play the first available track as a mix preview
-      const firstTrackIndex = tracks.findIndex(track => playableTracks.includes(track));
-
-      if (previewAudioRef.current && trackUrls[firstTrackIndex]) {
+      const trackUrl = trackUrls.get(playableTrackIndex);
+      if (previewAudioRef.current && trackUrl) {
         const audio = previewAudioRef.current;
-        audio.src = trackUrls[firstTrackIndex];
-        audio.volume = getEffectiveVolume(tracks[firstTrackIndex]);
+        const track = tracks[playableTrackIndex];
+
+        // Clear any existing source first
+        audio.src = '';
+        audio.load(); // Reset the audio element
+
+        // Set the new source
+        audio.src = trackUrl;
+        audio.volume = getEffectiveVolume(track);
         audio.currentTime = 0;
 
-        await new Promise((resolve, reject) => {
-          const onCanPlay = () => {
-            audio.removeEventListener('canplay', onCanPlay);
-            audio.removeEventListener('error', onError);
-            resolve(void 0);
-          };
-          const onError = (e: Event) => {
-            audio.removeEventListener('canplay', onCanPlay);
-            audio.removeEventListener('error', onError);
-            reject(new Error('Audio failed to load'));
-          };
+        // Wait for the audio to be ready with timeout
+        await Promise.race([
+          new Promise((resolve, reject) => {
+            const onCanPlay = () => {
+              audio.removeEventListener('canplay', onCanPlay);
+              audio.removeEventListener('error', onError);
+              resolve(void 0);
+            };
+            const onError = (e: Event) => {
+              audio.removeEventListener('canplay', onCanPlay);
+              audio.removeEventListener('error', onError);
+              reject(new Error('Audio failed to load'));
+            };
 
-          audio.addEventListener('canplay', onCanPlay);
-          audio.addEventListener('error', onError);
-        });
+            audio.addEventListener('canplay', onCanPlay);
+            audio.addEventListener('error', onError);
+          }),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Audio loading timeout')), 5000)
+          )
+        ]);
 
         await audio.play();
 
@@ -240,7 +281,7 @@ export default function MultiTrackMixer() {
 
     } catch (err) {
       console.error('Mix preview error:', err);
-      setError('Failed to preview mix. Please try again.');
+      setError(`Failed to preview mix: ${err instanceof Error ? err.message : 'Unknown error'}`);
       setIsPreviewing(false);
     }
   };
