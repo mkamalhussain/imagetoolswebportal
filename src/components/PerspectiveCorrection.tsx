@@ -226,12 +226,18 @@ export default function PerspectiveCorrection() {
     const x = (e.clientX - rect.left) * scaleX;
     const y = (e.clientY - rect.top) * scaleY;
 
+    console.log('Mouse down at display coords:', e.clientX - rect.left, e.clientY - rect.top);
+    console.log('Converted to canvas coords:', x, y);
+    console.log('Canvas scaling:', scaleX, scaleY);
+
     // Check if clicking on a corner point
     const clickRadius = 15; // Increased radius for easier clicking
     for (let i = 0; i < corners.length; i++) {
       const corner = corners[i];
       const distance = Math.sqrt((x - corner.x) ** 2 + (y - corner.y) ** 2);
+      console.log(`Corner ${i} at:`, corner.x, corner.y, 'distance:', distance);
       if (distance <= clickRadius) {
+        console.log('Clicked corner:', i);
         setDraggingPoint(i);
         break;
       }
@@ -240,6 +246,8 @@ export default function PerspectiveCorrection() {
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     if (draggingPoint === null) return;
+
+    console.log('Mouse move while dragging corner:', draggingPoint);
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -254,6 +262,8 @@ export default function PerspectiveCorrection() {
     const x = Math.max(0, Math.min(canvas.width, (e.clientX - rect.left) * scaleX));
     const y = Math.max(0, Math.min(canvas.height, (e.clientY - rect.top) * scaleY));
 
+    console.log('Moving corner to:', x, y);
+
     setCorners(prev => prev.map((corner, index) =>
       index === draggingPoint ? { x, y } : corner
     ));
@@ -264,7 +274,7 @@ export default function PerspectiveCorrection() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(originalImage, 0, 0);
     }
-  }, [draggingPoint]);
+  }, [draggingPoint, originalImage]);
 
   const handleMouseUp = useCallback(() => {
     setDraggingPoint(null);
