@@ -239,7 +239,7 @@ export default function PDFPassword() {
     const url = URL.createObjectURL(encryptedBlob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `encrypted-${selectedFile.name}`;
+    link.download = `encrypted-${selectedFile.name.replace('.pdf', '')}.encrypted`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -271,10 +271,10 @@ export default function PDFPassword() {
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-          PDF Password Protector
+          PDF Encryption Tool
         </h1>
         <p className="text-gray-600 dark:text-gray-400 mb-4">
-          Add password protection to your PDF files
+          Encrypt and decrypt PDF files with AES-256 encryption
         </p>
 
         {/* Tab Navigation */}
@@ -300,6 +300,22 @@ export default function PDFPassword() {
             >
               🔓 Decrypt File
             </button>
+          </div>
+        </div>
+
+        {/* Important Notice */}
+        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-6">
+          <div className="flex items-start">
+            <div className="text-yellow-600 dark:text-yellow-400 mr-3">⚠️</div>
+            <div>
+              <h4 className="font-semibold text-yellow-900 dark:text-yellow-100 mb-1">
+                Browser Encryption Limitations
+              </h4>
+              <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                This tool creates encrypted files that are NOT standard PDFs. You must use this tool's
+                decryption feature to access your files. For standard PDF password protection, use desktop software.
+              </p>
+            </div>
           </div>
         </div>
 
@@ -429,17 +445,17 @@ export default function PDFPassword() {
               Select Encrypted File
             </Button>
           </div>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="*/*"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) handleFileSelect(file);
-              setEncryptedBlob(null);
-            }}
-            className="hidden"
-          />
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".encrypted,*/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleFileSelect(file);
+                setEncryptedBlob(null);
+              }}
+              className="hidden"
+            />
         </div>
       )}
 
@@ -624,18 +640,28 @@ export default function PDFPassword() {
         <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6">
           <div className="text-center">
             <h3 className="text-lg font-semibold text-green-900 dark:text-green-100 mb-2">
-              PDF Encrypted Successfully! 🔒🛡️
+              File Encrypted Successfully! 🔒🛡️
             </h3>
             <p className="text-green-700 dark:text-green-300 mb-2">
               <strong>Your PDF has been encrypted with AES-256-GCM!</strong>
             </p>
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded p-3 mb-4">
+              <p className="text-red-700 dark:text-red-300 text-sm">
+                <strong>⚠️ IMPORTANT:</strong> This is NOT a standard PDF file. It cannot be opened by PDF readers.
+                You MUST use this tool's "Decrypt File" tab to access your content.
+              </p>
+            </div>
             <p className="text-green-700 dark:text-green-300 mb-4">
-              The file is now password-protected. Use the "Decrypt File" tab to unlock it.
-              Keep your password safe - the file cannot be opened without it!
+              Keep your password safe - the file cannot be decrypted without it!
             </p>
-            <Button onClick={downloadEncrypted}>
-              📥 Download Encrypted File
-            </Button>
+            <div className="space-y-2">
+              <Button onClick={downloadEncrypted} className="mr-2">
+                📥 Download Encrypted File (.encrypted)
+              </Button>
+              <p className="text-xs text-green-600 dark:text-green-400">
+                🔄 Use "Decrypt File" tab to access your PDF
+              </p>
+            </div>
           </div>
         </div>
       )}
@@ -680,35 +706,33 @@ export default function PDFPassword() {
             <li>• Switch to "🔒 Encrypt PDF" tab</li>
             <li>• Upload a PDF file you want to protect</li>
             <li>• Enter a strong encryption password</li>
-            <li>• Optionally set owner password and permissions</li>
             <li>• Click "Encrypt PDF" to apply AES-256 encryption</li>
-            <li>• Download the encrypted file (cannot be opened without password)</li>
-            <li>• <strong>Security:</strong> AES-256-GCM encryption with PBKDF2 key derivation</li>
+            <li>• Download the encrypted file (.encrypted) - NOT a PDF!</li>
+            <li>• <strong>⚠️ Encrypted file cannot be opened by PDF readers</strong></li>
+            <li>• Use "Decrypt File" tab to access your PDF later</li>
           </ul>
         ) : (
           <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
             <li>• Switch to "🔓 Decrypt File" tab</li>
-            <li>• Upload an encrypted file (.encrypted file)</li>
+            <li>• Upload an encrypted file (.encrypted) created by this tool</li>
             <li>• Enter the exact password used for encryption</li>
-            <li>• Click "Decrypt File" to unlock the content</li>
-            <li>• Download the decrypted PDF</li>
-            <li>• <strong>Note:</strong> Wrong password will fail decryption</li>
+            <li>• Click "Decrypt File" to unlock and restore your PDF</li>
+            <li>• Download the decrypted PDF (original file restored)</li>
+            <li>• <strong>Security:</strong> AES-256-GCM encryption with PBKDF2</li>
           </ul>
         )}
       </div>
 
       {/* Security Notice */}
-      <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-        <h4 className="font-semibold text-red-900 dark:text-red-100 mb-2">❌ Cannot Create Password-Protected PDFs</h4>
-        <p className="text-sm text-red-800 dark:text-red-200 mb-2">
-          <strong>Technical Limitation:</strong> Web browsers cannot create truly password-protected PDFs due to security restrictions.
-          This tool adds visual password indicators but does NOT provide actual security.
+      <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+        <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">🔐 AES-256 Encryption Tool</h4>
+        <p className="text-sm text-blue-800 dark:text-blue-200 mb-2">
+          <strong>This tool provides genuine AES-256-GCM encryption</strong> for your PDF files using the Web Crypto API.
+          However, the encrypted output is NOT a standard PDF - it's a custom encrypted container.
         </p>
-        <p className="text-sm text-red-800 dark:text-red-200 mb-2">
-          <strong>For Real Protection:</strong> Use the recommended desktop software or online services shown above.
-        </p>
-        <p className="text-sm text-red-800 dark:text-red-200">
-          <strong>This tool is educational only</strong> - it demonstrates PDF concepts but doesn't provide security.
+        <p className="text-sm text-blue-800 dark:text-blue-200">
+          <strong>For standard PDF password protection:</strong> Use desktop software like Adobe Acrobat or professional PDF tools.
+          This tool offers encryption but requires decryption through this interface.
         </p>
       </div>
     </div>
