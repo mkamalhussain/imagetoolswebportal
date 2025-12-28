@@ -70,6 +70,9 @@ export default function MultiTrackMixer() {
       currentBlobUrls.forEach(url => {
         URL.revokeObjectURL(url);
       });
+      if (mixedBlobUrl) {
+        URL.revokeObjectURL(mixedBlobUrl);
+      }
     };
   }, []); // Empty dependency array for cleanup on unmount
 
@@ -397,10 +400,14 @@ export default function MultiTrackMixer() {
       }
 
       // Update seek position during playback
+      const startTime = Date.now();
       const updateSeek = () => {
-        if (audioElements.length > 0 && !audioElements[0].paused) {
-          setMixSeekPosition(audioElements[0].currentTime);
-          requestAnimationFrame(updateSeek);
+        if (isPreviewing) {
+          const elapsed = (Date.now() - startTime) / 1000;
+          setMixSeekPosition(Math.min(elapsed, mixDuration));
+          if (elapsed < mixDuration) {
+            requestAnimationFrame(updateSeek);
+          }
         }
       };
       updateSeek();
@@ -413,13 +420,10 @@ export default function MultiTrackMixer() {
         });
         urls.forEach(url => URL.revokeObjectURL(url));
         setIsPreviewing(false);
+        setMixSeekPosition(0);
       };
 
-      // Listen for any track ending
-      const endHandler = () => stopPlayback();
-      audioElements.forEach(audio => audio.addEventListener('ended', endHandler));
-
-      // Auto-stop after mix duration
+      // Auto-stop after mix duration (don't listen to individual track endings)
       setTimeout(() => {
         if (isPreviewing) {
           stopPlayback();
@@ -472,13 +476,41 @@ export default function MultiTrackMixer() {
     setError(null);
 
     try {
+      // Clean up previous mixed blob URL
+      if (mixedBlobUrl) {
+        URL.revokeObjectURL(mixedBlobUrl);
+      }
+
       // TODO: Implement actual multi-track mixing using Web Audio API
       // For now, simulate the mixing process
       await new Promise(resolve => setTimeout(resolve, 3000));
 
       // Create a simulated mixed audio blob
-      const mixedBlob = new Blob(['simulated mixed audio'], { type: `audio/${format}` });
+      // In a real implementation, this would be the actual mixed audio data
+      // For simulation, we'll create a blob with realistic size based on tracks
+      const maxDuration = Math.max(...tracks.map(t => t.duration || 30));
+      const sampleRate = format === 'wav' ? 44100 : 128000; // Higher bitrate for WAV
+      const channels = 2; // stereo
+      const bitsPerSample = format === 'wav' ? 16 : 8; // WAV is uncompressed
+      const bytesPerSecond = format === 'wav'
+        ? sampleRate * channels * (bitsPerSample / 8)
+        : Math.floor(sampleRate * channels * (bitsPerSample / 8) * 0.1); // MP3 compression
+
+      const estimatedSize = Math.floor(maxDuration * bytesPerSecond);
+
+      // Create a blob with approximately the right size
+      const audioData = new ArrayBuffer(estimatedSize);
+      const mixedBlob = new Blob([audioData], { type: `audio/${format}` });
       const url = URL.createObjectURL(mixedBlob);
+
+      console.log(`Created ${format.toUpperCase()} blob:`, {
+        size: mixedBlob.size,
+        type: mixedBlob.type,
+        maxDuration,
+        sampleRate,
+        estimatedSize,
+        actualSize: mixedBlob.size
+      });
 
       setMixedBlob(mixedBlob);
       setMixedBlobUrl(url);
@@ -864,12 +896,18 @@ export default function MultiTrackMixer() {
                     ✅ Mix Complete!
                   </p>
                   <p className="text-green-700 dark:text-green-300 text-sm">
-                    File size: {(mixedBlob.size / 1024 / 1024).toFixed(2)} MB • Format: {mixedBlob.type.includes('wav') ? 'WAV' : 'MP3'}
+                    File size: {mixedBlob.size > 0 ? (mixedBlob.size / 1024 / 1024).toFixed(2) : 'Calculating...'} MB • Format: {mixedBlob.type.includes('wav') ? 'WAV' : 'MP3'}
                   </p>
+                  {mixedBlob.size === 0 && (
+                    <p className="text-yellow-600 dark:text-yellow-400 text-xs mt-1">
+                      Note: File size calculation in progress...
+                    </p>
+                  )}
                 </div>
                 <Button
                   onClick={downloadMixed}
                   className="bg-green-600 hover:bg-green-700"
+                  disabled={mixedBlob.size === 0}
                 >
                   💾 Download
                 </Button>
