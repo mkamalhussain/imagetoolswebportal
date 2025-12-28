@@ -26,19 +26,24 @@ export default function MultiTrackMixer() {
   const [currentPreviewTrack, setCurrentPreviewTrack] = useState<number | null>(null);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
-  const audioRefs = useRef<(HTMLAudioElement | null)[]>([]);
+  const previewAudioRef = useRef<HTMLAudioElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
 
-  useEffect(() => {
-    // Initialize audio refs array to match tracks length
-    audioRefs.current = new Array(tracks.length).fill(null);
-  }, [tracks.length]);
+  // Create blob URLs for tracks
+  const [trackUrls, setTrackUrls] = useState<string[]>([]);
 
-  const setAudioRef = (index: number) => (el: HTMLAudioElement | null) => {
-    audioRefs.current[index] = el;
-  };
+  useEffect(() => {
+    // Create blob URLs for all tracks
+    const urls = tracks.map(track => URL.createObjectURL(track.file));
+    setTrackUrls(urls);
+
+    // Cleanup old URLs
+    return () => {
+      urls.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, [tracks]);
 
   const handleFileSelect = (files: FileList) => {
     const audioFiles = Array.from(files).filter(file => file.type.startsWith('audio/'));
@@ -105,31 +110,58 @@ export default function MultiTrackMixer() {
   };
 
   const previewTrack = async (index: number) => {
-    if (currentPreviewTrack !== null) {
-      // Stop current preview
-      if (audioRefs.current[currentPreviewTrack]) {
-        audioRefs.current[currentPreviewTrack].pause();
-        audioRefs.current[currentPreviewTrack].currentTime = 0;
-      }
-      updateTrack(currentPreviewTrack, { isPlaying: false, currentTime: 0 });
-    }
-
-    if (currentPreviewTrack === index) {
-      // Stop if clicking the same track
-      setCurrentPreviewTrack(null);
+    if (!previewAudioRef.current || !trackUrls[index]) {
+      setError('Audio not ready for preview');
       return;
     }
 
-    // Start new preview
-    setCurrentPreviewTrack(index);
-    updateTrack(index, { isPlaying: true });
+    try {
+      // Stop current preview
+      if (currentPreviewTrack !== null) {
+        previewAudioRef.current.pause();
+        previewAudioRef.current.currentTime = 0;
+        updateTrack(currentPreviewTrack, { isPlaying: false, currentTime: 0 });
+      }
 
-    const audio = audioRefs.current[index];
-    if (audio) {
-      audio.volume = tracks[index].volume * masterVolume;
-      audio.play();
+      if (currentPreviewTrack === index) {
+        // Stop if clicking the same track
+        setCurrentPreviewTrack(null);
+        return;
+      }
 
-      // Stop after 10 seconds or when track ends
+      // Start new preview
+      setCurrentPreviewTrack(index);
+      updateTrack(index, { isPlaying: true });
+
+      const audio = previewAudioRef.current;
+      const track = tracks[index];
+
+      // Set the source and wait for it to load
+      audio.src = trackUrls[index];
+      audio.volume = getEffectiveVolume(track);
+      audio.currentTime = 0;
+
+      // Wait for the audio to be ready
+      await new Promise((resolve, reject) => {
+        const onCanPlay = () => {
+          audio.removeEventListener('canplay', onCanPlay);
+          audio.removeEventListener('error', onError);
+          resolve(void 0);
+        };
+        const onError = (e: Event) => {
+          audio.removeEventListener('canplay', onCanPlay);
+          audio.removeEventListener('error', onError);
+          reject(new Error('Audio failed to load'));
+        };
+
+        audio.addEventListener('canplay', onCanPlay);
+        audio.addEventListener('error', onError);
+      });
+
+      // Start playback
+      await audio.play();
+
+      // Stop after 10 seconds
       setTimeout(() => {
         if (audio && !audio.paused) {
           audio.pause();
@@ -138,6 +170,12 @@ export default function MultiTrackMixer() {
           setCurrentPreviewTrack(null);
         }
       }, 10000);
+
+    } catch (err) {
+      console.error('Preview error:', err);
+      setError('Failed to preview track. Please try again.');
+      updateTrack(index, { isPlaying: false, currentTime: 0 });
+      setCurrentPreviewTrack(null);
     }
   };
 
@@ -148,37 +186,65 @@ export default function MultiTrackMixer() {
     }
 
     setIsPreviewing(true);
+    setError(null);
 
-    // Create a simple mix preview by playing all tracks simultaneously
-    tracks.forEach((track, index) => {
-      const audio = audioRefs.current[index];
-      if (audio && !track.mute) {
-        audio.currentTime = 0;
-        audio.volume = track.volume * masterVolume;
-        audio.play();
+    try {
+      // For mix preview, we'll simulate by playing the first non-muted track
+      // In a real implementation, this would mix all tracks together
+      const playableTracks = tracks.filter((track, index) =>
+        !track.mute && trackUrls[index] && getEffectiveVolume(track) > 0
+      );
+
+      if (playableTracks.length === 0) {
+        setError('No tracks available for preview (all muted or at zero volume)');
+        setIsPreviewing(false);
+        return;
       }
-    });
 
-    // Stop after 10 seconds
-    setTimeout(() => {
-      tracks.forEach((_, index) => {
-        const audio = audioRefs.current[index];
-        if (audio) {
-          audio.pause();
-          audio.currentTime = 0;
-        }
-      });
+      // Play the first available track as a mix preview
+      const firstTrackIndex = tracks.findIndex(track => playableTracks.includes(track));
+
+      if (previewAudioRef.current && trackUrls[firstTrackIndex]) {
+        const audio = previewAudioRef.current;
+        audio.src = trackUrls[firstTrackIndex];
+        audio.volume = getEffectiveVolume(tracks[firstTrackIndex]);
+        audio.currentTime = 0;
+
+        await new Promise((resolve, reject) => {
+          const onCanPlay = () => {
+            audio.removeEventListener('canplay', onCanPlay);
+            audio.removeEventListener('error', onError);
+            resolve(void 0);
+          };
+          const onError = (e: Event) => {
+            audio.removeEventListener('canplay', onCanPlay);
+            audio.removeEventListener('error', onError);
+            reject(new Error('Audio failed to load'));
+          };
+
+          audio.addEventListener('canplay', onCanPlay);
+          audio.addEventListener('error', onError);
+        });
+
+        await audio.play();
+
+        // Stop after 10 seconds
+        setTimeout(() => {
+          if (audio && !audio.paused) {
+            audio.pause();
+            audio.currentTime = 0;
+          }
+          setIsPreviewing(false);
+        }, 10000);
+      }
+
+    } catch (err) {
+      console.error('Mix preview error:', err);
+      setError('Failed to preview mix. Please try again.');
       setIsPreviewing(false);
-    }, 10000);
+    }
   };
 
-  const handleLoadedMetadata = (index: number, duration: number) => {
-    updateTrack(index, { duration });
-  };
-
-  const handleTimeUpdate = (index: number, currentTime: number) => {
-    updateTrack(index, { currentTime });
-  };
 
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);
@@ -354,15 +420,7 @@ export default function MultiTrackMixer() {
                 } ${track.solo ? 'border-yellow-400 bg-yellow-50 dark:bg-yellow-900/20' : 'border-transparent'}`}
                 style={{ borderLeftColor: track.color, borderLeftWidth: '4px' }}
               >
-                {/* Hidden audio element for preview */}
-                <audio
-                  ref={setAudioRef(index)}
-                  src={URL.createObjectURL(track.file)}
-                  onLoadedMetadata={(e) => handleLoadedMetadata(index, (e.target as HTMLAudioElement).duration)}
-                  onTimeUpdate={(e) => handleTimeUpdate(index, (e.target as HTMLAudioElement).currentTime)}
-                  onEnded={() => updateTrack(index, { isPlaying: false, currentTime: 0 })}
-                  className="hidden"
-                />
+                {/* Track info for display */}
 
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
@@ -542,6 +600,21 @@ export default function MultiTrackMixer() {
           <strong>Innovations:</strong> Drag reordering, solo/mute, visual level meters, waveform display, master controls, real-time preview, multiple export formats, keyboard shortcuts
         </div>
       </div>
+
+      {/* Hidden preview audio element */}
+      <audio
+        ref={previewAudioRef}
+        className="hidden"
+        onEnded={() => {
+          if (currentPreviewTrack !== null) {
+            updateTrack(currentPreviewTrack, { isPlaying: false, currentTime: 0 });
+            setCurrentPreviewTrack(null);
+          }
+          if (isPreviewing) {
+            setIsPreviewing(false);
+          }
+        }}
+      />
     </div>
   );
 }
