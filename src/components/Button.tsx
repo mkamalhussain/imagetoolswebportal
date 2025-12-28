@@ -10,6 +10,7 @@ type CommonProps = {
   className?: string;
   children?: React.ReactNode;
   disabled?: boolean;
+  title?: string;
 };
 
 type AnchorProps = {
@@ -55,26 +56,26 @@ export default function Button({
   const classes = `${base} ${variants[variant]} ${className}`.trim();
 
   if (as === "label") {
-    const { htmlFor } = rest as LabelProps;
+    const { htmlFor, title } = rest as LabelProps & { title?: string };
     return (
-      <label className={classes} htmlFor={htmlFor}>
+      <label className={classes} htmlFor={htmlFor} title={title}>
         {children}
       </label>
     );
   }
 
   if (as === "a") {
-    const { href, target, rel } = rest as AnchorProps;
+    const { href, target, rel, title } = rest as AnchorProps & { title?: string };
     return (
-      <a className={classes} href={href} target={target} rel={rel} aria-disabled={disabled}>
+      <a className={classes} href={href} target={target} rel={rel} aria-disabled={disabled} title={title}>
         {children}
       </a>
     );
   }
 
-  const { type, onClick } = rest as ButtonSpecificProps;
+  const { type, onClick, title } = rest as ButtonSpecificProps & { title?: string };
   return (
-    <button className={classes} type={type} disabled={disabled} onClick={onClick}>
+    <button className={classes} type={type} disabled={disabled} onClick={onClick} title={title}>
       {children}
     </button>
   );

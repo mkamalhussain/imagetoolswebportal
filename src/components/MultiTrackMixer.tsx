@@ -429,21 +429,7 @@ export default function MultiTrackMixer() {
         if ((track.duration || 0) < mixDuration) {
           audio.loop = true;
         }
-
-        // Prevent individual track endings from causing issues during mix preview
-        audio.addEventListener('ended', (e) => {
-          console.log(`Track ended: ${track.name}, duration: ${track.duration}, isLooping: ${audio.loop}`);
-          // Only prevent default if we're still in preview mode
-          if (isPreviewing) {
-            e.preventDefault();
-            // If not looping, restart from beginning
-            if (!audio.loop) {
-              console.log(`Restarting non-looping track: ${track.name}`);
-              audio.currentTime = 0;
-              audio.play().catch(console.error);
-            }
-          }
-        });
+        // Note: No additional event listeners needed since we use loop for short tracks
 
         audioElements.push(audio);
       }
@@ -731,30 +717,25 @@ export default function MultiTrackMixer() {
                 {/* Track info and controls */}
                 <div className="mb-3">
                   <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
+                    <span className="font-medium">{track.name}</span>
                     <span>Duration: {formatTime(track.duration || 0)}</span>
-                    <span>Position: {formatTime(track.currentTime || 0)}</span>
                   </div>
 
-                  {/* Individual track seek bar */}
-                  <div className="relative h-2 bg-gray-200 dark:bg-gray-600 rounded-full cursor-pointer mb-2">
-                    <div
-                      className="absolute h-2 bg-blue-500 rounded-full"
-                      style={{
-                        width: track.duration ? `${(track.currentTime / track.duration) * 100}%` : '0%'
-                      }}
-                    ></div>
-                    <div
-                      className="absolute w-3 h-3 bg-blue-600 rounded-full -mt-0.5 cursor-pointer border border-white dark:border-gray-800"
-                      style={{
-                        left: track.duration ? `${(track.currentTime / track.duration) * 100}%` : '0%',
-                        transform: 'translateX(-50%)'
-                      }}
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        // Individual track seeking would require audio elements
-                        // For now, this is just visual
-                      }}
-                    ></div>
+                  {/* Level Meter - Visual representation */}
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-xs text-gray-500 dark:text-gray-400 w-12">LEVEL</span>
+                    <div className="flex-1 h-4 bg-gray-200 dark:bg-gray-600 rounded-sm overflow-hidden">
+                      <div
+                        className={`h-full transition-all duration-100 ${
+                          isPreviewing && !track.mute && getEffectiveVolume(track) > 0
+                            ? 'bg-gradient-to-r from-green-400 via-yellow-400 to-red-400 animate-pulse'
+                            : 'bg-gray-300 dark:bg-gray-500'
+                        }`}
+                        style={{
+                          width: isPreviewing && !track.mute && getEffectiveVolume(track) > 0 ? '70%' : '10%'
+                        }}
+                      ></div>
+                    </div>
                   </div>
                 </div>
 
@@ -788,6 +769,7 @@ export default function MultiTrackMixer() {
                     </Button>
                     <Button
                       onClick={() => toggleSolo(index)}
+                      title="Solo: Play only this track (isolate)"
                       className={`px-3 py-1 text-xs ${
                         track.solo
                           ? 'bg-yellow-500 text-white'
@@ -798,6 +780,7 @@ export default function MultiTrackMixer() {
                     </Button>
                     <Button
                       onClick={() => toggleMute(index)}
+                      title="Mute: Silence this track"
                       className={`px-3 py-1 text-xs ${
                         track.mute
                           ? 'bg-red-500 text-white'
@@ -1028,10 +1011,11 @@ export default function MultiTrackMixer() {
             <h4 className="font-medium text-blue-800 dark:text-blue-200 mb-1">Track Controls:</h4>
             <ul className="text-blue-700 dark:text-blue-300 space-y-1 text-sm">
               <li>• Drag tracks to reorder them</li>
-              <li>• Adjust volume and pan per track</li>
-              <li>• Solo (S) to isolate tracks</li>
-              <li>• Mute (M) to silence tracks</li>
-              <li>• Preview individual tracks</li>
+              <li>• Adjust volume (0-200%) and stereo pan (-100 to +100)</li>
+              <li>• <strong>Solo (S)</strong>: Play only this track, mute all others</li>
+              <li>• <strong>Mute (M)</strong>: Silence this track completely</li>
+              <li>• <strong>Level Meter</strong>: Shows when track is active (green/yellow/red)</li>
+              <li>• Preview individual tracks with play/pause</li>
             </ul>
           </div>
           <div>
