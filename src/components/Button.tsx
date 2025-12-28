@@ -55,8 +55,9 @@ export default function Button({
   const classes = `${base} ${variants[variant]} ${className}`.trim();
 
   if (as === "label") {
+    const { htmlFor } = rest as LabelProps;
     return (
-      <label className={classes}>
+      <label className={classes} htmlFor={htmlFor}>
         {children}
       </label>
     );
