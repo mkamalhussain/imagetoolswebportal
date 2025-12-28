@@ -417,37 +417,57 @@ export default function PerspectiveCorrection() {
                 />
 
                 {/* Corner points */}
-                {corners.map((corner, index) => (
-                  <div
-                    key={index}
-                    className={`absolute w-4 h-4 border-2 rounded-full cursor-move ${
-                      draggingPoint === index
-                        ? 'border-red-500 bg-red-500'
-                        : 'border-blue-500 bg-blue-200'
-                    }`}
-                    style={{
-                      left: corner.x - 8,
-                      top: corner.y - 8,
-                      zIndex: 10
-                    }}
-                  />
-                ))}
+                {(() => {
+                  if (!canvasRef.current || !originalImage) return null;
+
+                  const canvas = canvasRef.current;
+                  const rect = canvas.getBoundingClientRect();
+                  const scaleX = rect.width / canvas.width;
+                  const scaleY = rect.height / canvas.height;
+
+                  return corners.map((corner, index) => (
+                    <div
+                      key={index}
+                      className={`absolute w-4 h-4 border-2 rounded-full cursor-move ${
+                        draggingPoint === index
+                          ? 'border-red-500 bg-red-500'
+                          : 'border-blue-500 bg-blue-200'
+                      }`}
+                      style={{
+                        left: (corner.x * scaleX) - 8,
+                        top: (corner.y * scaleY) - 8,
+                        zIndex: 10
+                      }}
+                    />
+                  ));
+                })()}
 
                 {/* Connecting lines */}
-                <svg
-                  className="absolute inset-0 pointer-events-none"
-                  style={{
-                    width: originalImage?.width || '100%',
-                    height: originalImage?.height || '100%'
-                  }}
-                >
-                  <polygon
-                    points={corners.map(corner => `${corner.x},${corner.y}`).join(' ')}
-                    fill="none"
-                    stroke="rgba(59, 130, 246, 0.5)"
-                    strokeWidth="2"
-                  />
-                </svg>
+                {(() => {
+                  if (!canvasRef.current || !originalImage) return null;
+
+                  const canvas = canvasRef.current;
+                  const rect = canvas.getBoundingClientRect();
+                  const scaleX = rect.width / canvas.width;
+                  const scaleY = rect.height / canvas.height;
+
+                  return (
+                    <svg
+                      className="absolute inset-0 pointer-events-none"
+                      style={{
+                        width: '100%',
+                        height: '100%'
+                      }}
+                    >
+                      <polygon
+                        points={corners.map(corner => `${corner.x * scaleX},${corner.y * scaleY}`).join(' ')}
+                        fill="none"
+                        stroke="rgba(59, 130, 246, 0.5)"
+                        strokeWidth="2"
+                      />
+                    </svg>
+                  );
+                })()}
               </div>
 
               <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
