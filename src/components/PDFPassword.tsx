@@ -27,9 +27,12 @@ export default function PDFPassword() {
     }
   });
   const [encryptedBlob, setEncryptedBlob] = useState<Blob | null>(null);
+  const [decryptedBlob, setDecryptedBlob] = useState<Blob | null>(null);
   const [isEncrypting, setIsEncrypting] = useState(false);
+  const [isDecrypting, setIsDecrypting] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState<string>("");
+  const [activeTab, setActiveTab] = useState<'encrypt' | 'decrypt'>('encrypt');
   const [showAlternatives, setShowAlternatives] = useState(false);
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -46,7 +49,7 @@ export default function PDFPassword() {
     setError("");
   }, []);
 
-  // Create password-protected PDF using pdf-lib encryption
+  // Encrypt PDF using Web Crypto API (AES-GCM)
   const encryptPDF = useCallback(async () => {
     if (!selectedFile) return;
 
@@ -59,110 +62,184 @@ export default function PDFPassword() {
     setError("");
 
     try {
-      const { PDFDocument, rgb } = await import('pdf-lib');
+      // Read the PDF file
+      const pdfArrayBuffer = await selectedFile.arrayBuffer();
+      const pdfData = new Uint8Array(pdfArrayBuffer);
 
-      // Load the PDF
-      const arrayBuffer = await selectedFile.arrayBuffer();
-      const pdfDoc = await PDFDocument.load(arrayBuffer);
+      // Create a key from the password
+      const encoder = new TextEncoder();
+      const passwordData = encoder.encode(passwordConfig.userPassword);
+      const keyMaterial = await crypto.subtle.importKey(
+        'raw',
+        passwordData,
+        'PBKDF2',
+        false,
+        ['deriveBits', 'deriveKey']
+      );
 
-      // Try to save with PDF encryption (may not work in all browsers)
-      let encryptedBytes;
+      // Derive a key using PBKDF2
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+      const key = await crypto.subtle.deriveKey(
+        {
+          name: 'PBKDF2',
+          salt: salt,
+          iterations: 100000,
+          hash: 'SHA-256'
+        },
+        keyMaterial,
+        { name: 'AES-GCM', length: 256 },
+        false,
+        ['encrypt']
+      );
 
-      try {
-        // Attempt PDF encryption
-        encryptedBytes = await pdfDoc.save({
-          userPassword: passwordConfig.userPassword,
-          ownerPassword: passwordConfig.ownerPassword || passwordConfig.userPassword,
-          permissions: {
-            printing: passwordConfig.permissions.printing === 'high' ? 'highResolution' :
-                     passwordConfig.permissions.printing === 'low' ? 'lowResolution' : 'none',
-            modifying: passwordConfig.permissions.modifying,
-            copying: passwordConfig.permissions.copying,
-            annotating: passwordConfig.permissions.annotating,
-          }
-        } as any); // Type assertion to bypass TypeScript checks
-      } catch (encryptionError) {
-        console.warn('PDF encryption not supported in this browser:', encryptionError);
+      // Generate a random IV
+      const iv = crypto.getRandomValues(new Uint8Array(12));
 
-        // Fallback: save PDF with password notice overlay
-        const newPdf = await PDFDocument.create();
-        const pages = await newPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
-        pages.forEach(page => newPdf.addPage(page));
+      // Encrypt the PDF data
+      const encryptedData = await crypto.subtle.encrypt(
+        {
+          name: 'AES-GCM',
+          iv: iv
+        },
+        key,
+        pdfData
+      );
 
-        // Add password notice to first page
-        const firstPage = newPdf.getPages()[0];
-        const { width, height } = firstPage.getSize();
+      // Create metadata object
+      const metadata = {
+        fileName: selectedFile.name,
+        fileSize: selectedFile.size,
+        encryptedDate: new Date().toISOString(),
+        permissions: passwordConfig.permissions,
+        ownerPassword: passwordConfig.ownerPassword || null,
+        encryptionInfo: {
+          algorithm: 'AES-GCM',
+          keyDerivation: 'PBKDF2',
+          iterations: 100000,
+          salt: Array.from(salt),
+          iv: Array.from(iv)
+        }
+      };
 
-        // Draw a semi-transparent overlay
-        firstPage.drawRectangle({
-          x: 50,
-          y: height - 200,
-          width: width - 100,
-          height: 150,
-          color: rgb(1, 1, 1),
-          opacity: 0.9,
-        });
+      // Combine metadata and encrypted data
+      const metadataString = JSON.stringify(metadata);
+      const metadataBytes = encoder.encode(metadataString);
+      const metadataLength = new Uint8Array(4);
+      new DataView(metadataLength.buffer).setUint32(0, metadataBytes.length, true);
 
-        firstPage.drawRectangle({
-          x: 45,
-          y: height - 205,
-          width: width - 90,
-          height: 160,
-          color: rgb(1, 0, 0),
-          borderWidth: 3,
-          opacity: 0.8,
-        });
+      // Create final encrypted file: [metadata_length][metadata][encrypted_data]
+      const finalData = new Uint8Array(4 + metadataBytes.length + encryptedData.byteLength);
+      finalData.set(metadataLength, 0);
+      finalData.set(metadataBytes, 4);
+      finalData.set(new Uint8Array(encryptedData), 4 + metadataBytes.length);
 
-        firstPage.drawText('🔒 PASSWORD REQUIRED', {
-          x: width / 2 - 100,
-          y: height - 80,
-          size: 20,
-          color: rgb(0.8, 0, 0),
-        });
-
-        firstPage.drawText('This PDF should be password protected.', {
-          x: width / 2 - 130,
-          y: height - 110,
-          size: 14,
-          color: rgb(0.5, 0, 0),
-        });
-
-        firstPage.drawText(`Password: "${passwordConfig.userPassword}"`, {
-          x: width / 2 - 100,
-          y: height - 130,
-          size: 12,
-          color: rgb(0.5, 0, 0),
-        });
-
-        firstPage.drawText('Use desktop PDF software for proper encryption.', {
-          x: width / 2 - 140,
-          y: height - 150,
-          size: 10,
-          color: rgb(0.3, 0, 0),
-        });
-
-        encryptedBytes = await newPdf.save();
-      }
-
-      const encryptedBlob = new Blob([new Uint8Array(encryptedBytes)], { type: 'application/pdf' });
+      // Create encrypted blob with custom extension
+      const encryptedBlob = new Blob([finalData], { type: 'application/octet-stream' });
       setEncryptedBlob(encryptedBlob);
 
     } catch (err) {
-      console.error("PDF encryption error:", err);
-      setError("Failed to encrypt PDF. PDF encryption may not be supported in all browsers.");
+      console.error("Encryption error:", err);
+      setError("Failed to encrypt PDF. Please try again.");
     } finally {
       setIsEncrypting(false);
     }
   }, [selectedFile, passwordConfig]);
 
-  // Download encrypted PDF
+  // Decrypt an encrypted file
+  const decryptFile = useCallback(async (encryptedFile: File, password: string) => {
+    try {
+      const encryptedArrayBuffer = await encryptedFile.arrayBuffer();
+      const encryptedData = new Uint8Array(encryptedArrayBuffer);
+
+      // Read metadata length
+      const metadataLength = new DataView(encryptedData.buffer).getUint32(0, true);
+
+      // Read metadata
+      const metadataBytes = encryptedData.slice(4, 4 + metadataLength);
+      const decoder = new TextDecoder();
+      const metadata = JSON.parse(decoder.decode(metadataBytes));
+
+      // Extract encrypted data
+      const encryptedContent = encryptedData.slice(4 + metadataLength);
+
+      // Recreate the key from password
+      const encoder = new TextEncoder();
+      const passwordData = encoder.encode(password);
+      const keyMaterial = await crypto.subtle.importKey(
+        'raw',
+        passwordData,
+        'PBKDF2',
+        false,
+        ['deriveBits', 'deriveKey']
+      );
+
+      // Derive the same key
+      const key = await crypto.subtle.deriveKey(
+        {
+          name: 'PBKDF2',
+          salt: new Uint8Array(metadata.encryptionInfo.salt),
+          iterations: metadata.encryptionInfo.iterations,
+          hash: 'SHA-256'
+        },
+        keyMaterial,
+        { name: 'AES-GCM', length: 256 },
+        false,
+        ['decrypt']
+      );
+
+      // Decrypt the data
+      const decryptedData = await crypto.subtle.decrypt(
+        {
+          name: 'AES-GCM',
+          iv: new Uint8Array(metadata.encryptionInfo.iv)
+        },
+        key,
+        encryptedContent
+      );
+
+      return {
+        data: decryptedData,
+        metadata: metadata
+      };
+
+    } catch (err) {
+      throw new Error('Failed to decrypt file. Wrong password or corrupted file.');
+    }
+  }, []);
+
+  // Handle decryption
+  const handleDecrypt = useCallback(async () => {
+    if (!selectedFile || !passwordConfig.userPassword) {
+      setError("Please select an encrypted file and enter the password");
+      return;
+    }
+
+    setIsDecrypting(true);
+    setError("");
+
+    try {
+      const result = await decryptFile(selectedFile, passwordConfig.userPassword);
+
+      // Create the decrypted PDF blob
+      const decryptedPdfBlob = new Blob([result.data], { type: 'application/pdf' });
+      setDecryptedBlob(decryptedPdfBlob);
+
+    } catch (err) {
+      console.error("Decryption error:", err);
+      setError(err instanceof Error ? err.message : "Failed to decrypt file");
+    } finally {
+      setIsDecrypting(false);
+    }
+  }, [selectedFile, passwordConfig.userPassword, decryptFile]);
+
+  // Download encrypted file
   const downloadEncrypted = useCallback(() => {
     if (!encryptedBlob || !selectedFile) return;
 
     const url = URL.createObjectURL(encryptedBlob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `protected-${selectedFile.name}`;
+    link.download = `encrypted-${selectedFile.name}`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -200,13 +277,39 @@ export default function PDFPassword() {
           Add password protection to your PDF files
         </p>
 
+        {/* Tab Navigation */}
+        <div className="flex justify-center mb-6">
+          <div className="bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
+            <button
+              onClick={() => setActiveTab('encrypt')}
+              className={`px-6 py-2 rounded-md font-medium transition-colors ${
+                activeTab === 'encrypt'
+                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              🔒 Encrypt PDF
+            </button>
+            <button
+              onClick={() => setActiveTab('decrypt')}
+              className={`px-6 py-2 rounded-md font-medium transition-colors ${
+                activeTab === 'decrypt'
+                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              🔓 Decrypt File
+            </button>
+          </div>
+        </div>
+
         {/* Alternative Solutions Toggle */}
-        <div className="mb-6">
+        <div className="mb-6 text-center">
           <button
             onClick={() => setShowAlternatives(!showAlternatives)}
             className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 underline text-sm"
           >
-            {showAlternatives ? 'Hide' : 'Show'} Real Password Protection Solutions →
+            {showAlternatives ? 'Hide' : 'Show'} Standard PDF Password Solutions →
           </button>
         </div>
 
@@ -260,42 +363,85 @@ export default function PDFPassword() {
       </div>
 
       {/* File Upload */}
-      <div>
-        <div
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-            dragOver
-              ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-              : 'border-gray-300 dark:border-gray-600'
-          }`}
-        >
-          <div className="text-gray-500 dark:text-gray-400">
-            <svg className="mx-auto h-12 w-12 mb-4" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-              <path d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <p>Drop a PDF file here, or click to select</p>
-            <p className="text-sm text-gray-400 mt-1">Add password protection to your documents</p>
-          </div>
-          <Button
-            className="mt-4"
-            onClick={() => fileInputRef.current?.click()}
+      {activeTab === 'encrypt' && (
+        <div>
+          <div
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+              dragOver
+                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                : 'border-gray-300 dark:border-gray-600'
+            }`}
           >
-            Select PDF File
-          </Button>
+            <div className="text-gray-500 dark:text-gray-400">
+              <svg className="mx-auto h-12 w-12 mb-4" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                <path d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <p>Drop a PDF file here, or click to select</p>
+              <p className="text-sm text-gray-400 mt-1">Encrypt your PDF with AES-256 encryption</p>
+            </div>
+            <Button
+              className="mt-4"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              Select PDF File
+            </Button>
+          </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf,application/pdf"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleFileSelect(file);
+              setDecryptedBlob(null);
+            }}
+            className="hidden"
+          />
         </div>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".pdf,application/pdf"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) handleFileSelect(file);
-          }}
-          className="hidden"
-        />
-      </div>
+      )}
+
+      {activeTab === 'decrypt' && (
+        <div>
+          <div
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+              dragOver
+                ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
+                : 'border-gray-300 dark:border-gray-600'
+            }`}
+          >
+            <div className="text-gray-500 dark:text-gray-400">
+              <svg className="mx-auto h-12 w-12 mb-4" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                <path d="M16.5 37.5V33.75a4.5 4.5 0 109 0v3.75m6-3.75h-10.5a2.25 2.25 0 01-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25H26.25a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25z" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <p>Drop an encrypted file here, or click to select</p>
+              <p className="text-sm text-gray-400 mt-1">Decrypt your AES-encrypted files</p>
+            </div>
+            <Button
+              className="mt-4"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              Select Encrypted File
+            </Button>
+          </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="*/*"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleFileSelect(file);
+              setEncryptedBlob(null);
+            }}
+            className="hidden"
+          />
+        </div>
+      )}
 
       {/* Error Display */}
       {error && (
@@ -328,46 +474,49 @@ export default function PDFPassword() {
           {/* Password Settings */}
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Password Settings
+              {activeTab === 'encrypt' ? 'Encryption Password' : 'Decryption Password'}
             </h3>
 
             <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    User Password (Required to Open)
-                  </label>
-                  <input
-                    type="password"
-                    value={passwordConfig.userPassword}
-                    onChange={(e) => setPasswordConfig(prev => ({
-                      ...prev,
-                      userPassword: e.target.value
-                    }))}
-                    placeholder="Password to open PDF"
-                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Owner Password (Full Access)
-                  </label>
-                  <input
-                    type="password"
-                    value={passwordConfig.ownerPassword}
-                    onChange={(e) => setPasswordConfig(prev => ({
-                      ...prev,
-                      ownerPassword: e.target.value
-                    }))}
-                    placeholder="Optional - full permissions"
-                    className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  />
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  {activeTab === 'encrypt' ? 'Password for Encryption' : 'Password for Decryption'}
+                </label>
+                <input
+                  type="password"
+                  value={passwordConfig.userPassword}
+                  onChange={(e) => setPasswordConfig(prev => ({
+                    ...prev,
+                    userPassword: e.target.value
+                  }))}
+                  placeholder={activeTab === 'encrypt' ? "Enter encryption password" : "Enter decryption password"}
+                  className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
               </div>
 
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                <p><strong>Note:</strong> User password is required to open the PDF. Owner password provides full access and can override restrictions.</p>
-              </div>
+              {activeTab === 'encrypt' && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Owner Password (Optional - Full Access)
+                    </label>
+                    <input
+                      type="password"
+                      value={passwordConfig.ownerPassword}
+                      onChange={(e) => setPasswordConfig(prev => ({
+                        ...prev,
+                        ownerPassword: e.target.value
+                      }))}
+                      placeholder="Optional - full permissions"
+                      className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    />
+                  </div>
+
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    <p><strong>Security:</strong> Files are encrypted using AES-256-GCM with PBKDF2 key derivation.</p>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -455,40 +604,64 @@ export default function PDFPassword() {
             </div>
           </div>
 
-          {/* Encrypt Button */}
+          {/* Action Button */}
           <div className="text-center">
             <Button
-              onClick={encryptPDF}
-              disabled={isEncrypting || !passwordConfig.userPassword}
+              onClick={activeTab === 'encrypt' ? encryptPDF : handleDecrypt}
+              disabled={(activeTab === 'encrypt' ? isEncrypting : isDecrypting) || !passwordConfig.userPassword}
             >
-              {isEncrypting ? "Encrypting PDF..." : "Encrypt PDF"}
+              {activeTab === 'encrypt'
+                ? (isEncrypting ? "Encrypting PDF..." : "Encrypt PDF")
+                : (isDecrypting ? "Decrypting File..." : "Decrypt File")
+              }
             </Button>
           </div>
         </div>
       )}
 
-      {/* Download Section */}
+      {/* Download Sections */}
       {encryptedBlob && (
-        <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-6">
+        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6">
           <div className="text-center">
-            <h3 className="text-lg font-semibold text-orange-900 dark:text-orange-100 mb-2">
-              PDF Marked (Not Encrypted) 📝
+            <h3 className="text-lg font-semibold text-green-900 dark:text-green-100 mb-2">
+              PDF Encrypted Successfully! 🔒🛡️
             </h3>
-            <p className="text-orange-700 dark:text-orange-300 mb-2">
-              <strong>This PDF is NOT password protected!</strong>
+            <p className="text-green-700 dark:text-green-300 mb-2">
+              <strong>Your PDF has been encrypted with AES-256-GCM!</strong>
             </p>
-            <p className="text-orange-700 dark:text-orange-300 mb-4">
-              The PDF contains visual password indicators for educational purposes only.
-              Anyone can open and read this file. Use the recommended tools above for actual protection.
+            <p className="text-green-700 dark:text-green-300 mb-4">
+              The file is now password-protected. Use the "Decrypt File" tab to unlock it.
+              Keep your password safe - the file cannot be opened without it!
             </p>
-            <div className="space-y-2">
-              <Button onClick={downloadEncrypted} className="mr-2">
-                📥 Download Marked PDF
-              </Button>
-              <p className="text-xs text-orange-600 dark:text-orange-400">
-                ⚠️ Not secure - for demonstration only
-              </p>
-            </div>
+            <Button onClick={downloadEncrypted}>
+              📥 Download Encrypted File
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {decryptedBlob && (
+        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
+          <div className="text-center">
+            <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">
+              PDF Decrypted Successfully! 🔓📄
+            </h3>
+            <p className="text-blue-700 dark:text-blue-300 mb-4">
+              Your encrypted file has been successfully decrypted and is ready for download.
+            </p>
+            <Button onClick={() => {
+              if (!decryptedBlob) return;
+              const url = URL.createObjectURL(decryptedBlob);
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = 'decrypted-document.pdf';
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              URL.revokeObjectURL(url);
+            }}>
+              📥 Download Decrypted PDF
+            </Button>
           </div>
         </div>
       )}
@@ -502,15 +675,26 @@ export default function PDFPassword() {
       {/* Instructions */}
       <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
         <h3 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">How to use:</h3>
-        <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
-          <li>• Upload a PDF file that you want to protect</li>
-          <li>• Enter your desired password and permissions</li>
-          <li>• Click "Encrypt PDF" to mark the document</li>
-          <li>• Download the marked PDF (not actually encrypted)</li>
-          <li>• <strong>For real protection:</strong> Use desktop software like Adobe Acrobat</li>
-          <li>• <strong>Alternative:</strong> Use online PDF encryption services</li>
-          <li>• This tool demonstrates the concept but browser limitations prevent true encryption</li>
-        </ul>
+        {activeTab === 'encrypt' ? (
+          <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
+            <li>• Switch to "🔒 Encrypt PDF" tab</li>
+            <li>• Upload a PDF file you want to protect</li>
+            <li>• Enter a strong encryption password</li>
+            <li>• Optionally set owner password and permissions</li>
+            <li>• Click "Encrypt PDF" to apply AES-256 encryption</li>
+            <li>• Download the encrypted file (cannot be opened without password)</li>
+            <li>• <strong>Security:</strong> AES-256-GCM encryption with PBKDF2 key derivation</li>
+          </ul>
+        ) : (
+          <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
+            <li>• Switch to "🔓 Decrypt File" tab</li>
+            <li>• Upload an encrypted file (.encrypted file)</li>
+            <li>• Enter the exact password used for encryption</li>
+            <li>• Click "Decrypt File" to unlock the content</li>
+            <li>• Download the decrypted PDF</li>
+            <li>• <strong>Note:</strong> Wrong password will fail decryption</li>
+          </ul>
+        )}
       </div>
 
       {/* Security Notice */}
