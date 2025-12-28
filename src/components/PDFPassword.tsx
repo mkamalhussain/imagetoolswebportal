@@ -512,113 +512,14 @@ export default function PDFPassword() {
 
               {activeTab === 'encrypt' && (
                 <>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Owner Password (Optional - Full Access)
-                    </label>
-                    <input
-                      type="password"
-                      value={passwordConfig.ownerPassword}
-                      onChange={(e) => setPasswordConfig(prev => ({
-                        ...prev,
-                        ownerPassword: e.target.value
-                      }))}
-                      placeholder="Optional - full permissions"
-                      className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    />
-                  </div>
-
                   <div className="text-sm text-gray-600 dark:text-gray-400">
-                    <p><strong>Security:</strong> Files are encrypted using AES-256-GCM with PBKDF2 key derivation.</p>
+                    <strong>Security:</strong> Files are encrypted using AES-256-GCM with PBKDF2 key derivation (100,000 iterations).
                   </div>
                 </>
               )}
             </div>
           </div>
 
-          {/* Permissions */}
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              User Permissions (when opened with user password)
-            </h3>
-
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Printing
-                </label>
-                <select
-                  value={passwordConfig.permissions.printing}
-                  onChange={(e) => setPasswordConfig(prev => ({
-                    ...prev,
-                    permissions: {
-                      ...prev.permissions,
-                      printing: e.target.value as typeof passwordConfig.permissions.printing
-                    }
-                  }))}
-                  className="p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                >
-                  <option value="high">High Quality</option>
-                  <option value="low">Low Quality Only</option>
-                  <option value="none">Not Allowed</option>
-                </select>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Modifying Document
-                </label>
-                <input
-                  type="checkbox"
-                  checked={passwordConfig.permissions.modifying}
-                  onChange={(e) => setPasswordConfig(prev => ({
-                    ...prev,
-                    permissions: {
-                      ...prev.permissions,
-                      modifying: e.target.checked
-                    }
-                  }))}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Copying Text/Images
-                </label>
-                <input
-                  type="checkbox"
-                  checked={passwordConfig.permissions.copying}
-                  onChange={(e) => setPasswordConfig(prev => ({
-                    ...prev,
-                    permissions: {
-                      ...prev.permissions,
-                      copying: e.target.checked
-                    }
-                  }))}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Adding Annotations
-                </label>
-                <input
-                  type="checkbox"
-                  checked={passwordConfig.permissions.annotating}
-                  onChange={(e) => setPasswordConfig(prev => ({
-                    ...prev,
-                    permissions: {
-                      ...prev.permissions,
-                      annotating: e.target.checked
-                    }
-                  }))}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-              </div>
-            </div>
-          </div>
 
           {/* Action Button */}
           <div className="text-center">
@@ -704,21 +605,21 @@ export default function PDFPassword() {
         {activeTab === 'encrypt' ? (
           <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
             <li>• Switch to "🔒 Encrypt PDF" tab</li>
-            <li>• Upload a PDF file you want to protect</li>
+            <li>• Upload a <strong>PDF file</strong> you want to protect</li>
             <li>• Enter a strong encryption password</li>
             <li>• Click "Encrypt PDF" to apply AES-256 encryption</li>
-            <li>• Download the encrypted file (.encrypted) - NOT a PDF!</li>
-            <li>• <strong>⚠️ Encrypted file cannot be opened by PDF readers</strong></li>
+            <li>• Download the <strong>.encrypted file</strong> (not a PDF!)</li>
+            <li>• <strong>⚠️ Cannot be opened by PDF readers like Acrobat</strong></li>
             <li>• Use "Decrypt File" tab to access your PDF later</li>
           </ul>
         ) : (
           <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
             <li>• Switch to "🔓 Decrypt File" tab</li>
-            <li>• Upload an encrypted file (.encrypted) created by this tool</li>
+            <li>• Upload an <strong>.encrypted file</strong> created by this tool</li>
             <li>• Enter the exact password used for encryption</li>
             <li>• Click "Decrypt File" to unlock and restore your PDF</li>
-            <li>• Download the decrypted PDF (original file restored)</li>
-            <li>• <strong>Security:</strong> AES-256-GCM encryption with PBKDF2</li>
+            <li>• Download the <strong>original PDF</strong> (file extension restored)</li>
+            <li>• <strong>Note:</strong> Wrong password will fail decryption</li>
           </ul>
         )}
       </div>
