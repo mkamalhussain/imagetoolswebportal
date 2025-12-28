@@ -23,10 +23,14 @@ type ButtonSpecificProps = {
   onClick?: React.MouseEventHandler<HTMLElement>;
 };
 
+type LabelProps = {
+  htmlFor?: string;
+};
+
 type ButtonProps = CommonProps &
   (
     | ({ as?: "button" } & ButtonSpecificProps)
-    | ({ as: "label" })
+    | ({ as: "label" } & LabelProps)
     | ({ as: "a" } & AnchorProps)
   );
 
