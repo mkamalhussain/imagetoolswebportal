@@ -39,15 +39,26 @@ export default function PDFPassword() {
 
   // Handle file selection
   const handleFileSelect = useCallback((file: File) => {
-    if (file.type !== 'application/pdf') {
-      setError("Please select a PDF file");
-      return;
+    if (activeTab === 'encrypt') {
+      // Encrypt tab: must be PDF
+      if (file.type !== 'application/pdf') {
+        setError("Please select a PDF file");
+        return;
+      }
+    } else {
+      // Decrypt tab: can be any file (encrypted files might not have proper MIME type)
+      // But let's check for .encrypted extension if possible
+      if (file.name && !file.name.toLowerCase().endsWith('.encrypted') && file.type !== 'application/octet-stream') {
+        setError("Please select an encrypted file (.encrypted)");
+        return;
+      }
     }
 
     setSelectedFile(file);
     setEncryptedBlob(null);
+    setDecryptedBlob(null);
     setError("");
-  }, []);
+  }, [activeTab]);
 
   // Encrypt PDF using Web Crypto API (AES-GCM)
   const encryptPDF = useCallback(async () => {
