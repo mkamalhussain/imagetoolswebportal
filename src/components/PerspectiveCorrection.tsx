@@ -222,20 +222,21 @@ export default function PerspectiveCorrection() {
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
 
-    // Convert mouse coordinates to canvas pixel coordinates
-    const x = (e.clientX - rect.left) * scaleX;
-    const y = (e.clientY - rect.top) * scaleY;
+    // Mouse coordinates in display space (same as corner positioning)
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
 
-    console.log('Mouse down at display coords:', e.clientX - rect.left, e.clientY - rect.top);
-    console.log('Converted to canvas coords:', x, y);
+    console.log('Mouse down at display coords:', mouseX, mouseY);
     console.log('Canvas scaling:', scaleX, scaleY);
 
-    // Check if clicking on a corner point
-    const clickRadius = 15; // Increased radius for easier clicking
+    // Check if clicking on a corner point (corners are positioned in display coordinates)
+    const clickRadius = 20; // Increased radius for easier clicking
     for (let i = 0; i < corners.length; i++) {
       const corner = corners[i];
-      const distance = Math.sqrt((x - corner.x) ** 2 + (y - corner.y) ** 2);
-      console.log(`Corner ${i} at:`, corner.x, corner.y, 'distance:', distance);
+      const cornerDisplayX = corner.x * scaleX;
+      const cornerDisplayY = corner.y * scaleY;
+      const distance = Math.sqrt((mouseX - cornerDisplayX) ** 2 + (mouseY - cornerDisplayY) ** 2);
+      console.log(`Corner ${i} display pos:`, cornerDisplayX, cornerDisplayY, 'mouse:', mouseX, mouseY, 'distance:', distance);
       if (distance <= clickRadius) {
         console.log('Clicked corner:', i);
         setDraggingPoint(i);
@@ -258,11 +259,15 @@ export default function PerspectiveCorrection() {
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
 
-    // Convert mouse coordinates to canvas pixel coordinates
-    const x = Math.max(0, Math.min(canvas.width, (e.clientX - rect.left) * scaleX));
-    const y = Math.max(0, Math.min(canvas.height, (e.clientY - rect.top) * scaleY));
+    // Mouse coordinates in display space
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
 
-    console.log('Moving corner to:', x, y);
+    // Convert back to canvas pixel coordinates for storage
+    const x = Math.max(0, Math.min(canvas.width, mouseX / scaleX));
+    const y = Math.max(0, Math.min(canvas.height, mouseY / scaleY));
+
+    console.log('Moving corner to canvas coords:', x, y);
 
     setCorners(prev => prev.map((corner, index) =>
       index === draggingPoint ? { x, y } : corner
