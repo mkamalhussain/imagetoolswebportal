@@ -472,8 +472,23 @@ export default function MultiTrackMixer() {
       previewAudioElementsRef.current = audioElements;
       previewUrlsRef.current = urls;
 
-      // Start playback of all tracks simultaneously
-      const playPromises = audioElements.map(audio => audio.play());
+      // Start playback of all tracks with slight stagger to avoid browser audio conflicts
+      const playPromises: Promise<void>[] = [];
+      audioElements.forEach((audio, index) => {
+        // Stagger start times by 10ms to avoid potential audio processing conflicts
+        const delay = index * 10;
+        const playPromise = new Promise<void>((resolve, reject) => {
+          setTimeout(async () => {
+            try {
+              await audio.play();
+              resolve();
+            } catch (error) {
+              reject(error);
+            }
+          }, delay);
+        });
+        playPromises.push(playPromise);
+      });
 
       try {
         await Promise.all(playPromises);
@@ -896,10 +911,13 @@ export default function MultiTrackMixer() {
         </div>
       )}
 
-      {/* Mix Preview Controls */}
+          {/* Mix Preview Controls */}
       {tracks.length >= 2 && (
         <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-          <h3 className="text-lg font-semibold text-green-900 dark:text-green-100 mb-4">🎵 Mix Preview</h3>
+          <h3 className="text-lg font-semibold text-green-900 dark:text-green-100 mb-2">🎵 Mix Preview</h3>
+          <p className="text-sm text-green-700 dark:text-green-300 mb-4">
+            Plays all enabled tracks simultaneously to preview your mix. Use Solo (S) to isolate individual tracks.
+          </p>
 
           {/* Mix seek bar */}
           <div className="mb-4">
