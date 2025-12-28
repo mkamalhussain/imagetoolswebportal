@@ -69,14 +69,19 @@ export default function PDFFormFiller() {
               readOnly: annotation.readOnly || false
             };
 
+            console.log(`Detected field: ${field.name}, type: ${field.type}, value: ${field.value}`);
+
             // Extract options for choice/dropdown fields
             if (annotation.fieldType === 'choice' || annotation.fieldType === 'select') {
               const options = annotation.options || [];
+              console.log(`Choice field ${field.name} options:`, options);
               if (options.length > 0) {
                 field.options = options.map((opt: any) => {
                   // PDF.js options can be strings or objects with display/value
-                  return typeof opt === 'string' ? opt :
-                         opt.displayValue || opt.value || opt;
+                  const optionValue = typeof opt === 'string' ? opt :
+                                     opt.displayValue || opt.value || opt;
+                  console.log(`  Option: ${optionValue}`);
+                  return optionValue;
                 });
               }
             }
@@ -127,52 +132,80 @@ export default function PDFFormFiller() {
 
       // Get the form
       const form = pdfDoc.getForm();
+      const allFormFields = form.getFields();
+      console.log('PDF-lib form fields:', allFormFields.map(f => ({
+        name: f.getName(),
+        type: f.constructor.name
+      })));
 
       // Fill form fields with user values
       formFields.forEach(field => {
         try {
           const fieldValue = fieldValues[field.id] || field.value || '';
+          console.log(`Attempting to fill field: ${field.name}, type: ${field.type}, value: ${fieldValue}`);
 
-          // Find the form field by name
-          const pdfField = form.getField(field.name);
-          if (pdfField) {
-            try {
-              // Set the field value based on type
-              if (field.type === 'text') {
-                // Cast to text field
-                const textField = pdfField as any;
-                if (textField.setText) {
-                  textField.setText(fieldValue);
-                }
-              } else if (field.type === 'checkbox') {
-                // Cast to checkbox field
-                const checkboxField = pdfField as any;
-                if (fieldValue === 'true') {
-                  if (checkboxField.check) checkboxField.check();
-                } else {
-                  if (checkboxField.uncheck) checkboxField.uncheck();
-                }
-              } else if ((field.type === 'choice' || field.type === 'select') && fieldValue) {
-                // Cast to choice field
-                const choiceField = pdfField as any;
-                if (choiceField.select) {
-                  choiceField.select(fieldValue);
-                } else if (choiceField.setText) {
-                  choiceField.setText(fieldValue);
-                }
-              } else {
-                // Fallback for unknown field types
-                const genericField = pdfField as any;
-                if (genericField.setText) {
-                  genericField.setText(fieldValue);
-                }
-              }
-            } catch (fieldFillError) {
-              console.warn(`Could not fill field ${field.name}:`, fieldFillError);
-            }
+          // Try to find the form field by name
+          let pdfField;
+          try {
+            pdfField = form.getField(field.name);
+          } catch (getFieldError) {
+            console.warn(`Could not get field by name ${field.name}:`, getFieldError);
+            // Try alternative approaches
+            const allFields = form.getFields();
+            console.log('Available form fields:', allFields.map(f => f.getName()));
+            pdfField = allFields.find(f => f.getName() === field.name);
           }
-        } catch (fieldError) {
-          console.warn(`Could not fill field ${field.name}:`, fieldError);
+
+          if (pdfField) {
+            console.log(`Found PDF field: ${pdfField.getName()}, type: ${pdfField.constructor.name}`);
+
+            // Set the field value based on type
+            if (field.type === 'text') {
+              try {
+                (pdfField as any).setText(fieldValue);
+                console.log(`Set text field ${field.name} to: ${fieldValue}`);
+              } catch (textError) {
+                console.warn(`Failed to set text for ${field.name}:`, textError);
+              }
+            } else if (field.type === 'checkbox') {
+              try {
+                if (fieldValue === 'true') {
+                  (pdfField as any).check();
+                  console.log(`Checked checkbox field ${field.name}`);
+                } else {
+                  (pdfField as any).uncheck();
+                  console.log(`Unchecked checkbox field ${field.name}`);
+                }
+              } catch (checkboxError) {
+                console.warn(`Failed to set checkbox for ${field.name}:`, checkboxError);
+              }
+            } else if ((field.type === 'choice' || field.type === 'select') && fieldValue) {
+              try {
+                // For choice fields, try different methods
+                if ((pdfField as any).select) {
+                  (pdfField as any).select(fieldValue);
+                  console.log(`Selected value ${fieldValue} for choice field ${field.name}`);
+                } else if ((pdfField as any).setText) {
+                  (pdfField as any).setText(fieldValue);
+                  console.log(`Set text ${fieldValue} for choice field ${field.name}`);
+                }
+              } catch (choiceError) {
+                console.warn(`Failed to set choice field ${field.name}:`, choiceError);
+              }
+            } else if (fieldValue) {
+              // Fallback for other field types
+              try {
+                (pdfField as any).setText(fieldValue);
+                console.log(`Set fallback text for field ${field.name}: ${fieldValue}`);
+              } catch (fallbackError) {
+                console.warn(`Failed fallback for ${field.name}:`, fallbackError);
+              }
+            }
+          } else {
+            console.warn(`PDF field not found for: ${field.name}`);
+          }
+        } catch (fieldFillError) {
+          console.warn(`Could not fill field ${field.name}:`, fieldFillError);
         }
       });
 
