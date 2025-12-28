@@ -114,6 +114,40 @@ export default function MultiTrackMixer() {
     });
   };
 
+  const getAudioDuration = (file: File): Promise<number> => {
+    return new Promise((resolve) => {
+      const audio = new Audio();
+      const url = URL.createObjectURL(file);
+
+      const cleanup = () => {
+        audio.removeEventListener('loadedmetadata', onLoaded);
+        audio.removeEventListener('error', onError);
+        URL.revokeObjectURL(url);
+      };
+
+      const onLoaded = () => {
+        cleanup();
+        resolve(audio.duration > 0 && !isNaN(audio.duration) ? audio.duration : 0);
+      };
+
+      const onError = () => {
+        cleanup();
+        resolve(0);
+      };
+
+      audio.addEventListener('loadedmetadata', onLoaded);
+      audio.addEventListener('error', onError);
+      audio.preload = 'metadata';
+      audio.src = url;
+
+      // Timeout after 5 seconds
+      setTimeout(() => {
+        cleanup();
+        resolve(0);
+      }, 5000);
+    });
+  };
+
   const handleFileSelect = async (files: FileList) => {
     const audioFiles = Array.from(files).filter(file => file.type.startsWith('audio/'));
 
@@ -124,40 +158,40 @@ export default function MultiTrackMixer() {
 
     setError(null);
 
-    // Validate each audio file
-    const validatedFiles: File[] = [];
+    // Validate and get duration for each audio file
+    const validatedTracks: TrackSettings[] = [];
     for (const file of audioFiles) {
       const isValid = await validateAudioFile(file);
       if (isValid) {
-        validatedFiles.push(file);
+        // Get the actual duration
+        const duration = await getAudioDuration(file);
+        validatedTracks.push({
+          file,
+          volume: 1,
+          pan: 0,
+          solo: false,
+          mute: false,
+          name: file.name.replace(/\.[^/.]+$/, ""),
+          color: colors[(tracks.length + validatedTracks.length) % colors.length],
+          isPlaying: false,
+          duration: duration || 0,
+          currentTime: 0
+        });
       } else {
         console.warn(`Skipping invalid/corrupted audio file: ${file.name}`);
       }
     }
 
-    if (validatedFiles.length === 0) {
+    if (validatedTracks.length === 0) {
       setError('No valid audio files found. Please check that your files are not corrupted and are in a supported format (MP3, WAV, M4A, etc.)');
       return;
     }
 
-    if (validatedFiles.length < audioFiles.length) {
-      setError(`${validatedFiles.length} of ${audioFiles.length} files were valid and added. Some files were skipped due to format issues.`);
+    if (validatedTracks.length < audioFiles.length) {
+      setError(`${validatedTracks.length} of ${audioFiles.length} files were valid and added. Some files were skipped due to format issues.`);
     }
 
-    const newTracks: TrackSettings[] = validatedFiles.map((file, index) => ({
-      file,
-      volume: 1,
-      pan: 0,
-      solo: false,
-      mute: false,
-      name: file.name.replace(/\.[^/.]+$/, ""),
-      color: colors[(tracks.length + index) % colors.length],
-      isPlaying: false,
-      duration: 0,
-      currentTime: 0
-    }));
-
-    setTracks(prev => [...prev, ...newTracks]);
+    setTracks(prev => [...prev, ...validatedTracks]);
   };
 
   const removeTrack = (index: number) => {
@@ -724,17 +758,20 @@ export default function MultiTrackMixer() {
                   {/* Level Meter - Visual representation */}
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-xs text-gray-500 dark:text-gray-400 w-12">LEVEL</span>
-                    <div className="flex-1 h-4 bg-gray-200 dark:bg-gray-600 rounded-sm overflow-hidden">
+                    <div className="flex-1 h-6 bg-gray-200 dark:bg-gray-700 rounded-md overflow-hidden border border-gray-300 dark:border-gray-600 relative">
                       <div
-                        className={`h-full transition-all duration-100 ${
+                        className={`h-full transition-all duration-300 ${
                           isPreviewing && !track.mute && getEffectiveVolume(track) > 0
-                            ? 'bg-gradient-to-r from-green-400 via-yellow-400 to-red-400 animate-pulse'
-                            : 'bg-gray-300 dark:bg-gray-500'
+                            ? 'bg-gradient-to-r from-green-500 via-yellow-500 to-red-500 shadow-lg'
+                            : 'bg-gray-400 dark:bg-gray-600'
                         }`}
                         style={{
-                          width: isPreviewing && !track.mute && getEffectiveVolume(track) > 0 ? '70%' : '10%'
+                          width: isPreviewing && !track.mute && getEffectiveVolume(track) > 0 ? '80%' : '15%'
                         }}
                       ></div>
+                      {isPreviewing && !track.mute && getEffectiveVolume(track) > 0 && (
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse rounded-md"></div>
+                      )}
                     </div>
                   </div>
                 </div>
