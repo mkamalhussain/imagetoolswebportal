@@ -217,7 +217,10 @@ export default function PDFPassword() {
       };
 
     } catch (err) {
-      throw new Error('Failed to decrypt file. Wrong password or corrupted file.');
+      // Wrong password or corrupted file is expected behavior, not an error
+      // Just return null to indicate failure
+      console.info('Decryption verification failed (wrong password or corrupted file)');
+      return null;
     }
   }, []);
 
@@ -234,13 +237,19 @@ export default function PDFPassword() {
     try {
       const result = await decryptFile(selectedFile, passwordConfig.userPassword);
 
+      if (result === null) {
+        // Decryption failed (wrong password or corrupted file)
+        setError("Failed to decrypt file. Wrong password or corrupted file.");
+        return;
+      }
+
       // Create the decrypted PDF blob
       const decryptedPdfBlob = new Blob([result.data], { type: 'application/pdf' });
       setDecryptedBlob(decryptedPdfBlob);
 
     } catch (err) {
-      console.error("Decryption error:", err);
-      setError(err instanceof Error ? err.message : "Failed to decrypt file");
+      console.error("Unexpected decryption error:", err);
+      setError("An unexpected error occurred during decryption.");
     } finally {
       setIsDecrypting(false);
     }
