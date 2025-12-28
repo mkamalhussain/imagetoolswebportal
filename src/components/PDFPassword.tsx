@@ -30,6 +30,7 @@ export default function PDFPassword() {
   const [isEncrypting, setIsEncrypting] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState<string>("");
+  const [showAlternatives, setShowAlternatives] = useState(false);
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -195,9 +196,61 @@ export default function PDFPassword() {
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
           PDF Password Protector
         </h1>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-gray-600 dark:text-gray-400 mb-4">
           Add password protection to your PDF files
         </p>
+
+        {/* Alternative Solutions Toggle */}
+        <div className="mb-6">
+          <button
+            onClick={() => setShowAlternatives(!showAlternatives)}
+            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 underline text-sm"
+          >
+            {showAlternatives ? 'Hide' : 'Show'} Real Password Protection Solutions →
+          </button>
+        </div>
+
+        {/* Real Solutions Section */}
+        {showAlternatives && (
+          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6 mb-6 max-w-4xl mx-auto">
+            <h3 className="text-lg font-semibold text-green-900 dark:text-green-100 mb-4">
+              ✅ Working PDF Password Protection Solutions
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Desktop Software */}
+              <div className="space-y-3">
+                <h4 className="font-medium text-green-800 dark:text-green-200">Desktop Software:</h4>
+                <ul className="text-sm text-green-700 dark:text-green-300 space-y-1">
+                  <li>• <strong>Adobe Acrobat:</strong> Professional PDF encryption</li>
+                  <li>• <strong>PDFtk (Free):</strong> Command-line PDF toolkit</li>
+                  <li>• <strong>LibreOffice:</strong> Export with password</li>
+                  <li>• <strong>PDFsam:</strong> Free PDF manipulation tool</li>
+                  <li>• <strong>qPDF:</strong> Advanced PDF processing</li>
+                </ul>
+              </div>
+
+              {/* Online Services */}
+              <div className="space-y-3">
+                <h4 className="font-medium text-green-800 dark:text-green-200">Online Services:</h4>
+                <ul className="text-sm text-green-700 dark:text-green-300 space-y-1">
+                  <li>• <strong>SmallPDF:</strong> Password protection tools</li>
+                  <li>• <strong>ILovePDF:</strong> Secure PDF processing</li>
+                  <li>• <strong>PDF24:</strong> Free online PDF tools</li>
+                  <li>• <strong>Sejda:</strong> Professional PDF services</li>
+                  <li>• <strong>DocuSign:</strong> Document security platform</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="mt-4 p-3 bg-green-100 dark:bg-green-800/50 rounded">
+              <p className="text-sm text-green-800 dark:text-green-200">
+                <strong>Why browsers can't do this:</strong> Web browsers restrict cryptographic operations for security reasons.
+                True PDF encryption requires server-side processing or desktop applications.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Google AdSense Placeholder */}
@@ -416,21 +469,26 @@ export default function PDFPassword() {
 
       {/* Download Section */}
       {encryptedBlob && (
-        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-6">
+        <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-6">
           <div className="text-center">
-            <h3 className="text-lg font-semibold text-yellow-900 dark:text-yellow-100 mb-2">
-              PDF Processed! ⚠️
+            <h3 className="text-lg font-semibold text-orange-900 dark:text-orange-100 mb-2">
+              PDF Marked (Not Encrypted) 📝
             </h3>
-            <p className="text-yellow-700 dark:text-yellow-300 mb-2">
-              <strong>Browser Limitation:</strong> True PDF encryption isn't supported in all browsers.
+            <p className="text-orange-700 dark:text-orange-300 mb-2">
+              <strong>This PDF is NOT password protected!</strong>
             </p>
-            <p className="text-yellow-700 dark:text-yellow-300 mb-4">
-              The PDF has been marked with your password information. For proper password protection,
-              please use desktop PDF software like Adobe Acrobat.
+            <p className="text-orange-700 dark:text-orange-300 mb-4">
+              The PDF contains visual password indicators for educational purposes only.
+              Anyone can open and read this file. Use the recommended tools above for actual protection.
             </p>
-            <Button onClick={downloadEncrypted}>
-              📥 Download Marked PDF
-            </Button>
+            <div className="space-y-2">
+              <Button onClick={downloadEncrypted} className="mr-2">
+                📥 Download Marked PDF
+              </Button>
+              <p className="text-xs text-orange-600 dark:text-orange-400">
+                ⚠️ Not secure - for demonstration only
+              </p>
+            </div>
           </div>
         </div>
       )}
@@ -457,13 +515,16 @@ export default function PDFPassword() {
 
       {/* Security Notice */}
       <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-        <h4 className="font-semibold text-red-900 dark:text-red-100 mb-2">⚠️ Browser Limitations</h4>
+        <h4 className="font-semibold text-red-900 dark:text-red-100 mb-2">❌ Cannot Create Password-Protected PDFs</h4>
         <p className="text-sm text-red-800 dark:text-red-200 mb-2">
-          <strong>Important:</strong> True PDF password encryption is not supported in web browsers due to security restrictions.
-          This tool marks your PDF with password information but does not provide actual encryption.
+          <strong>Technical Limitation:</strong> Web browsers cannot create truly password-protected PDFs due to security restrictions.
+          This tool adds visual password indicators but does NOT provide actual security.
+        </p>
+        <p className="text-sm text-red-800 dark:text-red-200 mb-2">
+          <strong>For Real Protection:</strong> Use the recommended desktop software or online services shown above.
         </p>
         <p className="text-sm text-red-800 dark:text-red-200">
-          <strong>Recommendation:</strong> Use desktop PDF software like Adobe Acrobat, PDFtk, or online services for proper password protection.
+          <strong>This tool is educational only</strong> - it demonstrates PDF concepts but doesn't provide security.
         </p>
       </div>
     </div>
