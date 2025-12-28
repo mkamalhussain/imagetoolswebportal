@@ -28,6 +28,10 @@ export default function MultiTrackMixer() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
+  const previewAudioElementsRef = useRef<HTMLAudioElement[]>([]);
+  const previewUrlsRef = useRef<string[]>([]);
+  const previewSeekUpdateIdRef = useRef<number | null>(null);
+  const previewTimeoutIdRef = useRef<NodeJS.Timeout | null>(null);
   const [mixSeekPosition, setMixSeekPosition] = useState<number>(0);
   const [mixDuration, setMixDuration] = useState<number>(30); // Default 30s mix
   const [mixedBlob, setMixedBlob] = useState<Blob | null>(null);
@@ -352,6 +356,40 @@ export default function MultiTrackMixer() {
     }
   };
 
+  const stopMixPreview = () => {
+    if (!isPreviewing) return;
+
+    // Clear the auto-stop timeout
+    if (previewTimeoutIdRef.current) {
+      clearTimeout(previewTimeoutIdRef.current);
+      previewTimeoutIdRef.current = null;
+    }
+
+    // Cancel seek update
+    if (previewSeekUpdateIdRef.current) {
+      cancelAnimationFrame(previewSeekUpdateIdRef.current);
+      previewSeekUpdateIdRef.current = null;
+    }
+
+    // Stop all currently playing audio elements from preview
+    previewAudioElementsRef.current.forEach(audio => {
+      audio.pause();
+      audio.currentTime = 0;
+      audio.loop = false;
+    });
+
+    // Clean up URLs
+    previewUrlsRef.current.forEach(url => URL.revokeObjectURL(url));
+
+    // Reset state
+    previewAudioElementsRef.current = [];
+    previewUrlsRef.current = [];
+
+    setIsPreviewing(false);
+    setMixSeekPosition(0);
+    setError(null);
+  };
+
   const previewMix = async () => {
     if (tracks.length < 2) {
       setError('Need at least 2 tracks to preview mix');
@@ -410,6 +448,10 @@ export default function MultiTrackMixer() {
         audioElements.push(audio);
       }
 
+      // Store references for cleanup
+      previewAudioElementsRef.current = audioElements;
+      previewUrlsRef.current = urls;
+
       // Start playback of all tracks simultaneously
       const playPromises = audioElements.map(audio => audio.play());
 
@@ -423,7 +465,6 @@ export default function MultiTrackMixer() {
 
       // Update seek position during playback
       const startTime = Date.now();
-      let seekUpdateId: number;
 
       const updateSeek = () => {
         if (isPreviewing) {
@@ -431,7 +472,7 @@ export default function MultiTrackMixer() {
           setMixSeekPosition(Math.min(elapsed, mixDuration));
 
           if (elapsed < mixDuration) {
-            seekUpdateId = requestAnimationFrame(updateSeek);
+            previewSeekUpdateIdRef.current = requestAnimationFrame(updateSeek);
           } else {
             // Ensure we stop exactly at the duration
             stopPlayback();
@@ -443,8 +484,9 @@ export default function MultiTrackMixer() {
       // Stop playback function
       const stopPlayback = () => {
         // Cancel the seek update animation frame
-        if (seekUpdateId) {
-          cancelAnimationFrame(seekUpdateId);
+        if (previewSeekUpdateIdRef.current) {
+          cancelAnimationFrame(previewSeekUpdateIdRef.current);
+          previewSeekUpdateIdRef.current = null;
         }
 
         audioElements.forEach(audio => {
@@ -453,12 +495,17 @@ export default function MultiTrackMixer() {
           audio.loop = false; // Disable looping when stopping
         });
         urls.forEach(url => URL.revokeObjectURL(url));
+
+        // Clear refs
+        previewAudioElementsRef.current = [];
+        previewUrlsRef.current = [];
+
         setIsPreviewing(false);
         setMixSeekPosition(0);
       };
 
       // Auto-stop after mix duration (don't listen to individual track endings)
-      setTimeout(() => {
+      previewTimeoutIdRef.current = setTimeout(() => {
         if (isPreviewing) {
           stopPlayback();
         }
@@ -877,13 +924,28 @@ export default function MultiTrackMixer() {
           </div>
 
           <div className="flex gap-4 flex-wrap">
-            <Button
-              onClick={() => previewMix()}
-              disabled={isPreviewing}
-              className="flex-1 md:flex-none"
-            >
-              {isPreviewing ? '🔊 Previewing Mix...' : '🔊 Preview Mix'}
-            </Button>
+            {isPreviewing ? (
+              <>
+                <Button
+                  onClick={stopMixPreview}
+                  className="flex-1 md:flex-none bg-red-600 hover:bg-red-700"
+                >
+                  ⏹️ Stop Preview
+                </Button>
+                <div className="flex items-center text-green-600 dark:text-green-400 font-medium">
+                  <div className="animate-pulse mr-2">🔊</div>
+                  Playing... {Math.floor(mixSeekPosition)}s / {mixDuration}s
+                </div>
+              </>
+            ) : (
+              <Button
+                onClick={() => previewMix()}
+                disabled={tracks.length < 2}
+                className="flex-1 md:flex-none"
+              >
+                🔊 Preview Mix
+              </Button>
+            )}
           </div>
         </div>
       )}
