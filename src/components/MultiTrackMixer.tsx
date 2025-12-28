@@ -28,6 +28,10 @@ export default function MultiTrackMixer() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
+  const [mixSeekPosition, setMixSeekPosition] = useState<number>(0);
+  const [mixDuration, setMixDuration] = useState<number>(30); // Default 30s mix
+  const [mixedBlob, setMixedBlob] = useState<Blob | null>(null);
+  const [mixedBlobUrl, setMixedBlobUrl] = useState<string | null>(null);
 
   const colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
 
@@ -353,118 +357,74 @@ export default function MultiTrackMixer() {
 
     setIsPreviewing(true);
     setError(null);
+    setMixSeekPosition(0);
 
     try {
-      // For mix preview, we'll simulate by playing the first non-muted track
-      // In a real implementation, this would mix all tracks together
-      const playableTrack = tracks.find(track =>
+      // Get all playable tracks
+      const playableTracks = tracks.filter(track =>
         !track.mute && getEffectiveVolume(track) > 0
       );
 
-      if (!playableTrack) {
+      if (playableTracks.length === 0) {
         setError('No tracks available for preview (all muted or at zero volume)');
         setIsPreviewing(false);
         return;
       }
 
-      // Create a fresh blob URL for this specific preview
-      const freshUrl = URL.createObjectURL(playableTrack.file);
+      // Create audio elements for all playable tracks
+      const audioElements: HTMLAudioElement[] = [];
+      const urls: string[] = [];
+
+      for (const track of playableTracks) {
+        const freshUrl = URL.createObjectURL(track.file);
+        urls.push(freshUrl);
+
+        const audio = new Audio();
+        audio.volume = getEffectiveVolume(track);
+        audio.preload = 'metadata';
+        audio.src = freshUrl;
+        audioElements.push(audio);
+      }
+
+      // Start playback of all tracks simultaneously
+      const playPromises = audioElements.map(audio => audio.play());
 
       try {
-        // Create a new audio element for each preview
-        const audio = new Audio();
-
-        // Set properties
-        audio.volume = getEffectiveVolume(playableTrack);
-        audio.preload = 'metadata';
-
-        // Set up event listeners
-        const cleanup = () => {
-          audio.removeEventListener('canplay', onCanPlay);
-          audio.removeEventListener('error', onError);
-          audio.removeEventListener('ended', onEnded);
-        };
-
-        const onCanPlay = () => {
-          cleanup();
-          // Start playback
-          audio.play().catch(err => {
-            console.error('Playback failed:', err);
-            throw new Error('Playback failed');
-          });
-        };
-
-        const onError = (e: Event) => {
-          cleanup();
-          console.error('Audio load error:', e, audio.error);
-          throw new Error(`Audio load error: ${audio.error?.message || 'Unknown error'}`);
-        };
-
-        const onEnded = () => {
-          cleanup();
-          setIsPreviewing(false);
-          URL.revokeObjectURL(freshUrl);
-        };
-
-        audio.addEventListener('canplay', onCanPlay);
-        audio.addEventListener('error', onError);
-        audio.addEventListener('ended', onEnded);
-
-        // Set the source last
-        audio.src = freshUrl;
-
-        // Wait for the audio to be ready with timeout
-        await Promise.race([
-          new Promise<void>((resolve, reject) => {
-            // Override the event handlers to resolve/reject the promise
-            audio.addEventListener('canplay', () => {
-              resolve();
-            }, { once: true });
-
-            audio.addEventListener('error', (e) => {
-              let errorMessage = 'Unknown audio error';
-              if (audio.error) {
-                switch (audio.error.code) {
-                  case MediaError.MEDIA_ERR_ABORTED:
-                    errorMessage = 'Audio loading was aborted';
-                    break;
-                  case MediaError.MEDIA_ERR_NETWORK:
-                    errorMessage = 'Network error while loading audio';
-                    break;
-                  case MediaError.MEDIA_ERR_DECODE:
-                    errorMessage = 'Audio format not supported or file is corrupted';
-                    break;
-                  case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
-                    errorMessage = 'Audio source not supported';
-                    break;
-                  default:
-                    errorMessage = audio.error.message || 'Unknown audio error';
-                }
-              }
-              reject(new Error(`Audio load error: ${errorMessage}`));
-            }, { once: true });
-          }),
-          new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error('Audio loading timeout')), 8000)
-          )
-        ]);
-
-        // Stop after 10 seconds if not already ended
-        setTimeout(() => {
-          if (audio && !audio.paused && !audio.ended) {
-            audio.pause();
-            audio.currentTime = 0;
-            setIsPreviewing(false);
-            URL.revokeObjectURL(freshUrl);
-            cleanup();
-          }
-        }, 10000);
-
+        await Promise.all(playPromises);
       } catch (playError) {
-        // Clean up the fresh URL on error
-        URL.revokeObjectURL(freshUrl);
-        throw playError;
+        console.error('Some tracks failed to play:', playError);
+        // Continue with tracks that did start playing
       }
+
+      // Update seek position during playback
+      const updateSeek = () => {
+        if (audioElements.length > 0 && !audioElements[0].paused) {
+          setMixSeekPosition(audioElements[0].currentTime);
+          requestAnimationFrame(updateSeek);
+        }
+      };
+      updateSeek();
+
+      // Stop playback function
+      const stopPlayback = () => {
+        audioElements.forEach(audio => {
+          audio.pause();
+          audio.currentTime = 0;
+        });
+        urls.forEach(url => URL.revokeObjectURL(url));
+        setIsPreviewing(false);
+      };
+
+      // Listen for any track ending
+      const endHandler = () => stopPlayback();
+      audioElements.forEach(audio => audio.addEventListener('ended', endHandler));
+
+      // Auto-stop after mix duration
+      setTimeout(() => {
+        if (isPreviewing) {
+          stopPlayback();
+        }
+      }, mixDuration * 1000);
 
     } catch (err) {
       console.error('Mix preview error:', err);
@@ -512,20 +472,16 @@ export default function MultiTrackMixer() {
     setError(null);
 
     try {
-      // TODO: Implement multi-track mixing using Web Audio API
+      // TODO: Implement actual multi-track mixing using Web Audio API
+      // For now, simulate the mixing process
       await new Promise(resolve => setTimeout(resolve, 3000));
 
       // Create a simulated mixed audio blob
       const mixedBlob = new Blob(['simulated mixed audio'], { type: `audio/${format}` });
       const url = URL.createObjectURL(mixedBlob);
 
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `mixed_audio.${format}`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      setMixedBlob(mixedBlob);
+      setMixedBlobUrl(url);
 
     } catch (err) {
       console.error('Mixing error:', err);
@@ -533,6 +489,17 @@ export default function MultiTrackMixer() {
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const downloadMixed = () => {
+    if (!mixedBlobUrl || !mixedBlob) return;
+
+    const a = document.createElement('a');
+    a.href = mixedBlobUrl;
+    a.download = `mixed_audio.${mixedBlob.type.includes('wav') ? 'wav' : 'mp3'}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
 
   // Keyboard shortcuts
@@ -648,7 +615,35 @@ export default function MultiTrackMixer() {
                 } ${track.solo ? 'border-yellow-400 bg-yellow-50 dark:bg-yellow-900/20' : 'border-transparent'}`}
                 style={{ borderLeftColor: track.color, borderLeftWidth: '4px' }}
               >
-                {/* Track info for display */}
+                {/* Track info and controls */}
+                <div className="mb-3">
+                  <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
+                    <span>Duration: {formatTime(track.duration || 0)}</span>
+                    <span>Position: {formatTime(track.currentTime || 0)}</span>
+                  </div>
+
+                  {/* Individual track seek bar */}
+                  <div className="relative h-2 bg-gray-200 dark:bg-gray-600 rounded-full cursor-pointer mb-2">
+                    <div
+                      className="absolute h-2 bg-blue-500 rounded-full"
+                      style={{
+                        width: track.duration ? `${(track.currentTime / track.duration) * 100}%` : '0%'
+                      }}
+                    ></div>
+                    <div
+                      className="absolute w-3 h-3 bg-blue-600 rounded-full -mt-0.5 cursor-pointer border border-white dark:border-gray-800"
+                      style={{
+                        left: track.duration ? `${(track.currentTime / track.duration) * 100}%` : '0%',
+                        transform: 'translateX(-50%)'
+                      }}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        // Individual track seeking would require audio elements
+                        // For now, this is just visual
+                      }}
+                    ></div>
+                  </div>
+                </div>
 
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
@@ -768,30 +763,119 @@ export default function MultiTrackMixer() {
         </div>
       )}
 
-      {/* Action Buttons */}
+      {/* Mix Preview Controls */}
       {tracks.length >= 2 && (
-        <div className="mb-6 flex gap-4 flex-wrap">
-          <Button
-            onClick={() => previewMix()}
-            disabled={isPreviewing}
-            className="flex-1 md:flex-none"
-          >
-            {isPreviewing ? '🔊 Previewing Mix...' : '🔊 Preview Mix'}
-          </Button>
-          <Button
-            onClick={() => handleMix('wav')}
-            disabled={isProcessing}
-            className="flex-1 md:flex-none bg-green-600 hover:bg-green-700"
-          >
-            {isProcessing ? '🎵 Mixing...' : '🎵 Mix to WAV'}
-          </Button>
-          <Button
-            onClick={() => handleMix('mp3')}
-            disabled={isProcessing}
-            className="flex-1 md:flex-none bg-blue-600 hover:bg-blue-700"
-          >
-            {isProcessing ? '🎵 Mixing...' : '🎵 Mix to MP3'}
-          </Button>
+        <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+          <h3 className="text-lg font-semibold text-green-900 dark:text-green-100 mb-4">🎵 Mix Preview</h3>
+
+          {/* Mix seek bar */}
+          <div className="mb-4">
+            <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
+              <span>Mix Position: {formatTime(mixSeekPosition)}</span>
+              <span>Duration: {formatTime(mixDuration)}</span>
+            </div>
+            <div className="relative h-3 bg-gray-200 dark:bg-gray-600 rounded-full">
+              <div
+                className="absolute h-3 bg-green-500 rounded-full"
+                style={{ width: `${(mixSeekPosition / mixDuration) * 100}%` }}
+              ></div>
+              <div
+                className="absolute w-4 h-4 bg-green-600 rounded-full -mt-0.5 cursor-pointer border-2 border-white dark:border-gray-800"
+                style={{
+                  left: `${(mixSeekPosition / mixDuration) * 100}%`,
+                  transform: 'translateX(-50%)'
+                }}
+              ></div>
+            </div>
+          </div>
+
+          {/* Mix duration control */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Preview Duration: {mixDuration}s
+            </label>
+            <input
+              type="range"
+              min="10"
+              max="120"
+              step="5"
+              value={mixDuration}
+              onChange={(e) => setMixDuration(parseInt(e.target.value))}
+              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+            />
+            <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
+              <span>10s</span>
+              <span>60s</span>
+              <span>120s</span>
+            </div>
+          </div>
+
+          <div className="flex gap-4 flex-wrap">
+            <Button
+              onClick={() => previewMix()}
+              disabled={isPreviewing}
+              className="flex-1 md:flex-none"
+            >
+              {isPreviewing ? '🔊 Previewing Mix...' : '🔊 Preview Mix'}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Mixing & Download */}
+      {tracks.length >= 2 && (
+        <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+          <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-4">🎚️ Mix & Export</h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                <strong>Mix to WAV:</strong> Uncompressed format, highest quality, larger file size
+              </p>
+              <Button
+                onClick={() => handleMix('wav')}
+                disabled={isProcessing}
+                className="w-full bg-green-600 hover:bg-green-700"
+              >
+                {isProcessing ? '🎵 Mixing...' : '🎵 Mix to WAV'}
+              </Button>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                <strong>Mix to MP3:</strong> Compressed format, good quality, smaller file size
+              </p>
+              <Button
+                onClick={() => handleMix('mp3')}
+                disabled={isProcessing}
+                className="w-full bg-blue-600 hover:bg-blue-700"
+              >
+                {isProcessing ? '🎵 Mixing...' : '🎵 Mix to MP3'}
+              </Button>
+            </div>
+          </div>
+
+          {/* Download ready */}
+          {mixedBlob && mixedBlobUrl && (
+            <div className="mt-4 p-3 bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-green-800 dark:text-green-200 font-medium">
+                    ✅ Mix Complete!
+                  </p>
+                  <p className="text-green-700 dark:text-green-300 text-sm">
+                    File size: {(mixedBlob.size / 1024 / 1024).toFixed(2)} MB • Format: {mixedBlob.type.includes('wav') ? 'WAV' : 'MP3'}
+                  </p>
+                </div>
+                <Button
+                  onClick={downloadMixed}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  💾 Download
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
