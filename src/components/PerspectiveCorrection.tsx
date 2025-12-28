@@ -230,7 +230,7 @@ export default function PerspectiveCorrection() {
     console.log('Canvas scaling:', scaleX, scaleY);
 
     // Check if clicking on a corner point (corners are positioned in display coordinates)
-    const clickRadius = 20; // Increased radius for easier clicking
+    const clickRadius = 60; // Large radius for easy corner clicking
     for (let i = 0; i < corners.length; i++) {
       const corner = corners[i];
       const cornerDisplayX = corner.x * scaleX;
@@ -443,14 +443,14 @@ export default function PerspectiveCorrection() {
                   return corners.map((corner, index) => (
                     <div
                       key={index}
-                      className={`absolute w-4 h-4 border-2 rounded-full cursor-move ${
+                      className={`absolute w-10 h-10 border-4 rounded-full cursor-move shadow-xl transition-all ${
                         draggingPoint === index
-                          ? 'border-red-500 bg-red-500'
-                          : 'border-blue-500 bg-blue-200'
+                          ? 'border-red-500 bg-red-500 scale-110'
+                          : 'border-blue-500 bg-blue-300 hover:bg-blue-400 hover:scale-105'
                       }`}
                       style={{
-                        left: (corner.x * scaleX) - 8,
-                        top: (corner.y * scaleY) - 8,
+                        left: (corner.x * scaleX) - 20,
+                        top: (corner.y * scaleY) - 20,
                         zIndex: 10
                       }}
                     />
