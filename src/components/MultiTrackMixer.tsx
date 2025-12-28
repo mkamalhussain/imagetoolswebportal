@@ -386,6 +386,27 @@ export default function MultiTrackMixer() {
         audio.volume = getEffectiveVolume(track);
         audio.preload = 'metadata';
         audio.src = freshUrl;
+
+        // For preview, loop shorter tracks so they play for the full duration
+        if ((track.duration || 0) < mixDuration) {
+          audio.loop = true;
+        }
+
+        // Prevent individual track endings from causing issues during mix preview
+        audio.addEventListener('ended', (e) => {
+          console.log(`Track ended: ${track.name}, duration: ${track.duration}, isLooping: ${audio.loop}`);
+          // Only prevent default if we're still in preview mode
+          if (isPreviewing) {
+            e.preventDefault();
+            // If not looping, restart from beginning
+            if (!audio.loop) {
+              console.log(`Restarting non-looping track: ${track.name}`);
+              audio.currentTime = 0;
+              audio.play().catch(console.error);
+            }
+          }
+        });
+
         audioElements.push(audio);
       }
 
@@ -394,6 +415,7 @@ export default function MultiTrackMixer() {
 
       try {
         await Promise.all(playPromises);
+        console.log('All tracks started playing successfully');
       } catch (playError) {
         console.error('Some tracks failed to play:', playError);
         // Continue with tracks that did start playing
@@ -401,12 +423,18 @@ export default function MultiTrackMixer() {
 
       // Update seek position during playback
       const startTime = Date.now();
+      let seekUpdateId: number;
+
       const updateSeek = () => {
         if (isPreviewing) {
           const elapsed = (Date.now() - startTime) / 1000;
           setMixSeekPosition(Math.min(elapsed, mixDuration));
+
           if (elapsed < mixDuration) {
-            requestAnimationFrame(updateSeek);
+            seekUpdateId = requestAnimationFrame(updateSeek);
+          } else {
+            // Ensure we stop exactly at the duration
+            stopPlayback();
           }
         }
       };
@@ -414,9 +442,15 @@ export default function MultiTrackMixer() {
 
       // Stop playback function
       const stopPlayback = () => {
+        // Cancel the seek update animation frame
+        if (seekUpdateId) {
+          cancelAnimationFrame(seekUpdateId);
+        }
+
         audioElements.forEach(audio => {
           audio.pause();
           audio.currentTime = 0;
+          audio.loop = false; // Disable looping when stopping
         });
         urls.forEach(url => URL.revokeObjectURL(url));
         setIsPreviewing(false);
