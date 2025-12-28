@@ -80,6 +80,7 @@ export default function SubtitleBurner() {
           </label>
           <input
             ref={videoInputRef}
+            id="subtitle-burner-video-input"
             type="file"
             accept="video/*"
             onChange={(e) => {
@@ -90,7 +91,7 @@ export default function SubtitleBurner() {
           />
           <Button
             as="label"
-            htmlFor={videoInputRef.current?.id}
+            htmlFor="subtitle-burner-video-input"
             className="cursor-pointer"
           >
             Choose Video File
@@ -109,6 +110,7 @@ export default function SubtitleBurner() {
           </label>
           <input
             ref={subtitleInputRef}
+            id="subtitle-burner-subtitle-input"
             type="file"
             accept=".srt,.vtt,.sub,text/srt,text/vtt"
             onChange={(e) => {
@@ -119,7 +121,7 @@ export default function SubtitleBurner() {
           />
           <Button
             as="label"
-            htmlFor={subtitleInputRef.current?.id}
+            htmlFor="subtitle-burner-subtitle-input"
             className="cursor-pointer"
           >
             Choose Subtitle File

@@ -95,6 +95,7 @@ export default function TagEditorPro() {
         </label>
         <input
           ref={fileInputRef}
+          id="tag-editor-file-input"
           type="file"
           accept="audio/*"
           onChange={(e) => {
@@ -105,7 +106,7 @@ export default function TagEditorPro() {
         />
         <Button
           as="label"
-          htmlFor={fileInputRef.current?.id}
+          htmlFor="tag-editor-file-input"
           className="cursor-pointer"
         >
           Choose Audio File

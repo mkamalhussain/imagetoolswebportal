@@ -68,6 +68,7 @@ export default function AudioStripper() {
         </label>
         <input
           ref={fileInputRef}
+          id="audio-stripper-file-input"
           type="file"
           accept="video/*"
           onChange={(e) => {
@@ -78,7 +79,7 @@ export default function AudioStripper() {
         />
         <Button
           as="label"
-          htmlFor={fileInputRef.current?.id}
+          htmlFor="audio-stripper-file-input"
           className="cursor-pointer"
         >
           Choose Video File

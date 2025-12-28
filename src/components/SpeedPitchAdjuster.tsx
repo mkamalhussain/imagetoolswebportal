@@ -65,6 +65,7 @@ export default function SpeedPitchAdjuster() {
         </label>
         <input
           ref={fileInputRef}
+          id="speed-pitch-file-input"
           type="file"
           accept="audio/*"
           onChange={(e) => {
@@ -75,7 +76,7 @@ export default function SpeedPitchAdjuster() {
         />
         <Button
           as="label"
-          htmlFor={fileInputRef.current?.id}
+          htmlFor="speed-pitch-file-input"
           className="cursor-pointer"
         >
           Choose Audio File

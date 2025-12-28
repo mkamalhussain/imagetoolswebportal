@@ -93,6 +93,7 @@ export default function WaveformGenerator() {
         </label>
         <input
           ref={fileInputRef}
+          id="waveform-generator-file-input"
           type="file"
           accept="audio/*"
           onChange={(e) => {
@@ -103,7 +104,7 @@ export default function WaveformGenerator() {
         />
         <Button
           as="label"
-          htmlFor={fileInputRef.current?.id}
+          htmlFor="waveform-generator-file-input"
           className="cursor-pointer"
         >
           Choose Audio File

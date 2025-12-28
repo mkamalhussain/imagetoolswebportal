@@ -71,6 +71,7 @@ export default function NoiseCleaner() {
         </label>
         <input
           ref={fileInputRef}
+          id="noise-cleaner-file-input"
           type="file"
           accept="audio/*"
           onChange={(e) => {
@@ -81,7 +82,7 @@ export default function NoiseCleaner() {
         />
         <Button
           as="label"
-          htmlFor={fileInputRef.current?.id}
+          htmlFor="noise-cleaner-file-input"
           className="cursor-pointer"
         >
           Choose Audio File

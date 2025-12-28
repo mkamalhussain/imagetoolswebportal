@@ -80,6 +80,7 @@ export default function GIFMaker() {
         </label>
         <input
           ref={fileInputRef}
+          id="gif-maker-file-input"
           type="file"
           accept="video/*"
           onChange={(e) => {
@@ -90,7 +91,7 @@ export default function GIFMaker() {
         />
         <Button
           as="label"
-          htmlFor={fileInputRef.current?.id}
+          htmlFor="gif-maker-file-input"
           className="cursor-pointer"
         >
           Choose Video File

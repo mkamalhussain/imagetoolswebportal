@@ -69,6 +69,7 @@ export default function PodcastClipCutter() {
         </label>
         <input
           ref={fileInputRef}
+          id="audio-file-input"
           type="file"
           accept="audio/*"
           onChange={(e) => {
@@ -79,7 +80,7 @@ export default function PodcastClipCutter() {
         />
         <Button
           as="label"
-          htmlFor={fileInputRef.current?.id}
+          htmlFor="audio-file-input"
           className="cursor-pointer"
         >
           Choose Audio File

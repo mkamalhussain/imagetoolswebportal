@@ -78,6 +78,7 @@ export default function SpeedChanger() {
         </label>
         <input
           ref={fileInputRef}
+          id="speed-changer-file-input"
           type="file"
           accept="video/*"
           onChange={(e) => {
@@ -88,7 +89,7 @@ export default function SpeedChanger() {
         />
         <Button
           as="label"
-          htmlFor={fileInputRef.current?.id}
+          htmlFor="speed-changer-file-input"
           className="cursor-pointer"
         >
           Choose Video File

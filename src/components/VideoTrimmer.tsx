@@ -102,6 +102,7 @@ export default function VideoTrimmer() {
         </label>
         <input
           ref={fileInputRef}
+          id="video-trimmer-file-input"
           type="file"
           accept="video/*"
           onChange={(e) => {
@@ -112,7 +113,7 @@ export default function VideoTrimmer() {
         />
         <Button
           as="label"
-          htmlFor={fileInputRef.current?.id}
+          htmlFor="video-trimmer-file-input"
           className="cursor-pointer"
         >
           Choose Video File

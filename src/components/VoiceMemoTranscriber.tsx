@@ -162,6 +162,7 @@ export default function VoiceMemoTranscriber() {
         </div>
         <input
           ref={fileInputRef}
+          id="voice-transcriber-file-input"
           type="file"
           accept="audio/*"
           onChange={(e) => {
@@ -172,7 +173,7 @@ export default function VoiceMemoTranscriber() {
         />
         <Button
           as="label"
-          htmlFor={fileInputRef.current?.id}
+          htmlFor="voice-transcriber-file-input"
           className="cursor-pointer"
         >
           Choose Audio File

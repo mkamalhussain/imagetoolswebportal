@@ -90,6 +90,7 @@ export default function FrameGrabber() {
         </label>
         <input
           ref={fileInputRef}
+          id="frame-grabber-file-input"
           type="file"
           accept="video/*"
           onChange={(e) => {
@@ -100,7 +101,7 @@ export default function FrameGrabber() {
         />
         <Button
           as="label"
-          htmlFor={fileInputRef.current?.id}
+          htmlFor="frame-grabber-file-input"
           className="cursor-pointer"
         >
           Choose Video File
