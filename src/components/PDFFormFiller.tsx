@@ -63,7 +63,7 @@ export default function PDFFormFiller() {
             const field: FormField = {
               id: `field-${pageNum}-${index}`,
               name: annotation.fieldName || `Field ${index + 1}`,
-              type: annotation.fieldType || 'text',
+              type: annotation.fieldType || 'Tx', // Use PDF.js field type directly
               value: annotation.fieldValue || '',
               page: pageNum,
               readOnly: annotation.readOnly || false
@@ -72,7 +72,7 @@ export default function PDFFormFiller() {
             console.log(`Detected field: ${field.name}, type: ${field.type}, value: ${field.value}`);
 
             // Extract options for choice/dropdown fields
-            if (annotation.fieldType === 'choice' || annotation.fieldType === 'select') {
+            if (annotation.fieldType === 'choice' || annotation.fieldType === 'select' || annotation.fieldType === 'Ch') {
               const options = annotation.options || [];
               console.log(`Choice field ${field.name} options:`, options);
               if (options.length > 0) {
@@ -96,7 +96,13 @@ export default function PDFFormFiller() {
       // Initialize field values
       const initialValues: Record<string, string> = {};
       fields.forEach(field => {
-        initialValues[field.id] = field.value;
+        // Set appropriate default values based on field type
+        if (field.type === 'Btn') {
+          // Checkboxes default to "Off" if not set
+          initialValues[field.id] = field.value || 'Off';
+        } else {
+          initialValues[field.id] = field.value || '';
+        }
       });
       setFieldValues(initialValues);
 
@@ -159,17 +165,21 @@ export default function PDFFormFiller() {
           if (pdfField) {
             console.log(`Found PDF field: ${pdfField.getName()}, type: ${pdfField.constructor.name}`);
 
-            // Set the field value based on type
-            if (field.type === 'text') {
+            // Set the field value based on PDF.js field type and pdf-lib field class
+            const pdfFieldType = pdfField.constructor.name;
+
+            if (field.type === 'Tx' || pdfFieldType === 'PDFTextField') {
+              // Text field
               try {
                 (pdfField as any).setText(fieldValue);
                 console.log(`Set text field ${field.name} to: ${fieldValue}`);
               } catch (textError) {
                 console.warn(`Failed to set text for ${field.name}:`, textError);
               }
-            } else if (field.type === 'checkbox') {
+            } else if (field.type === 'Btn' || pdfFieldType === 'PDFCheckBox') {
+              // Checkbox field - handle "On"/"Off" values from UI
               try {
-                if (fieldValue === 'true') {
+                if (fieldValue === 'On' || fieldValue === 'true') {
                   (pdfField as any).check();
                   console.log(`Checked checkbox field ${field.name}`);
                 } else {
@@ -179,18 +189,24 @@ export default function PDFFormFiller() {
               } catch (checkboxError) {
                 console.warn(`Failed to set checkbox for ${field.name}:`, checkboxError);
               }
-            } else if ((field.type === 'choice' || field.type === 'select') && fieldValue) {
+            } else if (field.type === 'Ch' || pdfFieldType === 'PDFDropdown' || pdfFieldType === 'PDFChoiceField') {
+              // Choice/Dropdown field
               try {
-                // For choice fields, try different methods
-                if ((pdfField as any).select) {
+                if ((pdfField as any).select && fieldValue) {
                   (pdfField as any).select(fieldValue);
                   console.log(`Selected value ${fieldValue} for choice field ${field.name}`);
-                } else if ((pdfField as any).setText) {
-                  (pdfField as any).setText(fieldValue);
-                  console.log(`Set text ${fieldValue} for choice field ${field.name}`);
+                } else {
+                  console.warn(`Dropdown field ${field.name} has no select method or empty value`);
                 }
               } catch (choiceError) {
                 console.warn(`Failed to set choice field ${field.name}:`, choiceError);
+                // Try fallback to setText
+                try {
+                  (pdfField as any).setText(fieldValue);
+                  console.log(`Fallback: Set text ${fieldValue} for choice field ${field.name}`);
+                } catch (fallbackError) {
+                  console.warn(`Fallback also failed for ${field.name}:`, fallbackError);
+                }
               }
             } else if (fieldValue) {
               // Fallback for other field types
@@ -352,7 +368,7 @@ export default function PDFFormFiller() {
                   </div>
 
                   <div className="md:col-span-2">
-                    {field.type === 'text' ? (
+                    {field.type === 'Tx' ? (
                       <input
                         type="text"
                         value={fieldValues[field.id] || ''}
@@ -361,15 +377,15 @@ export default function PDFFormFiller() {
                         className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                         disabled={field.readOnly}
                       />
-                    ) : field.type === 'checkbox' ? (
+                    ) : field.type === 'Btn' ? (
                       <input
                         type="checkbox"
-                        checked={fieldValues[field.id] === 'true'}
-                        onChange={(e) => updateFieldValue(field.id, e.target.checked ? 'true' : 'false')}
+                        checked={fieldValues[field.id] === 'On'}
+                        onChange={(e) => updateFieldValue(field.id, e.target.checked ? 'On' : 'Off')}
                         className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                         disabled={field.readOnly}
                       />
-                    ) : field.type === 'choice' || field.type === 'select' ? (
+                    ) : field.type === 'Ch' ? (
                       field.options && field.options.length > 0 ? (
                         <select
                           value={fieldValues[field.id] || ''}
