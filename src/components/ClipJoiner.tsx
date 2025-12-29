@@ -242,17 +242,25 @@ export default function ClipJoiner() {
       const ffmpeg = ffmpegRef.current;
       const format = EXPORT_FORMATS.find(f => f.value === exportFormat) || EXPORT_FORMATS[0];
       const outputFileName = `output.${format.extension}`;
+      
+      // Calculate total file size to determine processing strategy
+      const totalSize = clips.reduce((sum, clip) => sum + clip.file.size, 0);
+      const isSmallFile = totalSize < 50 * 1024 * 1024; // Less than 50MB
+      const preset = isSmallFile ? 'ultrafast' : 'fast';
 
-      // Step 1: Normalize all clips to same resolution and format
-      const normalizedClips: string[] = [];
+      // Step 1: Process clips (trim if needed, normalize only if necessary)
+      const processedClips: string[] = [];
+      const needsNormalization = exportFormat === 'webm' || transition.type !== 'none';
       
       for (let i = 0; i < clips.length; i++) {
         if (cancelRef.current) break;
         
         setCurrentClipIndex(i);
+        setProgress((i / clips.length) * 50); // First 50% for processing clips
+        
         const clip = clips[i];
         const inputFileName = `input_${i}.${clip.file.name.split('.').pop()}`;
-        const normalizedFileName = `normalized_${i}.mp4`;
+        const processedFileName = `processed_${i}.mp4`;
         
         await ffmpeg.writeFile(inputFileName, await fetchFile(clip.file));
         
@@ -260,39 +268,62 @@ export default function ClipJoiner() {
         const clipStart = clip.startTrim || 0;
         const clipEnd = clip.endTrim || clip.duration;
         const clipDuration = clipEnd - clipStart;
+        const needsTrim = clipStart > 0 || clipDuration < clip.duration;
         
-        // Normalize clip: same resolution, codec, and trim if needed
-        const normalizeArgs = [
-          '-i', inputFileName,
-        ];
-        
-        if (clipStart > 0) {
-          normalizeArgs.push('-ss', clipStart.toString());
+        if (needsNormalization || needsTrim) {
+          // Need to process: trim and/or normalize
+          const processArgs = ['-i', inputFileName];
+          
+          if (clipStart > 0) {
+            processArgs.push('-ss', clipStart.toString());
+          }
+          if (clipDuration < clip.duration) {
+            processArgs.push('-t', clipDuration.toString());
+          }
+          
+          if (needsNormalization) {
+            // Full normalization with re-encoding
+            processArgs.push(
+              '-c:v', 'libx264',
+              '-c:a', 'aac',
+              '-preset', preset,
+              '-crf', quality,
+              '-vf', 'scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2',
+              '-pix_fmt', 'yuv420p'
+            );
+          } else if (needsTrim) {
+            // Just trim, try to copy codec if possible
+            // If trimming, we need to re-encode to ensure clean cuts
+            processArgs.push(
+              '-c:v', 'libx264',
+              '-c:a', 'aac',
+              '-preset', preset,
+              '-crf', quality,
+              '-avoid_negative_ts', 'make_zero'
+            );
+          }
+          
+          processArgs.push(processedFileName);
+          await ffmpeg.exec(processArgs);
+          processedClips.push(processedFileName);
+          await ffmpeg.deleteFile(inputFileName);
+        } else {
+          // No processing needed, just rename for concat
+          // For concat to work, we need same format, so we'll still process minimally
+          const processArgs = [
+            '-i', inputFileName,
+            '-c', 'copy',
+            '-avoid_negative_ts', 'make_zero',
+            processedFileName
+          ];
+          await ffmpeg.exec(processArgs);
+          processedClips.push(processedFileName);
+          await ffmpeg.deleteFile(inputFileName);
         }
-        if (clipDuration < clip.duration) {
-          normalizeArgs.push('-t', clipDuration.toString());
-        }
-        
-        normalizeArgs.push(
-          '-c:v', 'libx264',
-          '-c:a', 'aac',
-          '-preset', 'fast',
-          '-crf', quality,
-          '-vf', 'scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2',
-          '-pix_fmt', 'yuv420p',
-          normalizedFileName
-        );
-        
-        await ffmpeg.exec(normalizeArgs);
-        normalizedClips.push(normalizedFileName);
-        
-        // Clean up input file
-        await ffmpeg.deleteFile(inputFileName);
       }
 
       if (cancelRef.current) {
-        // Clean up normalized files
-        for (const file of normalizedClips) {
+        for (const file of processedClips) {
           try {
             await ffmpeg.deleteFile(file);
           } catch (e) {
@@ -303,10 +334,12 @@ export default function ClipJoiner() {
       }
 
       // Step 2: Create concat file
-      const concatContent = normalizedClips.map(file => `file '${file}'`).join('\n');
+      setProgress(50);
+      const concatContent = processedClips.map(file => `file '${file}'`).join('\n');
       await ffmpeg.writeFile('concat.txt', concatContent);
 
       // Step 3: Concatenate all clips
+      setProgress(60);
       const concatArgs = [
         '-f', 'concat',
         '-safe', '0',
@@ -315,13 +348,10 @@ export default function ClipJoiner() {
         outputFileName
       ];
 
-      // If transitions are needed, we'd need more complex processing
-      // For now, simple concatenation
       await ffmpeg.exec(concatArgs);
 
       if (cancelRef.current) {
-        // Clean up
-        for (const file of normalizedClips) {
+        for (const file of processedClips) {
           try {
             await ffmpeg.deleteFile(file);
           } catch (e) {
@@ -337,82 +367,57 @@ export default function ClipJoiner() {
         return;
       }
 
-      // Step 4: Re-encode if needed for format/quality
-      if (exportFormat === 'webm' || transition.type !== 'none') {
-        const finalOutput = `final.${format.extension}`;
+      // Step 4: Final format conversion if needed
+      setProgress(90);
+      let finalFileName = outputFileName;
+      
+      if (exportFormat === 'webm') {
+        finalFileName = `final.${format.extension}`;
         const reencodeArgs = [
           '-i', outputFileName,
-          '-c:v', exportFormat === 'webm' ? 'libvpx-vp9' : 'libx264',
-          '-c:a', exportFormat === 'webm' ? 'libopus' : 'aac',
-          '-preset', 'fast',
+          '-c:v', 'libvpx-vp9',
+          '-c:a', 'libopus',
+          '-preset', preset,
           '-crf', quality,
-          finalOutput
+          finalFileName
         ];
         
         await ffmpeg.exec(reencodeArgs);
         await ffmpeg.deleteFile(outputFileName);
-        
-        const data = await ffmpeg.readFile(finalOutput);
-        let arrayBuffer: ArrayBuffer;
-        if (data instanceof Uint8Array) {
-          arrayBuffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength) as ArrayBuffer;
-        } else if (typeof data === 'object' && 'byteLength' in data) {
-          const source = data as ArrayBuffer;
-          arrayBuffer = source.slice(0) as ArrayBuffer;
-        } else {
-          const binaryString = atob(data as string);
-          arrayBuffer = new ArrayBuffer(binaryString.length);
-          const view = new Uint8Array(arrayBuffer);
-          for (let i = 0; i < binaryString.length; i++) {
-            view[i] = binaryString.charCodeAt(i);
-          }
-        }
-        
-        const joinedBlob = new Blob([arrayBuffer], { type: `video/${format.extension}` });
-        const url = URL.createObjectURL(joinedBlob);
-        
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `joined_${clips.length}_clips.${format.extension}`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        
-        // Clean up
-        await ffmpeg.deleteFile(finalOutput);
-      } else {
-        // Direct copy - faster
-        const data = await ffmpeg.readFile(outputFileName);
-        let arrayBuffer: ArrayBuffer;
-        if (data instanceof Uint8Array) {
-          arrayBuffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength) as ArrayBuffer;
-        } else if (typeof data === 'object' && 'byteLength' in data) {
-          const source = data as ArrayBuffer;
-          arrayBuffer = source.slice(0) as ArrayBuffer;
-        } else {
-          const binaryString = atob(data as string);
-          arrayBuffer = new ArrayBuffer(binaryString.length);
-          const view = new Uint8Array(arrayBuffer);
-          for (let i = 0; i < binaryString.length; i++) {
-            view[i] = binaryString.charCodeAt(i);
-          }
-        }
-        
-        const joinedBlob = new Blob([arrayBuffer], { type: `video/${format.extension}` });
-        const url = URL.createObjectURL(joinedBlob);
-        
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `joined_${clips.length}_clips.${format.extension}`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
       }
 
+      // Step 5: Read and download
+      setProgress(95);
+      const data = await ffmpeg.readFile(finalFileName);
+      let arrayBuffer: ArrayBuffer;
+      if (data instanceof Uint8Array) {
+        arrayBuffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength) as ArrayBuffer;
+      } else if (typeof data === 'object' && 'byteLength' in data) {
+        const source = data as ArrayBuffer;
+        arrayBuffer = source.slice(0) as ArrayBuffer;
+      } else {
+        const binaryString = atob(data as string);
+        arrayBuffer = new ArrayBuffer(binaryString.length);
+        const view = new Uint8Array(arrayBuffer);
+        for (let i = 0; i < binaryString.length; i++) {
+          view[i] = binaryString.charCodeAt(i);
+        }
+      }
+      
+      setProgress(100);
+      const joinedBlob = new Blob([arrayBuffer], { type: `video/${format.extension}` });
+      const url = URL.createObjectURL(joinedBlob);
+      
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `joined_${clips.length}_clips.${format.extension}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
       // Clean up all files
-      for (const file of normalizedClips) {
+      for (const file of processedClips) {
         try {
           await ffmpeg.deleteFile(file);
         } catch (e) {
@@ -421,7 +426,11 @@ export default function ClipJoiner() {
       }
       try {
         await ffmpeg.deleteFile('concat.txt');
-        await ffmpeg.deleteFile(outputFileName);
+        if (finalFileName !== outputFileName) {
+          await ffmpeg.deleteFile(finalFileName);
+        } else {
+          await ffmpeg.deleteFile(outputFileName);
+        }
       } catch (e) {
         // Ignore
       }
@@ -743,7 +752,8 @@ export default function ClipJoiner() {
           <li>• Use arrow buttons (↑↓) to move clips up/down</li>
           <li>• Choose export format and quality settings</li>
           <li>• Click "Join and Download" to merge all clips</li>
-          <li>• All clips are normalized to 1080p for consistent output</li>
+          <li>• <strong>Note:</strong> Processing happens in your browser (client-side) - keep the tab open</li>
+          <li>• Small files (&lt;50MB) use faster processing for quicker results</li>
           <li>• Processing time depends on number and size of clips</li>
         </ul>
       </div>
