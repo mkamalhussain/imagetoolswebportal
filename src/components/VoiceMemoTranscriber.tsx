@@ -1,7 +1,31 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import Button from './Button';
+
+interface TranscriptionSegment {
+  text: string;
+  timestamp: number;
+  confidence?: number;
+  isFinal: boolean;
+}
+
+const LANGUAGES = [
+  { code: 'en-US', name: 'English (US)' },
+  { code: 'en-GB', name: 'English (UK)' },
+  { code: 'es-ES', name: 'Spanish (Spain)' },
+  { code: 'es-MX', name: 'Spanish (Mexico)' },
+  { code: 'fr-FR', name: 'French' },
+  { code: 'de-DE', name: 'German' },
+  { code: 'it-IT', name: 'Italian' },
+  { code: 'pt-BR', name: 'Portuguese (Brazil)' },
+  { code: 'ja-JP', name: 'Japanese' },
+  { code: 'ko-KR', name: 'Korean' },
+  { code: 'zh-CN', name: 'Chinese (Simplified)' },
+  { code: 'ar-SA', name: 'Arabic' },
+  { code: 'ru-RU', name: 'Russian' },
+  { code: 'hi-IN', name: 'Hindi' },
+];
 
 export default function VoiceMemoTranscriber() {
   const [isRecording, setIsRecording] = useState(false);
@@ -9,58 +33,177 @@ export default function VoiceMemoTranscriber() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [transcription, setTranscription] = useState<string>('');
+  const [interimTranscription, setInterimTranscription] = useState<string>('');
+  const [transcriptionSegments, setTranscriptionSegments] = useState<TranscriptionSegment[]>([]);
   const [recognition, setRecognition] = useState<any>(null);
+  const [language, setLanguage] = useState<string>('en-US');
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [playbackProgress, setPlaybackProgress] = useState(0);
+  const [waveformData, setWaveformData] = useState<number[]>([]);
+  const [showWaveform, setShowWaveform] = useState(true);
+  const [showTimestamps, setShowTimestamps] = useState(false);
+  
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const waveformCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
 
+  // Initialize Web Speech API
   useEffect(() => {
-    // Initialize Web Speech API
-    if (typeof window !== 'undefined' && 'webkitSpeechRecognition' in window) {
-      const SpeechRecognition = (window as any).webkitSpeechRecognition;
+    if (typeof window !== 'undefined' && ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+      const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
       const recognitionInstance = new SpeechRecognition();
       recognitionInstance.continuous = true;
       recognitionInstance.interimResults = true;
-      recognitionInstance.lang = 'en-US';
+      recognitionInstance.lang = language;
 
       recognitionInstance.onresult = (event: any) => {
         let finalTranscript = '';
+        let interimTranscript = '';
+        const newSegments: TranscriptionSegment[] = [];
+
         for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          const confidence = event.results[i][0].confidence;
+          
           if (event.results[i].isFinal) {
-            finalTranscript += event.results[i][0].transcript;
+            finalTranscript += transcript + ' ';
+            newSegments.push({
+              text: transcript,
+              timestamp: Date.now(),
+              confidence,
+              isFinal: true
+            });
+          } else {
+            interimTranscript += transcript;
           }
         }
+
         if (finalTranscript) {
-          setTranscription(prev => prev + finalTranscript + ' ');
+          setTranscription(prev => prev + finalTranscript);
+          setTranscriptionSegments(prev => [...prev, ...newSegments]);
         }
+        setInterimTranscription(interimTranscript);
       };
 
       recognitionInstance.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
-        setError('Speech recognition error: ' + event.error);
-        setIsRecording(false);
+        if (event.error !== 'no-speech') {
+          setError('Speech recognition error: ' + event.error);
+        }
+        if (event.error === 'aborted' || event.error === 'not-allowed') {
+          setIsRecording(false);
+          setIsProcessing(false);
+        }
+      };
+
+      recognitionInstance.onend = () => {
+        // Auto-restart if still recording/processing
+        if (isRecording || isProcessing) {
+          try {
+            recognitionInstance.start();
+          } catch (e) {
+            // Ignore restart errors
+          }
+        }
       };
 
       setRecognition(recognitionInstance);
     } else {
-      setError('Web Speech API not supported in this browser');
+      setError('Web Speech API not supported in this browser. Please use Chrome, Edge, or Safari.');
     }
 
     return () => {
       if (recognition) {
-        recognition.stop();
+        try {
+          recognition.stop();
+        } catch (e) {
+          // Ignore
+        }
       }
     };
+  }, [language]);
+
+  // Generate waveform data
+  const generateWaveform = useCallback(async (file: File) => {
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const arrayBuffer = await file.arrayBuffer();
+      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+      
+      const channelData = audioBuffer.getChannelData(0);
+      const samples = 200; // Number of samples for waveform
+      const blockSize = Math.floor(channelData.length / samples);
+      const waveform: number[] = [];
+
+      for (let i = 0; i < samples; i++) {
+        let sum = 0;
+        for (let j = 0; j < blockSize; j++) {
+          sum += Math.abs(channelData[i * blockSize + j]);
+        }
+        waveform.push(sum / blockSize);
+      }
+
+      // Normalize
+      const max = Math.max(...waveform);
+      waveform.forEach((val, i) => {
+        waveform[i] = val / max;
+      });
+
+      setWaveformData(waveform);
+      audioContext.close();
+    } catch (err) {
+      console.warn('Error generating waveform:', err);
+    }
   }, []);
 
-  const handleFileSelect = (file: File) => {
+  // Draw waveform
+  useEffect(() => {
+    if (!waveformCanvasRef.current || waveformData.length === 0) return;
+
+    const canvas = waveformCanvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const width = canvas.width;
+    const height = canvas.height;
+    const barWidth = width / waveformData.length;
+
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = '#3b82f6';
+    ctx.strokeStyle = '#3b82f6';
+
+    waveformData.forEach((value, index) => {
+      const barHeight = value * height * 0.8;
+      const x = index * barWidth;
+      const y = (height - barHeight) / 2;
+      
+      ctx.fillRect(x, y, barWidth - 1, barHeight);
+    });
+  }, [waveformData]);
+
+  const handleFileSelect = async (file: File) => {
     if (!file.type.startsWith('audio/')) {
       setError('Please select an audio file');
       return;
     }
     setSelectedFile(file);
     setTranscription('');
+    setInterimTranscription('');
+    setTranscriptionSegments([]);
     setError(null);
+    
+    // Create audio URL for playback
+    const url = URL.createObjectURL(file);
+    setAudioUrl(url);
+    
+    // Generate waveform
+    await generateWaveform(file);
   };
 
   const startRecording = async () => {
@@ -75,16 +218,22 @@ export default function VoiceMemoTranscriber() {
       };
 
       mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
-        const audioFile = new File([audioBlob], 'recorded_audio.wav', { type: 'audio/wav' });
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const audioFile = new File([audioBlob], 'recorded_audio.webm', { type: 'audio/webm' });
         setSelectedFile(audioFile);
+        const url = URL.createObjectURL(audioBlob);
+        setAudioUrl(url);
+        generateWaveform(audioFile);
       };
 
       mediaRecorder.start();
       setIsRecording(true);
       setTranscription('');
+      setInterimTranscription('');
+      setTranscriptionSegments([]);
 
       if (recognition) {
+        recognition.lang = language;
         recognition.start();
       }
     } catch (err) {
@@ -100,48 +249,180 @@ export default function VoiceMemoTranscriber() {
     }
 
     if (recognition) {
-      recognition.stop();
+      try {
+        recognition.stop();
+      } catch (e) {
+        // Ignore
+      }
     }
 
     setIsRecording(false);
   };
 
   const transcribeFile = async () => {
-    if (!selectedFile) return;
+    if (!selectedFile || !recognition) {
+      setError('Please select an audio file and ensure speech recognition is available');
+      return;
+    }
 
     setIsProcessing(true);
     setError(null);
     setTranscription('');
+    setInterimTranscription('');
+    setTranscriptionSegments([]);
 
     try {
-      // TODO: Implement file transcription using Web Speech API or external service
-      // For now, simulate transcription
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      // Create audio element to play the file
+      const audio = new Audio();
+      audio.src = audioUrl || URL.createObjectURL(selectedFile);
+      audioRef.current = audio;
 
-      setTranscription('This is a simulated transcription of the audio file. In a real implementation, this would use speech recognition to convert the audio content to text.');
+      // Set up speech recognition
+      recognition.lang = language;
+      recognition.continuous = true;
+      recognition.interimResults = true;
+
+      // Start recognition before playing audio
+      recognition.start();
+
+      // Play audio and transcribe
+      await new Promise<void>((resolve, reject) => {
+        audio.onended = () => {
+          setTimeout(() => {
+            if (recognition) {
+              try {
+                recognition.stop();
+              } catch (e) {
+                // Ignore
+              }
+            }
+            resolve();
+          }, 1000); // Give recognition time to process final results
+        };
+
+        audio.onerror = (err) => {
+          console.error('Audio playback error:', err);
+          if (recognition) {
+            try {
+              recognition.stop();
+            } catch (e) {
+              // Ignore
+            }
+          }
+          reject(err);
+        };
+
+        audio.play().catch((err) => {
+          console.error('Error playing audio:', err);
+          setError('Failed to play audio. Please ensure your device volume is on and try again.');
+          if (recognition) {
+            try {
+              recognition.stop();
+            } catch (e) {
+              // Ignore
+            }
+          }
+          reject(err);
+        });
+      });
 
     } catch (err) {
       console.error('Transcription error:', err);
-      setError('Failed to transcribe audio. Please try again.');
+      if (!error) {
+        setError('Failed to transcribe audio. Please try again.');
+      }
     } finally {
       setIsProcessing(false);
+      if (recognition) {
+        try {
+          recognition.stop();
+        } catch (e) {
+          // Ignore
+        }
+      }
     }
   };
 
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const downloadTranscription = () => {
+    const content = showTimestamps && transcriptionSegments.length > 0
+      ? transcriptionSegments.map(seg => 
+          `[${formatTime((seg.timestamp - (transcriptionSegments[0]?.timestamp || 0)) / 1000)}] ${seg.text}`
+        ).join('\n')
+      : transcription;
+    
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `transcription_${Date.now()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const copyToClipboard = async () => {
+    const content = showTimestamps && transcriptionSegments.length > 0
+      ? transcriptionSegments.map(seg => 
+          `[${formatTime((seg.timestamp - (transcriptionSegments[0]?.timestamp || 0)) / 1000)}] ${seg.text}`
+        ).join('\n')
+      : transcription;
+    
+    try {
+      await navigator.clipboard.writeText(content);
+    } catch (err) {
+      setError('Failed to copy to clipboard');
+    }
+  };
+
+  // Cleanup audio URL on unmount
+  useEffect(() => {
+    return () => {
+      if (audioUrl) {
+        URL.revokeObjectURL(audioUrl);
+      }
+    };
+  }, [audioUrl]);
+
+  const displayText = transcription + (interimTranscription ? ` ${interimTranscription}` : '');
+
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
+    <div className="max-w-5xl mx-auto p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Voice Memo Transcriber</h2>
         <p className="text-gray-600 dark:text-gray-400">
-          Record or upload short audio clips and get them transcribed to text using speech recognition.
+          Record or upload audio files and get them transcribed to text using advanced speech recognition.
         </p>
+      </div>
+
+      {/* Language Selection */}
+      <div className="mb-6">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Language
+        </label>
+        <select
+          value={language}
+          onChange={(e) => setLanguage(e.target.value)}
+          disabled={isRecording || isProcessing}
+          className="w-full md:w-auto px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
+          {LANGUAGES.map(lang => (
+            <option key={lang.code} value={lang.code}>{lang.name}</option>
+          ))}
+        </select>
       </div>
 
       {/* Recording Controls */}
       <div className="mb-6">
-        <div className="flex gap-4 mb-4">
+        <div className="flex flex-wrap gap-4 mb-4">
           {!isRecording ? (
-            <Button onClick={startRecording} className="flex items-center gap-2">
+            <Button onClick={startRecording} className="flex items-center gap-2" disabled={isProcessing}>
               🎤 Start Recording
             </Button>
           ) : (
@@ -170,20 +451,56 @@ export default function VoiceMemoTranscriber() {
             if (file) handleFileSelect(file);
           }}
           className="hidden"
+          disabled={isRecording || isProcessing}
         />
         <Button
           as="label"
           htmlFor="voice-transcriber-file-input"
           className="cursor-pointer"
+          disabled={isRecording || isProcessing}
         >
           Choose Audio File
         </Button>
         {selectedFile && (
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            Selected: {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
-          </p>
+          <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+            <p>Selected: {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)</p>
+            {audioUrl && (
+              <div className="mt-2 flex items-center gap-2">
+                <audio
+                  ref={audioRef}
+                  src={audioUrl}
+                  controls
+                  className="w-full max-w-md"
+                  onPlay={() => setIsPlaying(true)}
+                  onPause={() => setIsPlaying(false)}
+                  onEnded={() => setIsPlaying(false)}
+                />
+              </div>
+            )}
+          </div>
         )}
       </div>
+
+      {/* Waveform Visualization */}
+      {showWaveform && waveformData.length > 0 && (
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Audio Waveform</h3>
+            <button
+              onClick={() => setShowWaveform(false)}
+              className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            >
+              Hide
+            </button>
+          </div>
+          <canvas
+            ref={waveformCanvasRef}
+            width={800}
+            height={100}
+            className="w-full h-24 bg-gray-100 dark:bg-gray-700 rounded-lg"
+          />
+        </div>
+      )}
 
       {/* Transcribe Button */}
       {selectedFile && !isRecording && (
@@ -193,26 +510,85 @@ export default function VoiceMemoTranscriber() {
             disabled={isProcessing}
             className="w-full md:w-auto"
           >
-            {isProcessing ? 'Transcribing...' : 'Transcribe Audio'}
+            {isProcessing ? (
+              <span className="flex items-center gap-2">
+                <span className="animate-spin">⏳</span> Transcribing...
+              </span>
+            ) : (
+              '🎯 Transcribe Audio'
+            )}
           </Button>
         </div>
       )}
 
       {/* Transcription Result */}
-      {(transcription || isRecording) && (
+      {(displayText || isRecording || isProcessing) && (
         <div className="mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            {isRecording ? 'Live Transcription' : 'Transcription Result'}
-          </h3>
-          <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg min-h-[100px]">
-            <p className="text-gray-900 dark:text-gray-100 whitespace-pre-wrap">
-              {transcription || 'Listening...'}
-            </p>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              {isRecording ? 'Live Transcription' : isProcessing ? 'Transcribing...' : 'Transcription Result'}
+            </h3>
+            <div className="flex items-center gap-2">
+              <label className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showTimestamps}
+                  onChange={(e) => setShowTimestamps(e.target.checked)}
+                  className="rounded"
+                />
+                Show timestamps
+              </label>
+            </div>
           </div>
-          {transcription && !isRecording && (
-            <div className="mt-4">
-              <Button onClick={() => navigator.clipboard.writeText(transcription)}>
-                Copy to Clipboard
+          <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg min-h-[200px] max-h-[400px] overflow-y-auto">
+            {displayText ? (
+              <div className="space-y-2">
+                {showTimestamps && transcriptionSegments.length > 0 ? (
+                  transcriptionSegments.map((seg, idx) => (
+                    <div key={idx} className="text-sm">
+                      <span className="text-gray-500 dark:text-gray-400">
+                        [{formatTime((seg.timestamp - (transcriptionSegments[0]?.timestamp || 0)) / 1000)}]
+                      </span>{' '}
+                      <span className="text-gray-900 dark:text-gray-100">{seg.text}</span>
+                      {seg.confidence && (
+                        <span className="text-xs text-gray-400 dark:text-gray-500 ml-2">
+                          ({Math.round(seg.confidence * 100)}%)
+                        </span>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-gray-900 dark:text-gray-100 whitespace-pre-wrap">
+                    {transcription}
+                    {interimTranscription && (
+                      <span className="text-gray-500 italic">{interimTranscription}</span>
+                    )}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <p className="text-gray-500 dark:text-gray-400">
+                {isProcessing ? 'Processing audio...' : 'Listening...'}
+              </p>
+            )}
+          </div>
+          {transcription && !isRecording && !isProcessing && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Button onClick={copyToClipboard} className="flex items-center gap-2">
+                📋 Copy to Clipboard
+              </Button>
+              <Button onClick={downloadTranscription} className="flex items-center gap-2">
+                💾 Download as Text
+              </Button>
+              <Button
+                onClick={() => {
+                  setTranscription('');
+                  setInterimTranscription('');
+                  setTranscriptionSegments([]);
+                }}
+                className="flex items-center gap-2 bg-gray-600 hover:bg-gray-700"
+              >
+                🗑️ Clear
               </Button>
             </div>
           )}
@@ -230,11 +606,13 @@ export default function VoiceMemoTranscriber() {
       <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
         <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">How to use:</h3>
         <ul className="text-blue-800 dark:text-blue-200 space-y-1 text-sm">
-          <li>• Click "Start Recording" to record live audio (requires microphone permission)</li>
-          <li>• Or upload an existing audio file</li>
-          <li>• Click "Transcribe Audio" to convert speech to text</li>
-          <li>• Live transcription shows results in real-time while recording</li>
-          <li>• Copy the transcribed text to use elsewhere</li>
+          <li>• Select your preferred language from the dropdown</li>
+          <li>• Click "Start Recording" for live transcription (requires microphone permission)</li>
+          <li>• Or upload an audio file and click "Transcribe Audio"</li>
+          <li>• For file transcription, ensure your device volume is on</li>
+          <li>• View transcription with optional timestamps and confidence scores</li>
+          <li>• Export transcription as text file or copy to clipboard</li>
+          <li>• Works best with clear audio and minimal background noise</li>
         </ul>
       </div>
     </div>
