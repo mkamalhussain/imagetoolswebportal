@@ -122,12 +122,40 @@ export default function TagEditorPro() {
           // Extract album art
           if (metadata.common.picture && metadata.common.picture.length > 0) {
             const picture = metadata.common.picture[0];
-            const base64String = btoa(
-              String.fromCharCode(...picture.data)
-            );
-            const imageUrl = `data:${picture.format};base64,${base64String}`;
-            setAlbumArt(imageUrl);
-            setOriginalAlbumArt(imageUrl);
+            // Convert Uint8Array to base64 using Blob/FileReader to avoid stack overflow
+            try {
+              // Convert picture.data to ArrayBuffer if needed
+              let arrayBuffer: ArrayBuffer;
+              if (picture.data instanceof ArrayBuffer) {
+                arrayBuffer = picture.data;
+              } else if (picture.data instanceof Uint8Array) {
+                // Create a new ArrayBuffer from the Uint8Array to avoid type issues
+                arrayBuffer = picture.data.buffer.slice(
+                  picture.data.byteOffset,
+                  picture.data.byteOffset + picture.data.byteLength
+                ) as ArrayBuffer;
+              } else {
+                // Fallback: create Uint8Array from the data
+                const uint8Array = new Uint8Array(picture.data as any);
+                arrayBuffer = uint8Array.buffer.slice(0, uint8Array.byteLength) as ArrayBuffer;
+              }
+              
+              const blob = new Blob([arrayBuffer], { type: picture.format });
+              const imageUrl = await new Promise<string>((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                  resolve(reader.result as string);
+                };
+                reader.onerror = () => reject(new Error('Failed to convert album art'));
+                reader.readAsDataURL(blob);
+              });
+              setAlbumArt(imageUrl);
+              setOriginalAlbumArt(imageUrl);
+            } catch (artError) {
+              console.warn('Error converting album art to base64:', artError);
+              setAlbumArt(null);
+              setOriginalAlbumArt(null);
+            }
           } else {
             setAlbumArt(null);
             setOriginalAlbumArt(null);
