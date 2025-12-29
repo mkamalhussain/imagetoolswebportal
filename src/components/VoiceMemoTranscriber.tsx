@@ -92,14 +92,32 @@ export default function VoiceMemoTranscriber() {
       };
 
       recognitionInstance.onerror = (event: any) => {
-        console.error('Speech recognition error:', event.error);
-        if (event.error !== 'no-speech') {
-          setError('Speech recognition error: ' + event.error);
+        // Ignore 'no-speech' errors as they're common during processing
+        if (event.error === 'no-speech') {
+          return;
         }
-        if (event.error === 'aborted' || event.error === 'not-allowed') {
+        
+        console.error('Speech recognition error:', event.error);
+        
+        // Only show user-facing errors for critical issues
+        if (event.error === 'not-allowed') {
+          setError('Microphone access denied. Please allow microphone access and try again.');
+          setIsRecording(false);
+          setIsProcessing(false);
+        } else if (event.error === 'aborted') {
+          // Aborted is usually intentional, don't show error
+          setIsRecording(false);
+          setIsProcessing(false);
+        } else if (event.error === 'network') {
+          setError('Network error. Please check your internet connection.');
+          setIsRecording(false);
+          setIsProcessing(false);
+        } else if (event.error === 'service-not-allowed') {
+          setError('Speech recognition service not available. Please try again later.');
           setIsRecording(false);
           setIsProcessing(false);
         }
+        // Other errors like 'audio-capture', 'bad-grammar' are less critical
       };
 
       recognitionInstance.onend = () => {
@@ -272,9 +290,10 @@ export default function VoiceMemoTranscriber() {
     setTranscriptionSegments([]);
 
     try {
-      // Create audio element to play the file
+      // Create audio element to play the file (muted for transcription)
       const audio = new Audio();
       audio.src = audioUrl || URL.createObjectURL(selectedFile);
+      audio.volume = 0; // Mute audio during transcription
       audioRef.current = audio;
 
       // Set up speech recognition
@@ -285,9 +304,34 @@ export default function VoiceMemoTranscriber() {
       // Start recognition before playing audio
       recognition.start();
 
-      // Play audio and transcribe
+      // Play audio silently and transcribe
       await new Promise<void>((resolve, reject) => {
+        let transcriptionStarted = false;
+        let timeoutId: NodeJS.Timeout;
+
+        // Set a timeout in case transcription doesn't work
+        timeoutId = setTimeout(() => {
+          if (!transcriptionStarted) {
+            setError('Transcription timed out. Web Speech API requires microphone input. For file transcription, please use the live recording feature instead.');
+            if (recognition) {
+              try {
+                recognition.stop();
+              } catch (e) {
+                // Ignore
+              }
+            }
+            audio.pause();
+            resolve();
+          }
+        }, 5000); // 5 second timeout
+
+        recognition.onresult = () => {
+          transcriptionStarted = true;
+          clearTimeout(timeoutId);
+        };
+
         audio.onended = () => {
+          clearTimeout(timeoutId);
           setTimeout(() => {
             if (recognition) {
               try {
@@ -297,10 +341,11 @@ export default function VoiceMemoTranscriber() {
               }
             }
             resolve();
-          }, 1000); // Give recognition time to process final results
+          }, 2000); // Give recognition time to process final results
         };
 
         audio.onerror = (err) => {
+          clearTimeout(timeoutId);
           console.error('Audio playback error:', err);
           if (recognition) {
             try {
@@ -313,8 +358,9 @@ export default function VoiceMemoTranscriber() {
         };
 
         audio.play().catch((err) => {
+          clearTimeout(timeoutId);
           console.error('Error playing audio:', err);
-          setError('Failed to play audio. Please ensure your device volume is on and try again.');
+          setError('Failed to play audio. Please try again.');
           if (recognition) {
             try {
               recognition.stop();
@@ -339,6 +385,10 @@ export default function VoiceMemoTranscriber() {
         } catch (e) {
           // Ignore
         }
+      }
+      // Restore audio volume after transcription
+      if (audioRef.current) {
+        audioRef.current.volume = 1;
       }
     }
   };
@@ -505,19 +555,25 @@ export default function VoiceMemoTranscriber() {
       {/* Transcribe Button */}
       {selectedFile && !isRecording && (
         <div className="mb-6">
-          <Button
-            onClick={transcribeFile}
-            disabled={isProcessing}
-            className="w-full md:w-auto"
-          >
-            {isProcessing ? (
-              <span className="flex items-center gap-2">
-                <span className="animate-spin">⏳</span> Transcribing...
-              </span>
-            ) : (
-              '🎯 Transcribe Audio'
-            )}
-          </Button>
+          <div className="mb-2">
+            <Button
+              onClick={transcribeFile}
+              disabled={isProcessing}
+              className="w-full md:w-auto"
+            >
+              {isProcessing ? (
+                <span className="flex items-center gap-2">
+                  <span className="animate-spin">⏳</span> Transcribing...
+                </span>
+              ) : (
+                '🎯 Transcribe Audio'
+              )}
+            </Button>
+          </div>
+          <div className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-2 mt-2">
+            <p className="font-semibold mb-1">⚠️ File Transcription Limitation:</p>
+            <p>Web Speech API requires microphone input. For best results, use "Start Recording" for live transcription. File transcription may not work reliably as it depends on your system's audio routing.</p>
+          </div>
         </div>
       )}
 
@@ -607,12 +663,13 @@ export default function VoiceMemoTranscriber() {
         <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">How to use:</h3>
         <ul className="text-blue-800 dark:text-blue-200 space-y-1 text-sm">
           <li>• Select your preferred language from the dropdown</li>
-          <li>• Click "Start Recording" for live transcription (requires microphone permission)</li>
-          <li>• Or upload an audio file and click "Transcribe Audio"</li>
-          <li>• For file transcription, ensure your device volume is on</li>
+          <li>• <strong>Recommended:</strong> Click "Start Recording" for live transcription (requires microphone permission) - This works best!</li>
+          <li>• Or upload an audio file and click "Transcribe Audio" (may have limitations)</li>
+          <li>• Audio playback is muted during file transcription</li>
           <li>• View transcription with optional timestamps and confidence scores</li>
           <li>• Export transcription as text file or copy to clipboard</li>
           <li>• Works best with clear audio and minimal background noise</li>
+          <li>• <strong>Note:</strong> Web Speech API works best with live microphone input. File transcription depends on system audio routing.</li>
         </ul>
       </div>
     </div>
