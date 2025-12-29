@@ -1,18 +1,59 @@
 "use client";
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { FFmpeg } from '@ffmpeg/ffmpeg';
+import { fetchFile, toBlobURL } from '@ffmpeg/util';
 import Button from './Button';
 
 export default function VideoTrimmer() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isLoadingFFmpeg, setIsLoadingFFmpeg] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [startTime, setStartTime] = useState<number>(0);
   const [endTime, setEndTime] = useState<number>(10);
   const [duration, setDuration] = useState<number>(0);
   const [currentTime, setCurrentTime] = useState<number>(0);
+  const [progress, setProgress] = useState<number>(0);
   const videoRef = useRef<HTMLVideoElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const ffmpegRef = useRef<FFmpeg | null>(null);
+
+  // Load FFmpeg
+  useEffect(() => {
+    const loadFFmpeg = async () => {
+      if (ffmpegRef.current) return; // Already loaded
+
+      setIsLoadingFFmpeg(true);
+      try {
+        const ffmpeg = new FFmpeg();
+        ffmpegRef.current = ffmpeg;
+
+        ffmpeg.on('log', ({ message }) => {
+          console.log('FFmpeg:', message);
+        });
+
+        ffmpeg.on('progress', ({ progress }) => {
+          setProgress(progress * 100);
+        });
+
+        const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
+        await ffmpeg.load({
+          coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+          wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+        });
+
+        console.log('FFmpeg loaded successfully');
+      } catch (err) {
+        console.error('Failed to load FFmpeg:', err);
+        setError('Failed to load video processing engine. Please refresh the page and try again.');
+      } finally {
+        setIsLoadingFFmpeg(false);
+      }
+    };
+
+    loadFFmpeg();
+  }, []);
 
   const handleFileSelect = (file: File) => {
     if (!file.type.startsWith('video/')) {
@@ -25,6 +66,7 @@ export default function VideoTrimmer() {
     setStartTime(0);
     setEndTime(10);
     setCurrentTime(0);
+    setProgress(0);
   };
 
   const handleLoadedMetadata = () => {
@@ -47,7 +89,10 @@ export default function VideoTrimmer() {
   };
 
   const handleTrim = async () => {
-    if (!selectedFile) return;
+    if (!selectedFile || !ffmpegRef.current) {
+      setError('Please select a video file and wait for the processing engine to load.');
+      return;
+    }
 
     if (startTime >= endTime) {
       setError('Start time must be less than end time');
@@ -56,27 +101,74 @@ export default function VideoTrimmer() {
 
     setIsProcessing(true);
     setError(null);
+    setProgress(0);
 
     try {
-      // TODO: Implement video trimming using FFmpeg.wasm or Video.js
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      const ffmpeg = ffmpegRef.current;
+      const inputFileName = 'input.' + selectedFile.name.split('.').pop();
+      const outputFileName = 'output.mp4';
+      const trimDuration = endTime - startTime;
 
-      const trimmedBlob = new Blob(['simulated trimmed video'], { type: 'video/mp4' });
+      // Write input file to FFmpeg's virtual file system
+      await ffmpeg.writeFile(inputFileName, await fetchFile(selectedFile));
+
+      // Trim video: -ss is start time, -t is duration, -c copy for fast copy (no re-encoding)
+      // Using -c copy is faster but may not work for all videos, so we'll use re-encoding for compatibility
+      await ffmpeg.exec([
+        '-i', inputFileName,
+        '-ss', startTime.toString(),
+        '-t', trimDuration.toString(),
+        '-c:v', 'libx264',
+        '-c:a', 'aac',
+        '-preset', 'fast',
+        '-crf', '23',
+        outputFileName
+      ]);
+
+      // Read the output file
+      const data = await ffmpeg.readFile(outputFileName);
+      // Convert FileData to proper ArrayBuffer for Blob
+      let arrayBuffer: ArrayBuffer;
+      if (data instanceof Uint8Array) {
+        // Create a new ArrayBuffer and copy data
+        arrayBuffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength) as ArrayBuffer;
+      } else if (typeof data === 'object' && 'byteLength' in data) {
+        // It's an ArrayBuffer-like object, create a new one
+        const source = data as ArrayBuffer;
+        arrayBuffer = source.slice(0) as ArrayBuffer;
+      } else {
+        // If it's a string (base64), convert it
+        const binaryString = atob(data as string);
+        arrayBuffer = new ArrayBuffer(binaryString.length);
+        const view = new Uint8Array(arrayBuffer);
+        for (let i = 0; i < binaryString.length; i++) {
+          view[i] = binaryString.charCodeAt(i);
+        }
+      }
+      const trimmedBlob = new Blob([arrayBuffer], { type: 'video/mp4' });
       const url = URL.createObjectURL(trimmedBlob);
 
+      // Download the trimmed video
       const a = document.createElement('a');
       a.href = url;
-      a.download = `trimmed_${selectedFile.name}`;
+      const originalName = selectedFile.name.replace(/\.[^/.]+$/, '');
+      const extension = selectedFile.name.split('.').pop();
+      a.download = `trimmed_${originalName}_${formatTime(startTime)}-${formatTime(endTime)}.${extension}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
+      // Clean up FFmpeg files
+      await ffmpeg.deleteFile(inputFileName);
+      await ffmpeg.deleteFile(outputFileName);
+
     } catch (err) {
       console.error('Trimming error:', err);
-      setError('Failed to trim video. Please try again.');
+      setError(`Failed to trim video: ${err instanceof Error ? err.message : 'Unknown error'}. Please try again.`);
     } finally {
       setIsProcessing(false);
+      setProgress(0);
     }
   };
 
@@ -218,13 +310,34 @@ export default function VideoTrimmer() {
       {/* Trim Button */}
       {selectedFile && (
         <div className="mb-6">
+          {isLoadingFFmpeg && (
+            <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <p className="text-sm text-blue-800 dark:text-blue-200">
+                Loading video processing engine... Please wait.
+              </p>
+            </div>
+          )}
           <Button
             onClick={handleTrim}
-            disabled={isProcessing}
+            disabled={isProcessing || isLoadingFFmpeg}
             className="w-full md:w-auto"
           >
-            {isProcessing ? 'Processing...' : 'Trim and Download'}
+            {isProcessing ? (
+              <span className="flex items-center gap-2">
+                <span className="animate-spin">⏳</span> Processing... {progress > 0 && `${Math.round(progress)}%`}
+              </span>
+            ) : (
+              '✂️ Trim and Download'
+            )}
           </Button>
+          {isProcessing && progress > 0 && (
+            <div className="mt-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+              <div
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${progress}%` }}
+              ></div>
+            </div>
+          )}
         </div>
       )}
 
