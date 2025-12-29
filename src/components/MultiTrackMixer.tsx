@@ -117,56 +117,114 @@ export default function MultiTrackMixer() {
 
   const getAudioDuration = (file: File): Promise<number> => {
     return new Promise((resolve) => {
-      const audio = new Audio();
-      const url = URL.createObjectURL(file);
+      // Use Web Audio API for more reliable duration detection
+      const reader = new FileReader();
+      let timeoutId: NodeJS.Timeout | null = null;
+      let resolved = false;
 
       const cleanup = () => {
-        audio.removeEventListener('loadedmetadata', onLoaded);
-        audio.removeEventListener('error', onError);
-        audio.removeEventListener('canplay', onCanPlay);
-        URL.revokeObjectURL(url);
-      };
-
-      const onLoaded = () => {
-        cleanup();
-        const duration = audio.duration;
-        // Check for valid finite duration
-        if (duration > 0 && duration < Infinity && !isNaN(duration)) {
-          resolve(duration);
-        } else {
-          console.warn(`Invalid duration for ${file.name}: ${duration}`);
-          resolve(0);
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+          timeoutId = null;
         }
       };
 
-      const onCanPlay = () => {
-        cleanup();
-        const duration = audio.duration;
-        if (duration > 0 && duration < Infinity && !isNaN(duration)) {
-          resolve(duration);
-        } else {
-          resolve(0); // Still resolve with 0, but don't log warning for canplay
+      const safeResolve = (value: number) => {
+        if (!resolved) {
+          resolved = true;
+          cleanup();
+          resolve(value);
         }
       };
 
-      const onError = (e: Event) => {
-        console.warn(`Error loading audio metadata for ${file.name}:`, e);
-        cleanup();
-        resolve(0);
+      reader.onload = async (e) => {
+        try {
+          const arrayBuffer = e.target?.result as ArrayBuffer;
+          if (!arrayBuffer) {
+            console.warn(`Failed to read file: ${file.name}`);
+            safeResolve(0);
+            return;
+          }
+
+          // Try Web Audio API first (most reliable)
+          try {
+            const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+            const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+            const duration = audioBuffer.duration;
+            audioContext.close();
+
+            if (duration > 0 && duration < Infinity && !isNaN(duration)) {
+              safeResolve(duration);
+              return;
+            }
+          } catch (webAudioError) {
+            // Web Audio API failed, fall back to HTML Audio element
+            console.warn(`Web Audio API failed for ${file.name}, trying HTML Audio fallback:`, webAudioError);
+          }
+
+          // Fallback to HTML Audio element
+          const url = URL.createObjectURL(new Blob([arrayBuffer], { type: file.type }));
+          const audio = new Audio();
+
+          const onLoaded = () => {
+            const duration = audio.duration;
+            audio.removeEventListener('loadedmetadata', onLoaded);
+            audio.removeEventListener('error', onError);
+            URL.revokeObjectURL(url);
+            if (duration > 0 && duration < Infinity && !isNaN(duration)) {
+              safeResolve(duration);
+            } else {
+              console.warn(`Invalid duration for ${file.name}: ${duration}`);
+              safeResolve(0);
+            }
+          };
+
+          const onError = (e: Event) => {
+            audio.removeEventListener('loadedmetadata', onLoaded);
+            audio.removeEventListener('error', onError);
+            URL.revokeObjectURL(url);
+            console.warn(`Error loading audio metadata for ${file.name}:`, e);
+            safeResolve(0);
+          };
+
+          audio.addEventListener('loadedmetadata', onLoaded);
+          audio.addEventListener('error', onError);
+          audio.preload = 'metadata';
+          audio.src = url;
+
+          // Fallback timeout
+          setTimeout(() => {
+            if (!resolved) {
+              audio.removeEventListener('loadedmetadata', onLoaded);
+              audio.removeEventListener('error', onError);
+              URL.revokeObjectURL(url);
+              console.warn(`Timeout loading audio metadata for ${file.name}`);
+              safeResolve(0);
+            }
+          }, 10000);
+
+        } catch (error) {
+          console.warn(`Error processing audio file ${file.name}:`, error);
+          safeResolve(0);
+        }
       };
 
-      audio.addEventListener('loadedmetadata', onLoaded);
-      audio.addEventListener('canplay', onCanPlay);
-      audio.addEventListener('error', onError);
-      audio.preload = 'metadata';
-      audio.src = url;
+      reader.onerror = () => {
+        console.warn(`FileReader error for ${file.name}`);
+        safeResolve(0);
+      };
 
-      // Timeout after 10 seconds (increased from 5)
-      setTimeout(() => {
-        console.warn(`Timeout loading audio metadata for ${file.name}`);
-        cleanup();
-        resolve(0);
-      }, 10000);
+      // Start reading the file
+      reader.readAsArrayBuffer(file);
+
+      // Overall timeout
+      timeoutId = setTimeout(() => {
+        if (!resolved) {
+          reader.abort();
+          console.warn(`Overall timeout loading audio duration for ${file.name}`);
+          safeResolve(0);
+        }
+      }, 15000);
     });
   };
 
