@@ -484,6 +484,14 @@ export default function ToolGuidePage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Google AdSense Top Banner */}
+        <div className="w-full mb-8">
+          <div className="bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center">
+            <p className="text-gray-500 dark:text-gray-400">📢 Google AdSense Placeholder</p>
+            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">728x90 Banner Ad</p>
+          </div>
+        </div>
+
         {/* Breadcrumb */}
         <nav className="mb-8">
           <Link
@@ -616,6 +624,14 @@ export default function ToolGuidePage() {
             </div>
           </div>
         )}
+
+        {/* Google AdSense Bottom Banner */}
+        <div className="w-full my-12">
+          <div className="bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center">
+            <p className="text-gray-500 dark:text-gray-400">📢 Google AdSense Placeholder</p>
+            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">728x90 Banner Ad</p>
+          </div>
+        </div>
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
