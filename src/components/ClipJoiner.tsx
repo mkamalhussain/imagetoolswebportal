@@ -238,11 +238,20 @@ export default function ClipJoiner() {
     setCurrentClipIndex(0);
     cancelRef.current = false;
 
+    // Set up timeout to prevent hanging
+    const timeout = setTimeout(() => {
+      if (isProcessing) {
+        setError('Processing timed out. This may be due to large files or insufficient browser memory. Try with smaller files or refresh the page.');
+        cancelProcessing();
+      }
+    }, 300000); // 5 minute timeout
+
     try {
       const ffmpeg = ffmpegRef.current;
       const format = EXPORT_FORMATS.find(f => f.value === exportFormat) || EXPORT_FORMATS[0];
       const outputFileName = `output.${format.extension}`;
-      
+      let finalFileName = outputFileName;
+
       // Calculate total file size to determine processing strategy
       const totalSize = clips.reduce((sum, clip) => sum + clip.file.size, 0);
       const isSmallFile = totalSize < 50 * 1024 * 1024; // Less than 50MB
@@ -251,30 +260,31 @@ export default function ClipJoiner() {
       // Step 1: Normalize all clips to same format for reliable concatenation
       // This ensures all clips have same codec, frame rate, etc. for proper concat
       const processedClips: string[] = [];
-      
+
       for (let i = 0; i < clips.length; i++) {
         if (cancelRef.current) break;
-        
+
         setCurrentClipIndex(i);
-        setProgress((i / clips.length) * 50); // First 50% for processing clips
-        
+        setProgress(20 + (i / clips.length) * 30); // 20-50% for processing clips
+
         const clip = clips[i];
         const inputFileName = `input_${i}.${clip.file.name.split('.').pop()}`;
         const processedFileName = `processed_${i}.mp4`;
-        
+
+        setProgress(20 + (i / clips.length) * 30 + 2); // Show progress for file operations
         await ffmpeg.writeFile(inputFileName, await fetchFile(clip.file));
-        
+
         // Get clip duration after trimming
         const clipStart = clip.startTrim || 0;
         const clipEnd = clip.endTrim || clip.duration;
         const clipDuration = clipEnd - clipStart;
         const needsTrim = clipStart > 0.1 || Math.abs(clipDuration - clip.duration) > 0.1;
-        
+
         // Always normalize to ensure compatibility, but preserve aspect ratio
         const processArgs = [
           '-i', inputFileName
         ];
-        
+
         // Add trimming if needed
         if (needsTrim) {
           processArgs.push(
@@ -282,7 +292,7 @@ export default function ClipJoiner() {
             '-t', clipDuration.toFixed(3)
           );
         }
-        
+
         // Normalize to common format: H.264 video, AAC audio, 30fps, 1920x1080 resolution
         // This ensures all clips have same properties for reliable concatenation
         processArgs.push(
@@ -302,8 +312,18 @@ export default function ClipJoiner() {
           '-map', '0:a:0?', // Always map audio (create silent track if missing)
           processedFileName
         );
-        
+
+        // Set up progress callback for this operation
+        let operationProgress = 0;
+        const progressCallback = ({ progress }: { progress: number }) => {
+          const baseProgress = 20 + (i / clips.length) * 30;
+          const operationProgress = Math.min(progress * 30 / clips.length, 30 / clips.length);
+          setProgress(baseProgress + operationProgress);
+        };
+
+        ffmpeg.on('progress', progressCallback);
         await ffmpeg.exec(processArgs);
+        ffmpeg.off('progress', progressCallback);
         processedClips.push(processedFileName);
         await ffmpeg.deleteFile(inputFileName);
       }
@@ -325,13 +345,14 @@ export default function ClipJoiner() {
       await ffmpeg.writeFile('concat.txt', concatContent);
 
       // Step 3: Concatenate all clips (with transitions if needed)
-      setProgress(60);
-      
+      setProgress(55);
+
       // Always re-encode during concat to ensure reliability and proper audio/video sync
       // This handles different resolutions properly and ensures audio is preserved
       if (transition.type === 'none' && exportFormat === 'mp4') {
         // Simple concatenation with re-encoding (more reliable than copy mode)
         // FFmpeg will automatically handle different resolutions during concat
+        setProgress(60);
         const concatArgs = [
           '-f', 'concat',
           '-safe', '0',
@@ -345,7 +366,15 @@ export default function ClipJoiner() {
           '-map', '0:a:0?',
           outputFileName
         ];
+
+        // Set up progress callback for concat operation
+        const concatProgressCallback = ({ progress }: { progress: number }) => {
+          setProgress(60 + progress * 30); // 60-90% for concat
+        };
+
+        ffmpeg.on('progress', concatProgressCallback);
         await ffmpeg.exec(concatArgs);
+        ffmpeg.off('progress', concatProgressCallback);
       } else {
         // Need to re-encode for transitions or format conversion
         if (transition.type !== 'none') {
@@ -365,8 +394,15 @@ export default function ClipJoiner() {
             '-map', '0:a:0?',
             tempConcat
           ];
+          // Set up progress callback for temp concat
+          const tempConcatProgressCallback = ({ progress }: { progress: number }) => {
+            setProgress(60 + progress * 15); // 60-75% for temp concat
+          };
+
+          ffmpeg.on('progress', tempConcatProgressCallback);
           await ffmpeg.exec(concatArgs);
-          
+          ffmpeg.off('progress', tempConcatProgressCallback);
+
           // Verify temp file exists before proceeding
           try {
             await ffmpeg.readFile(tempConcat);
@@ -416,8 +452,15 @@ export default function ClipJoiner() {
             '-map', '0:a:0?',
             outputFileName
           );
-          
+
+          // Set up progress callback for transition operation
+          const transitionProgressCallback = ({ progress }: { progress: number }) => {
+            setProgress(75 + progress * 20); // 75-95% for transitions
+          };
+
+          ffmpeg.on('progress', transitionProgressCallback);
           await ffmpeg.exec(transitionArgs);
+          ffmpeg.off('progress', transitionProgressCallback);
           
           // Clean up temp file
           try {
@@ -440,6 +483,35 @@ export default function ClipJoiner() {
         }
       }
 
+      // Step 4: Final format conversion if needed
+      if (exportFormat === 'webm') {
+        setProgress(90);
+        const webmFileName = `final.${format.extension}`;
+        const webmArgs = [
+          '-i', outputFileName,
+          '-c:v', 'libvpx-vp9',
+          '-c:a', 'libopus',
+          '-b:a', '192k',
+          '-preset', preset,
+          '-crf', quality,
+          '-map', '0:v:0',
+          '-map', '0:a:0?',
+          webmFileName
+        ];
+
+        // Set up progress callback for WebM conversion
+        const webmProgressCallback = ({ progress }: { progress: number }) => {
+          setProgress(90 + progress * 8); // 90-98% for WebM conversion
+        };
+
+        ffmpeg.on('progress', webmProgressCallback);
+        await ffmpeg.exec(webmArgs);
+        ffmpeg.off('progress', webmProgressCallback);
+
+        await ffmpeg.deleteFile(outputFileName);
+
+      }
+
       if (cancelRef.current) {
         for (const file of processedClips) {
           try {
@@ -459,8 +531,7 @@ export default function ClipJoiner() {
 
       // Step 4: Final format conversion if needed
       setProgress(90);
-      let finalFileName = outputFileName;
-      
+
       if (exportFormat === 'webm') {
         finalFileName = `final.${format.extension}`;
         const reencodeArgs = [
@@ -496,11 +567,11 @@ export default function ClipJoiner() {
           view[i] = binaryString.charCodeAt(i);
         }
       }
-      
+
       setProgress(100);
       const joinedBlob = new Blob([arrayBuffer], { type: `video/${format.extension}` });
       const url = URL.createObjectURL(joinedBlob);
-      
+
       const a = document.createElement('a');
       a.href = url;
       a.download = `joined_${clips.length}_clips.${format.extension}`;
@@ -519,11 +590,7 @@ export default function ClipJoiner() {
       }
       try {
         await ffmpeg.deleteFile('concat.txt');
-        if (finalFileName !== outputFileName) {
-          await ffmpeg.deleteFile(finalFileName);
-        } else {
-          await ffmpeg.deleteFile(outputFileName);
-        }
+        await ffmpeg.deleteFile(finalFileName);
       } catch (e) {
         // Ignore
       }
@@ -534,6 +601,7 @@ export default function ClipJoiner() {
         setError(`Failed to join clips: ${err instanceof Error ? err.message : 'Unknown error'}. Please try again.`);
       }
     } finally {
+      clearTimeout(timeout);
       setIsProcessing(false);
       setProgress(0);
       setCurrentClipIndex(0);
