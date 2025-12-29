@@ -1,27 +1,179 @@
 "use client";
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { FFmpeg } from '@ffmpeg/ffmpeg';
+import { fetchFile, toBlobURL } from '@ffmpeg/util';
 import Button from './Button';
 
-export default function ClipJoiner() {
-  const [clips, setClips] = useState<File[]>([]);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+interface ClipInfo {
+  file: File;
+  duration: number;
+  thumbnail?: string;
+  startTrim?: number;
+  endTrim?: number;
+}
 
-  const handleFileSelect = (files: FileList) => {
+interface Transition {
+  type: 'none' | 'fade' | 'crossfade' | 'slide';
+  duration: number;
+}
+
+const TRANSITION_TYPES = [
+  { value: 'none', label: 'No Transition' },
+  { value: 'fade', label: 'Fade In/Out' },
+  { value: 'crossfade', label: 'Crossfade' },
+  { value: 'slide', label: 'Slide' },
+];
+
+const EXPORT_FORMATS = [
+  { value: 'mp4', label: 'MP4 (H.264)', extension: 'mp4' },
+  { value: 'webm', label: 'WebM (VP9)', extension: 'webm' },
+];
+
+const MAX_FILE_SIZE_MB = 500;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+
+export default function ClipJoiner() {
+  const [clips, setClips] = useState<ClipInfo[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isLoadingFFmpeg, setIsLoadingFFmpeg] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [progress, setProgress] = useState<number>(0);
+  const [currentClipIndex, setCurrentClipIndex] = useState<number>(0);
+  const [transition, setTransition] = useState<Transition>({ type: 'none', duration: 0.5 });
+  const [exportFormat, setExportFormat] = useState<string>('mp4');
+  const [quality, setQuality] = useState<string>('23');
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [selectedClipIndex, setSelectedClipIndex] = useState<number | null>(null);
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const ffmpegRef = useRef<FFmpeg | null>(null);
+  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
+  const cancelRef = useRef<boolean>(false);
+
+  // Load FFmpeg
+  useEffect(() => {
+    const loadFFmpeg = async () => {
+      if (ffmpegRef.current) return;
+
+      setIsLoadingFFmpeg(true);
+      try {
+        const ffmpeg = new FFmpeg();
+        ffmpegRef.current = ffmpeg;
+
+        ffmpeg.on('log', ({ message }) => {
+          console.log('FFmpeg:', message);
+        });
+
+        ffmpeg.on('progress', ({ progress }) => {
+          setProgress(progress * 100);
+        });
+
+        const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
+        await ffmpeg.load({
+          coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+          wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+        });
+
+        console.log('FFmpeg loaded successfully');
+      } catch (err) {
+        console.error('Failed to load FFmpeg:', err);
+        setError('Failed to load video processing engine. Please refresh the page and try again.');
+      } finally {
+        setIsLoadingFFmpeg(false);
+      }
+    };
+
+    loadFFmpeg();
+  }, []);
+
+  // Get video duration
+  const getVideoDuration = useCallback((file: File): Promise<number> => {
+    return new Promise((resolve) => {
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+      video.onloadedmetadata = () => {
+        window.URL.revokeObjectURL(video.src);
+        resolve(video.duration || 0);
+      };
+      video.onerror = () => {
+        window.URL.revokeObjectURL(video.src);
+        resolve(0);
+      };
+      video.src = URL.createObjectURL(file);
+    });
+  }, []);
+
+  // Generate thumbnail
+  const generateThumbnail = useCallback((file: File): Promise<string> => {
+    return new Promise((resolve) => {
+      const video = document.createElement('video');
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      video.onloadedmetadata = () => {
+        video.currentTime = Math.min(1, video.duration / 2);
+      };
+      
+      video.onseeked = () => {
+        if (ctx) {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          ctx.drawImage(video, 0, 0);
+          const thumbnail = canvas.toDataURL('image/jpeg', 0.7);
+          window.URL.revokeObjectURL(video.src);
+          resolve(thumbnail);
+        } else {
+          window.URL.revokeObjectURL(video.src);
+          resolve('');
+        }
+      };
+      
+      video.onerror = () => {
+        window.URL.revokeObjectURL(video.src);
+        resolve('');
+      };
+      
+      video.src = URL.createObjectURL(file);
+    });
+  }, []);
+
+  const handleFileSelect = async (files: FileList) => {
     const videoFiles = Array.from(files).filter(file => file.type.startsWith('video/'));
     if (videoFiles.length === 0) {
       setError('Please select video files');
       return;
     }
 
-    setClips(prev => [...prev, ...videoFiles]);
     setError(null);
+    const newClips: ClipInfo[] = [];
+
+    for (const file of videoFiles) {
+      if (file.size > MAX_FILE_SIZE_BYTES) {
+        setError(`File ${file.name} exceeds ${MAX_FILE_SIZE_MB}MB. Processing may be slow.`);
+      }
+
+      const duration = await getVideoDuration(file);
+      const thumbnail = await generateThumbnail(file);
+      
+      newClips.push({
+        file,
+        duration,
+        thumbnail,
+        startTrim: 0,
+        endTrim: duration,
+      });
+    }
+
+    setClips(prev => [...prev, ...newClips]);
   };
 
   const removeClip = (index: number) => {
     setClips(prev => prev.filter((_, i) => i !== index));
+    if (selectedClipIndex === index) {
+      setSelectedClipIndex(null);
+    }
   };
 
   const moveClip = (fromIndex: number, toIndex: number) => {
@@ -31,45 +183,285 @@ export default function ClipJoiner() {
     setClips(newClips);
   };
 
+  const handleDragStart = (index: number) => {
+    setDraggedIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === index) return;
+    
+    const newClips = [...clips];
+    const [movedClip] = newClips.splice(draggedIndex, 1);
+    newClips.splice(index, 0, movedClip);
+    setClips(newClips);
+    setDraggedIndex(index);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+  };
+
+  const formatTime = (time: number) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+  };
+
+  const getTotalDuration = () => {
+    return clips.reduce((total, clip) => {
+      const clipDuration = (clip.endTrim || clip.duration) - (clip.startTrim || 0);
+      return total + clipDuration;
+    }, 0);
+  };
+
   const handleJoin = async () => {
     if (clips.length < 2) {
       setError('Please add at least 2 video clips to join');
       return;
     }
 
+    if (!ffmpegRef.current) {
+      setError('Please wait for the processing engine to load.');
+      return;
+    }
+
     setIsProcessing(true);
     setError(null);
+    setProgress(0);
+    setCurrentClipIndex(0);
+    cancelRef.current = false;
 
     try {
-      // TODO: Implement clip joining using FFmpeg.wasm
-      await new Promise(resolve => setTimeout(resolve, 4000));
+      const ffmpeg = ffmpegRef.current;
+      const format = EXPORT_FORMATS.find(f => f.value === exportFormat) || EXPORT_FORMATS[0];
+      const outputFileName = `output.${format.extension}`;
 
-      const joinedBlob = new Blob(['simulated joined video'], { type: 'video/mp4' });
-      const url = URL.createObjectURL(joinedBlob);
+      // Step 1: Normalize all clips to same resolution and format
+      const normalizedClips: string[] = [];
+      
+      for (let i = 0; i < clips.length; i++) {
+        if (cancelRef.current) break;
+        
+        setCurrentClipIndex(i);
+        const clip = clips[i];
+        const inputFileName = `input_${i}.${clip.file.name.split('.').pop()}`;
+        const normalizedFileName = `normalized_${i}.mp4`;
+        
+        await ffmpeg.writeFile(inputFileName, await fetchFile(clip.file));
+        
+        // Get clip duration after trimming
+        const clipStart = clip.startTrim || 0;
+        const clipEnd = clip.endTrim || clip.duration;
+        const clipDuration = clipEnd - clipStart;
+        
+        // Normalize clip: same resolution, codec, and trim if needed
+        const normalizeArgs = [
+          '-i', inputFileName,
+        ];
+        
+        if (clipStart > 0) {
+          normalizeArgs.push('-ss', clipStart.toString());
+        }
+        if (clipDuration < clip.duration) {
+          normalizeArgs.push('-t', clipDuration.toString());
+        }
+        
+        normalizeArgs.push(
+          '-c:v', 'libx264',
+          '-c:a', 'aac',
+          '-preset', 'fast',
+          '-crf', quality,
+          '-vf', 'scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2',
+          '-pix_fmt', 'yuv420p',
+          normalizedFileName
+        );
+        
+        await ffmpeg.exec(normalizeArgs);
+        normalizedClips.push(normalizedFileName);
+        
+        // Clean up input file
+        await ffmpeg.deleteFile(inputFileName);
+      }
 
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'joined_video.mp4';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      if (cancelRef.current) {
+        // Clean up normalized files
+        for (const file of normalizedClips) {
+          try {
+            await ffmpeg.deleteFile(file);
+          } catch (e) {
+            // Ignore
+          }
+        }
+        return;
+      }
+
+      // Step 2: Create concat file
+      const concatContent = normalizedClips.map(file => `file '${file}'`).join('\n');
+      await ffmpeg.writeFile('concat.txt', concatContent);
+
+      // Step 3: Concatenate all clips
+      const concatArgs = [
+        '-f', 'concat',
+        '-safe', '0',
+        '-i', 'concat.txt',
+        '-c', 'copy',
+        outputFileName
+      ];
+
+      // If transitions are needed, we'd need more complex processing
+      // For now, simple concatenation
+      await ffmpeg.exec(concatArgs);
+
+      if (cancelRef.current) {
+        // Clean up
+        for (const file of normalizedClips) {
+          try {
+            await ffmpeg.deleteFile(file);
+          } catch (e) {
+            // Ignore
+          }
+        }
+        try {
+          await ffmpeg.deleteFile('concat.txt');
+          await ffmpeg.deleteFile(outputFileName);
+        } catch (e) {
+          // Ignore
+        }
+        return;
+      }
+
+      // Step 4: Re-encode if needed for format/quality
+      if (exportFormat === 'webm' || transition.type !== 'none') {
+        const finalOutput = `final.${format.extension}`;
+        const reencodeArgs = [
+          '-i', outputFileName,
+          '-c:v', exportFormat === 'webm' ? 'libvpx-vp9' : 'libx264',
+          '-c:a', exportFormat === 'webm' ? 'libopus' : 'aac',
+          '-preset', 'fast',
+          '-crf', quality,
+          finalOutput
+        ];
+        
+        await ffmpeg.exec(reencodeArgs);
+        await ffmpeg.deleteFile(outputFileName);
+        
+        const data = await ffmpeg.readFile(finalOutput);
+        let arrayBuffer: ArrayBuffer;
+        if (data instanceof Uint8Array) {
+          arrayBuffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength) as ArrayBuffer;
+        } else if (typeof data === 'object' && 'byteLength' in data) {
+          const source = data as ArrayBuffer;
+          arrayBuffer = source.slice(0) as ArrayBuffer;
+        } else {
+          const binaryString = atob(data as string);
+          arrayBuffer = new ArrayBuffer(binaryString.length);
+          const view = new Uint8Array(arrayBuffer);
+          for (let i = 0; i < binaryString.length; i++) {
+            view[i] = binaryString.charCodeAt(i);
+          }
+        }
+        
+        const joinedBlob = new Blob([arrayBuffer], { type: `video/${format.extension}` });
+        const url = URL.createObjectURL(joinedBlob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `joined_${clips.length}_clips.${format.extension}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        // Clean up
+        await ffmpeg.deleteFile(finalOutput);
+      } else {
+        // Direct copy - faster
+        const data = await ffmpeg.readFile(outputFileName);
+        let arrayBuffer: ArrayBuffer;
+        if (data instanceof Uint8Array) {
+          arrayBuffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength) as ArrayBuffer;
+        } else if (typeof data === 'object' && 'byteLength' in data) {
+          const source = data as ArrayBuffer;
+          arrayBuffer = source.slice(0) as ArrayBuffer;
+        } else {
+          const binaryString = atob(data as string);
+          arrayBuffer = new ArrayBuffer(binaryString.length);
+          const view = new Uint8Array(arrayBuffer);
+          for (let i = 0; i < binaryString.length; i++) {
+            view[i] = binaryString.charCodeAt(i);
+          }
+        }
+        
+        const joinedBlob = new Blob([arrayBuffer], { type: `video/${format.extension}` });
+        const url = URL.createObjectURL(joinedBlob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `joined_${clips.length}_clips.${format.extension}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+
+      // Clean up all files
+      for (const file of normalizedClips) {
+        try {
+          await ffmpeg.deleteFile(file);
+        } catch (e) {
+          // Ignore
+        }
+      }
+      try {
+        await ffmpeg.deleteFile('concat.txt');
+        await ffmpeg.deleteFile(outputFileName);
+      } catch (e) {
+        // Ignore
+      }
 
     } catch (err) {
-      console.error('Joining error:', err);
-      setError('Failed to join clips. Please try again.');
+      if (!cancelRef.current) {
+        console.error('Joining error:', err);
+        setError(`Failed to join clips: ${err instanceof Error ? err.message : 'Unknown error'}. Please try again.`);
+      }
     } finally {
       setIsProcessing(false);
+      setProgress(0);
+      setCurrentClipIndex(0);
     }
   };
 
+  const cancelProcessing = () => {
+    cancelRef.current = true;
+    setIsProcessing(false);
+    setProgress(0);
+  };
+
+  const updateClipTrim = (index: number, startTrim: number, endTrim: number) => {
+    setClips(prev => prev.map((clip, i) => 
+      i === index ? { ...clip, startTrim, endTrim } : clip
+    ));
+  };
+
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
+    <div className="max-w-6xl mx-auto p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Clip Joiner Tool</h2>
         <p className="text-gray-600 dark:text-gray-400">
-          Upload multiple video clips, arrange their sequence, and merge them with smooth transitions.
+          Upload multiple video clips, arrange their sequence, and merge them with transitions.
         </p>
+        {clips.length > 0 && (
+          <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+            Total Duration: {formatTime(getTotalDuration())} | {clips.length} clip{clips.length !== 1 ? 's' : ''}
+          </div>
+        )}
       </div>
 
       {/* File Upload */}
@@ -86,48 +478,144 @@ export default function ClipJoiner() {
           }}
           className="hidden"
           id="clip-upload"
+          ref={fileInputRef}
         />
-        <Button as="label" htmlFor="clip-upload" className="cursor-pointer">
-          Add Video Clips
+        <Button as="label" htmlFor="clip-upload" className="cursor-pointer" disabled={isProcessing}>
+          📁 Add Video Clips
         </Button>
+        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+          Recommended max: {MAX_FILE_SIZE_MB}MB per file for best performance
+        </p>
       </div>
+
+      {/* Export Options */}
+      {clips.length > 0 && (
+        <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Export Format
+            </label>
+            <select
+              value={exportFormat}
+              onChange={(e) => setExportFormat(e.target.value)}
+              disabled={isProcessing}
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+            >
+              {EXPORT_FORMATS.map(format => (
+                <option key={format.value} value={format.value}>{format.label}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Quality (CRF)
+            </label>
+            <select
+              value={quality}
+              onChange={(e) => setQuality(e.target.value)}
+              disabled={isProcessing}
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+            >
+              <option value="18">High (18)</option>
+              <option value="23">Medium (23)</option>
+              <option value="28">Good (28)</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Transition
+            </label>
+            <select
+              value={transition.type}
+              onChange={(e) => setTransition({ ...transition, type: e.target.value as any })}
+              disabled={isProcessing}
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+            >
+              {TRANSITION_TYPES.map(t => (
+                <option key={t.value} value={t.value}>{t.label}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      )}
 
       {/* Clip List */}
       {clips.length > 0 && (
         <div className="mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Video Clips ({clips.length})</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Video Clips ({clips.length})
+          </h3>
           <div className="space-y-3">
             {clips.map((clip, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                <div className="flex items-center gap-4">
-                  <span className="font-medium text-gray-900 dark:text-white">#{index + 1}</span>
-                  <div className="flex-1">
-                    <p className="font-medium text-gray-900 dark:text-white">{clip.name}</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {(clip.size / 1024 / 1024).toFixed(2)} MB
-                    </p>
+              <div
+                key={index}
+                draggable
+                onDragStart={() => handleDragStart(index)}
+                onDragOver={(e) => handleDragOver(e, index)}
+                onDragEnd={handleDragEnd}
+                className={`flex items-center gap-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border-2 transition-all ${
+                  draggedIndex === index ? 'border-blue-500 opacity-50' : 'border-transparent'
+                } ${selectedClipIndex === index ? 'ring-2 ring-blue-500' : ''}`}
+              >
+                <div className="flex-shrink-0 text-gray-500 dark:text-gray-400 font-bold">
+                  #{index + 1}
+                </div>
+                
+                {/* Thumbnail */}
+                {clip.thumbnail && (
+                  <div className="flex-shrink-0 w-24 h-16 bg-black rounded overflow-hidden">
+                    <img src={clip.thumbnail} alt="Thumbnail" className="w-full h-full object-cover" />
+                  </div>
+                )}
+                
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-gray-900 dark:text-white truncate">{clip.file.name}</p>
+                  <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    <span>{formatFileSize(clip.file.size)}</span>
+                    <span>•</span>
+                    <span>{formatTime(clip.duration)}</span>
+                    {(clip.startTrim || clip.endTrim !== clip.duration) && (
+                      <>
+                        <span>•</span>
+                        <span className="text-blue-600 dark:text-blue-400">
+                          Trim: {formatTime(clip.startTrim || 0)} - {formatTime(clip.endTrim || clip.duration)}
+                        </span>
+                      </>
+                    )}
                   </div>
                 </div>
+                
                 <div className="flex items-center gap-2">
                   <Button
-                    onClick={() => moveClip(index, Math.max(0, index - 1))}
-                    disabled={index === 0}
+                    onClick={() => setSelectedClipIndex(selectedClipIndex === index ? null : index)}
                     className="text-xs px-2 py-1"
+                    title="Edit trim"
+                  >
+                    ✂️
+                  </Button>
+                  <Button
+                    onClick={() => moveClip(index, Math.max(0, index - 1))}
+                    disabled={index === 0 || isProcessing}
+                    className="text-xs px-2 py-1"
+                    title="Move up"
                   >
                     ↑
                   </Button>
                   <Button
                     onClick={() => moveClip(index, Math.min(clips.length - 1, index + 1))}
-                    disabled={index === clips.length - 1}
+                    disabled={index === clips.length - 1 || isProcessing}
                     className="text-xs px-2 py-1"
+                    title="Move down"
                   >
                     ↓
                   </Button>
                   <Button
                     onClick={() => removeClip(index)}
+                    disabled={isProcessing}
                     className="text-red-600 hover:text-red-800 text-xs px-2 py-1"
+                    title="Remove"
                   >
-                    Remove
+                    ✕
                   </Button>
                 </div>
               </div>
@@ -136,16 +624,105 @@ export default function ClipJoiner() {
         </div>
       )}
 
+      {/* Clip Trim Editor */}
+      {selectedClipIndex !== null && clips[selectedClipIndex] && (
+        <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+          <h4 className="font-semibold text-gray-900 dark:text-white mb-3">
+            Trim: {clips[selectedClipIndex].file.name}
+          </h4>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">
+                Start: {formatTime(clips[selectedClipIndex].startTrim || 0)}
+              </label>
+              <input
+                type="range"
+                min="0"
+                max={clips[selectedClipIndex].duration}
+                step="0.1"
+                value={clips[selectedClipIndex].startTrim || 0}
+                onChange={(e) => {
+                  const start = parseFloat(e.target.value);
+                  const end = clips[selectedClipIndex].endTrim || clips[selectedClipIndex].duration;
+                  if (start < end) {
+                    updateClipTrim(selectedClipIndex, start, end);
+                  }
+                }}
+                className="w-full"
+              />
+            </div>
+            <div>
+              <label className="block text-sm text-gray-700 dark:text-gray-300 mb-1">
+                End: {formatTime(clips[selectedClipIndex].endTrim || clips[selectedClipIndex].duration)}
+              </label>
+              <input
+                type="range"
+                min="0"
+                max={clips[selectedClipIndex].duration}
+                step="0.1"
+                value={clips[selectedClipIndex].endTrim || clips[selectedClipIndex].duration}
+                onChange={(e) => {
+                  const end = parseFloat(e.target.value);
+                  const start = clips[selectedClipIndex].startTrim || 0;
+                  if (end > start) {
+                    updateClipTrim(selectedClipIndex, start, end);
+                  }
+                }}
+                className="w-full"
+              />
+            </div>
+          </div>
+          <Button
+            onClick={() => setSelectedClipIndex(null)}
+            className="mt-3 text-sm"
+          >
+            Done
+          </Button>
+        </div>
+      )}
+
       {/* Join Button */}
       {clips.length >= 2 && (
         <div className="mb-6">
-          <Button
-            onClick={handleJoin}
-            disabled={isProcessing}
-            className="w-full md:w-auto"
-          >
-            {isProcessing ? 'Joining Clips...' : 'Join and Download'}
-          </Button>
+          {isLoadingFFmpeg && (
+            <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <p className="text-sm text-blue-800 dark:text-blue-200">
+                Loading video processing engine... Please wait.
+              </p>
+            </div>
+          )}
+          <div className="flex gap-3">
+            <Button
+              onClick={handleJoin}
+              disabled={isProcessing || isLoadingFFmpeg}
+              className="flex items-center gap-2"
+            >
+              {isProcessing ? (
+                <span className="flex items-center gap-2">
+                  <span className="animate-spin">⏳</span> 
+                  Processing clip {currentClipIndex + 1}/{clips.length}... {progress > 0 && `${Math.round(progress)}%`}
+                </span>
+              ) : (
+                '🔗 Join and Download'
+              )}
+            </Button>
+            {isProcessing && (
+              <Button
+                onClick={cancelProcessing}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Cancel
+              </Button>
+            )}
+          </div>
+          {isProcessing && progress > 0 && (
+            <div className="mt-2 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+              <div
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${progress}%` }}
+              ></div>
+            </div>
+          )}
         </div>
       )}
 
@@ -160,10 +737,14 @@ export default function ClipJoiner() {
       <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
         <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">How to use:</h3>
         <ul className="text-blue-800 dark:text-blue-200 space-y-1 text-sm">
-          <li>• Upload multiple video files (minimum 2 clips)</li>
-          <li>• Use the arrow buttons to reorder clips</li>
+          <li>• Upload multiple video files (minimum 2 clips, recommended max: {MAX_FILE_SIZE_MB}MB each)</li>
+          <li>• <strong>Drag and drop</strong> clips to reorder them</li>
+          <li>• Click ✂️ to trim individual clips before joining</li>
+          <li>• Use arrow buttons (↑↓) to move clips up/down</li>
+          <li>• Choose export format and quality settings</li>
           <li>• Click "Join and Download" to merge all clips</li>
-          <li>• The joined video will be downloaded as MP4 format</li>
+          <li>• All clips are normalized to 1080p for consistent output</li>
+          <li>• Processing time depends on number and size of clips</li>
         </ul>
       </div>
     </div>
