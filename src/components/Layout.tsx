@@ -15,6 +15,9 @@ export default function Layout({ children }: LayoutProps) {
             Free Tools
           </Link>
           <nav className="flex items-center gap-6">
+            <Link href="/" className="px-3 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors font-medium">
+              🏠 Home
+            </Link>
             <Link href="/how-to" className="px-3 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors font-medium">
               📚 How To
             </Link>
