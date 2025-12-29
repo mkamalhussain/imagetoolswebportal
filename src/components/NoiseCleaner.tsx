@@ -66,19 +66,34 @@ export default function NoiseCleaner() {
   // Generate frequency spectrum using FFT
   const generateFrequencySpectrum = useCallback((buffer: AudioBuffer): number[] => {
     const data = buffer.getChannelData(0);
-    const fftSize = 2048;
-    const samples = Math.min(data.length, fftSize);
+    const length = data.length;
     const spectrum: number[] = [];
+    const bins = 100; // Number of frequency bins
 
-    // Simple FFT approximation using windowed samples
-    for (let i = 0; i < 100; i++) {
-      const start = Math.floor((i / 100) * samples);
-      const end = Math.floor(((i + 1) / 100) * samples);
-      let sum = 0;
-      for (let j = start; j < end; j++) {
-        sum += Math.abs(data[j]);
+    // Use more samples for better frequency resolution
+    const samplesPerBin = Math.floor(length / bins);
+    
+    for (let i = 0; i < bins; i++) {
+      const start = i * samplesPerBin;
+      const end = Math.min(start + samplesPerBin, length);
+      
+      if (end > start) {
+        let sum = 0;
+        let count = 0;
+        
+        // Calculate RMS (Root Mean Square) for better frequency representation
+        for (let j = start; j < end; j++) {
+          const value = data[j];
+          sum += value * value; // Square for RMS
+          count++;
+        }
+        
+        // RMS = sqrt(mean of squares)
+        const rms = Math.sqrt(sum / count);
+        spectrum.push(rms);
+      } else {
+        spectrum.push(0);
       }
-      spectrum.push(sum / (end - start));
     }
 
     return spectrum;
@@ -237,33 +252,36 @@ export default function NoiseCleaner() {
       }
       noiseFloor = noiseFloor / noiseSampleLength;
       
-      // Scale noise floor conservatively with intensity (0.1 = 10% reduction, 1.0 = 100% reduction)
-      const scaledNoiseFloor = noiseFloor * intensity;
-      const noiseThreshold = noiseMax * 0.3; // Lower threshold to preserve more signal
+      // Scale noise floor with intensity - more effective at higher intensities
+      const scaledNoiseFloor = noiseFloor * (0.3 + intensity * 0.7); // 30-100% of noise floor
+      const noiseThreshold = noiseMax * (0.2 + intensity * 0.3); // Adaptive threshold
 
-      // Apply spectral subtraction with conservative processing
+      // Apply spectral subtraction with intensity-based processing
       for (let i = 0; i < length; i++) {
         const sample = inputData[i];
         const magnitude = Math.abs(sample);
         
-        // Only process if significantly above noise threshold
-        if (magnitude > noiseThreshold * 2) {
-          // Conservative subtraction - only remove scaled noise floor
-          const cleanedMagnitude = Math.max(magnitude * 0.9, magnitude - scaledNoiseFloor);
+        // Calculate signal-to-noise ratio
+        const snr = magnitude / (noiseFloor + 0.0001);
+        
+        if (magnitude > noiseThreshold * 1.5) {
+          // Strong signal - subtract noise floor scaled by intensity
+          const overSubtraction = 1.0 + intensity * 0.3; // 1.0-1.3x
+          const cleanedMagnitude = Math.max(0, magnitude - scaledNoiseFloor * overSubtraction);
           
-          // Preserve at least 90% of original signal at low intensity
-          const minPreservation = 0.9 + (1 - intensity) * 0.1;
+          // Preserve signal based on intensity - at 100% can reduce more, at 10% preserve more
+          const minPreservation = 0.95 - intensity * 0.15; // 95% at 10%, 80% at 100%
           const finalMagnitude = Math.max(cleanedMagnitude, magnitude * minPreservation);
           
           // Preserve phase
           outputData[i] = (finalMagnitude / magnitude) * sample;
         } else if (magnitude > noiseThreshold) {
-          // Gentle reduction for signals near threshold
-          const reduction = intensity * 0.3; // Max 30% reduction even at 100% intensity
+          // Medium signal - apply reduction based on intensity
+          const reduction = intensity * (0.2 + (1 - snr) * 0.4); // 20-60% reduction
           outputData[i] = sample * (1 - reduction);
         } else {
-          // Very gentle gating for low-level signals - preserve most of it
-          const gateReduction = intensity * 0.2; // Max 20% reduction
+          // Low signal - gate based on intensity
+          const gateReduction = intensity * (0.1 + (1 - snr) * 0.5); // 10-60% reduction
           outputData[i] = sample * (1 - gateReduction);
         }
       }
@@ -427,22 +445,28 @@ export default function NoiseCleaner() {
         // Calculate SNR
         const snr = signalEstimate / (noiseEstimate + 0.0001);
         
-        // Conservative gain function - preserve more signal
+        // Gain function that scales with intensity
         let gain = 1.0;
         
         if (snr < 1.5) {
-          // Low SNR - apply gentle reduction scaled by intensity
-          const reduction = intensity * 0.3 * (1.5 - snr) / 1.5; // Max 30% reduction
+          // Low SNR - apply reduction scaled by intensity
+          const baseReduction = 0.3 + intensity * 0.4; // 30-70% reduction at 100% intensity
+          const reduction = baseReduction * (1.5 - snr) / 1.5;
           gain = 1.0 - reduction;
         } else if (snr < 3.0) {
-          // Medium SNR - very gentle reduction
-          const reduction = intensity * 0.1 * (3.0 - snr) / 1.5; // Max 10% reduction
+          // Medium SNR - moderate reduction
+          const baseReduction = 0.1 + intensity * 0.2; // 10-30% reduction at 100% intensity
+          const reduction = baseReduction * (3.0 - snr) / 1.5;
+          gain = 1.0 - reduction;
+        } else if (snr < 5.0) {
+          // Higher SNR - minimal reduction
+          const reduction = intensity * 0.05; // Max 5% reduction
           gain = 1.0 - reduction;
         }
-        // High SNR - no reduction (gain = 1.0)
+        // Very high SNR - no reduction (gain = 1.0)
 
-        // Ensure minimum gain to preserve signal quality
-        const minGain = 0.85 + (1 - intensity) * 0.15; // At 10% intensity, min gain = 0.985
+        // Ensure minimum gain - but allow more reduction at higher intensities
+        const minGain = 0.92 - intensity * 0.12; // 92% at 10%, 80% at 100%
         gain = Math.max(gain, minGain);
 
         // Apply gain
@@ -473,50 +497,46 @@ export default function NoiseCleaner() {
         cleaned = adaptiveNoiseReduction(buffer, intensity);
         break;
       case 'combined':
-        // Apply multiple algorithms conservatively, blending with original based on intensity
-        // At low intensity, preserve more of original signal
-        const blendFactor = intensity; // 0.1 = 10% processed, 90% original
+        // Apply multiple algorithms with proper intensity scaling
+        // Start with spectral subtraction for general noise
+        cleaned = spectralSubtraction(buffer, intensity);
         
-        // Start with spectral subtraction for general noise (scaled down)
-        cleaned = spectralSubtraction(buffer, intensity * 0.6);
-        
-        // Apply specific filters based on noise type (only at higher intensities)
-        if (intensity > 0.3) {
-          if (noiseType === 'hum') {
-            // Remove 50Hz and 60Hz hum (only if intensity is high enough)
-            cleaned = notchFilter(cleaned, 50, 30);
-            cleaned = notchFilter(cleaned, 60, 30);
-            if (intensity > 0.5) {
-              cleaned = highPassFilter(cleaned, 80);
-            }
-          } else if (noiseType === 'wind') {
-            // Remove low-frequency wind noise
-            if (intensity > 0.4) {
-              cleaned = highPassFilter(cleaned, 100);
-            }
-            cleaned = adaptiveNoiseReduction(cleaned, intensity * 0.5);
-          } else if (noiseType === 'hiss') {
-            // Remove high-frequency hiss (only at higher intensities to preserve high frequencies)
-            if (intensity > 0.5) {
-              const sampleRate = buffer.sampleRate;
-              const cutoff = sampleRate * 0.45; // Less aggressive cutoff
-              cleaned = lowPassFilter(cleaned, cutoff);
-            }
-            cleaned = adaptiveNoiseReduction(cleaned, intensity * 0.6);
-          } else if (noiseType === 'background') {
-            // General background noise - use adaptive only
-            cleaned = adaptiveNoiseReduction(cleaned, intensity * 0.6);
-          } else {
-            // Auto-detect - very conservative
-            cleaned = adaptiveNoiseReduction(cleaned, intensity * 0.5);
-            if (intensity > 0.4) {
-              cleaned = highPassFilter(cleaned, 60);
-            }
+        // Apply specific filters based on noise type
+        if (noiseType === 'hum') {
+          // Remove 50Hz and 60Hz hum
+          cleaned = notchFilter(cleaned, 50, 30);
+          cleaned = notchFilter(cleaned, 60, 30);
+          if (intensity > 0.3) {
+            cleaned = highPassFilter(cleaned, 80);
+          }
+        } else if (noiseType === 'wind') {
+          // Remove low-frequency wind noise
+          if (intensity > 0.2) {
+            cleaned = highPassFilter(cleaned, 100);
+          }
+          cleaned = adaptiveNoiseReduction(cleaned, intensity);
+        } else if (noiseType === 'hiss') {
+          // Remove high-frequency hiss
+          if (intensity > 0.4) {
+            const sampleRate = buffer.sampleRate;
+            const cutoff = sampleRate * 0.4; // Keep frequencies below 40% of sample rate
+            cleaned = lowPassFilter(cleaned, cutoff);
+          }
+          cleaned = adaptiveNoiseReduction(cleaned, intensity);
+        } else if (noiseType === 'background') {
+          // General background noise - use adaptive
+          cleaned = adaptiveNoiseReduction(cleaned, intensity);
+        } else {
+          // Auto-detect - apply adaptive and light filtering
+          cleaned = adaptiveNoiseReduction(cleaned, intensity);
+          if (intensity > 0.3) {
+            cleaned = highPassFilter(cleaned, 60);
           }
         }
         
-        // Blend processed result with original to preserve quality at low intensities
-        if (blendFactor < 1.0 && audioContext) {
+        // Only blend at very low intensities to preserve quality
+        if (intensity < 0.3 && audioContext) {
+          const blendFactor = intensity / 0.3; // Scale from 0-1 for intensities 0-30%
           const numberOfChannels = buffer.numberOfChannels;
           const sampleRate = buffer.sampleRate;
           const length = buffer.length;
@@ -605,9 +625,10 @@ export default function NoiseCleaner() {
         const cleanedSpectrum = generateFrequencySpectrum(cleaned);
         setCleanedWaveform(cleanedWaveform);
         setFrequencySpectrum(cleanedSpectrum);
+        // Always draw spectrum and waveform
+        drawSpectrum(cleanedSpectrum);
         if (!showingOriginalWaveform) {
           drawWaveform(cleanedWaveform, '#10b981');
-          drawSpectrum(cleanedSpectrum);
         }
         setIsProcessing(false);
       })
@@ -626,6 +647,29 @@ export default function NoiseCleaner() {
       drawWaveform(cleanedWaveform, '#10b981');
     }
   }, [showingOriginalWaveform, originalWaveform, cleanedWaveform, drawWaveform]);
+
+  // Update spectrum display whenever it changes
+  useEffect(() => {
+    if (frequencySpectrum.length > 0) {
+      // Small delay to ensure canvas is rendered
+      const timer = setTimeout(() => {
+        drawSpectrum(frequencySpectrum);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [frequencySpectrum, drawSpectrum]);
+
+  // Redraw spectrum on window resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (frequencySpectrum.length > 0) {
+        drawSpectrum(frequencySpectrum);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [frequencySpectrum, drawSpectrum]);
 
   // Play original audio
   const playOriginal = () => {
