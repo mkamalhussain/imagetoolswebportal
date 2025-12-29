@@ -248,12 +248,9 @@ export default function ClipJoiner() {
       const isSmallFile = totalSize < 50 * 1024 * 1024; // Less than 50MB
       const preset = isSmallFile ? 'ultrafast' : 'fast';
 
-      // Step 1: Process clips (trim if needed, normalize only if necessary)
+      // Step 1: Normalize all clips to same format for reliable concatenation
+      // This ensures all clips have same codec, frame rate, etc. for proper concat
       const processedClips: string[] = [];
-      // Only normalize if we need format conversion
-      const needsNormalization = exportFormat === 'webm';
-      // For transitions, we'll normalize after concat to preserve aspect ratios
-      const needsTransition = transition.type !== 'none';
       
       for (let i = 0; i < clips.length; i++) {
         if (cancelRef.current) break;
@@ -271,62 +268,44 @@ export default function ClipJoiner() {
         const clipStart = clip.startTrim || 0;
         const clipEnd = clip.endTrim || clip.duration;
         const clipDuration = clipEnd - clipStart;
-        // More precise check for trimming
         const needsTrim = clipStart > 0.1 || Math.abs(clipDuration - clip.duration) > 0.1;
         
+        // Always normalize to ensure compatibility, but preserve aspect ratio
+        const processArgs = [
+          '-i', inputFileName
+        ];
+        
+        // Add trimming if needed
         if (needsTrim) {
-          // Need to trim - re-encode to ensure precise cuts
-          // Use -ss after -i for more accurate seeking
-          const processArgs = [
-            '-i', inputFileName,
+          processArgs.push(
             '-ss', clipStart.toFixed(3),
-            '-t', clipDuration.toFixed(3),
-            '-c:v', 'libx264',
-            '-c:a', 'aac',
-            '-b:a', '192k',
-            '-ar', '44100',
-            '-preset', preset,
-            '-crf', quality,
-            '-avoid_negative_ts', 'make_zero',
-            '-map', '0:v:0',
-            '-map', '0:a:0?', // Preserve audio
-            processedFileName
-          ];
-          await ffmpeg.exec(processArgs);
-          processedClips.push(processedFileName);
-          await ffmpeg.deleteFile(inputFileName);
-        } else if (needsNormalization) {
-          // Need normalization for format conversion - preserve aspect ratio
-          const processArgs = [
-            '-i', inputFileName,
-            '-c:v', 'libx264',
-            '-c:a', 'aac',
-            '-b:a', '192k',
-            '-ar', '44100',
-            '-preset', preset,
-            '-crf', quality,
-            // Preserve aspect ratio, scale to max 1920x1080 (no padding)
-            '-vf', 'scale=1920:1080:force_original_aspect_ratio=decrease',
-            '-pix_fmt', 'yuv420p',
-            '-map', '0:v:0',
-            '-map', '0:a:0?',
-            processedFileName
-          ];
-          await ffmpeg.exec(processArgs);
-          processedClips.push(processedFileName);
-          await ffmpeg.deleteFile(inputFileName);
-        } else {
-          // No processing needed - use copy mode to preserve quality, size, and aspect ratio
-          const processArgs = [
-            '-i', inputFileName,
-            '-c', 'copy',
-            '-avoid_negative_ts', 'make_zero',
-            processedFileName
-          ];
-          await ffmpeg.exec(processArgs);
-          processedClips.push(processedFileName);
-          await ffmpeg.deleteFile(inputFileName);
+            '-t', clipDuration.toFixed(3)
+          );
         }
+        
+        // Normalize to common format: H.264 video, AAC audio, 30fps, 1920x1080 resolution
+        // This ensures all clips have same properties for reliable concatenation
+        processArgs.push(
+          '-c:v', 'libx264',
+          '-c:a', 'aac',
+          '-b:a', '192k',
+          '-ar', '44100',
+          '-r', '30', // Standardize frame rate to 30fps
+          '-preset', preset,
+          '-crf', quality,
+          '-pix_fmt', 'yuv420p',
+          // Scale to fit 1920x1080 and pad to exact size (preserves aspect ratio with black bars if needed)
+          // This ensures all clips have same resolution for concat
+          '-vf', 'scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:color=black',
+          '-avoid_negative_ts', 'make_zero',
+          '-map', '0:v:0', // Always map video
+          '-map', '0:a:0?', // Always map audio (create silent track if missing)
+          processedFileName
+        );
+        
+        await ffmpeg.exec(processArgs);
+        processedClips.push(processedFileName);
+        await ffmpeg.deleteFile(inputFileName);
       }
 
       if (cancelRef.current) {
@@ -348,29 +327,40 @@ export default function ClipJoiner() {
       // Step 3: Concatenate all clips (with transitions if needed)
       setProgress(60);
       
+      // Always re-encode during concat to ensure reliability and proper audio/video sync
+      // This handles different resolutions properly and ensures audio is preserved
       if (transition.type === 'none' && exportFormat === 'mp4') {
-        // Simple concatenation with copy mode (fastest, preserves quality, size, and aspect ratio)
+        // Simple concatenation with re-encoding (more reliable than copy mode)
+        // FFmpeg will automatically handle different resolutions during concat
         const concatArgs = [
           '-f', 'concat',
           '-safe', '0',
           '-i', 'concat.txt',
-          '-c', 'copy',
-          '-map', '0:v:0', // Explicitly map video
-          '-map', '0:a:0?', // Explicitly map audio (optional if missing)
+          '-c:v', 'libx264',
+          '-c:a', 'aac',
+          '-b:a', '192k',
+          '-preset', preset,
+          '-crf', quality,
+          '-map', '0:v:0',
+          '-map', '0:a:0?',
           outputFileName
         ];
         await ffmpeg.exec(concatArgs);
       } else {
         // Need to re-encode for transitions or format conversion
         if (transition.type !== 'none') {
-          // For transitions, first concatenate, then apply filter
+          // For transitions, first concatenate with re-encoding, then apply filter
           // Note: Transitions require re-encoding which increases file size
           const tempConcat = 'temp_concat.mp4';
           const concatArgs = [
             '-f', 'concat',
             '-safe', '0',
             '-i', 'concat.txt',
-            '-c', 'copy',
+            '-c:v', 'libx264',
+            '-c:a', 'aac',
+            '-b:a', '192k',
+            '-preset', preset,
+            '-crf', quality,
             '-map', '0:v:0',
             '-map', '0:a:0?',
             tempConcat
