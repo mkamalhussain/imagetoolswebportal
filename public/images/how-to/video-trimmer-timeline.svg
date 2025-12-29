@@ -1,0 +1,114 @@
+<svg width="800" height="400" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="800" height="400" fill="#f8fafc"/>
+
+  <!-- Header -->
+  <rect x="0" y="0" width="800" height="60" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="20" y="25" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#1e293b">Short Video Trimmer</text>
+  <text x="20" y="45" font-family="Arial, sans-serif" font-size="12" fill="#64748b">Trim videos with frame-accurate precision and preview controls.</text>
+
+  <!-- Video Player -->
+  <rect x="20" y="80" width="560" height="200" fill="#000000" rx="8"/>
+  <circle cx="300" cy="180" r="25" fill="#ffffff" opacity="0.9"/>
+  <polygon points="290,170 290,190 310,180" fill="#000000"/>
+
+  <!-- Timeline -->
+  <rect x="20" y="300" width="760" height="80" fill="#ffffff" stroke="#e2e8f0" rx="8"/>
+
+  <!-- Waveform -->
+  <rect x="40" y="320" width="720" height="40" fill="#f1f5f9" rx="4"/>
+  <!-- Waveform bars -->
+  <rect x="40" y="325" width="2" height="30" fill="#3b82f6"/>
+  <rect x="50" y="320" width="2" height="40" fill="#3b82f6"/>
+  <rect x="60" y="330" width="2" height="20" fill="#3b82f6"/>
+  <rect x="70" y="325" width="2" height="30" fill="#3b82f6"/>
+  <rect x="80" y="335" width="2" height="10" fill="#3b82f6"/>
+  <!-- Many more bars to simulate waveform -->
+  <rect x="90" y="320" width="2" height="40" fill="#3b82f6"/>
+  <rect x="100" y="325" width="2" height="30" fill="#3b82f6"/>
+  <rect x="110" y="330" width="2" height="20" fill="#3b82f6"/>
+  <rect x="120" y="335" width="2" height="10" fill="#3b82f6"/>
+  <rect x="130" y="320" width="2" height="40" fill="#3b82f6"/>
+  <rect x="140" y="325" width="2" height="30" fill="#3b82f6"/>
+  <rect x="150" y="330" width="2" height="20" fill="#3b82f6"/>
+  <rect x="160" y="335" width="2" height="10" fill="#3b82f6"/>
+  <rect x="170" y="320" width="2" height="40" fill="#3b82f6"/>
+  <rect x="180" y="325" width="2" height="30" fill="#3b82f6"/>
+  <rect x="190" y="330" width="2" height="20" fill="#3b82f6"/>
+  <rect x="200" y="335" width="2" height="10" fill="#3b82f6"/>
+  <rect x="210" y="320" width="2" height="40" fill="#3b82f6"/>
+  <rect x="220" y="325" width="2" height="30" fill="#3b82f6"/>
+  <rect x="230" y="330" width="2" height="20" fill="#3b82f6"/>
+  <rect x="240" y="335" width="2" height="10" fill="#3b82f6"/>
+  <rect x="250" y="320" width="2" height="40" fill="#3b82f6"/>
+  <rect x="260" y="325" width="2" height="30" fill="#3b82f6"/>
+  <rect x="270" y="330" width="2" height="20" fill="#3b82f6"/>
+  <rect x="280" y="335" width="2" height="10" fill="#3b82f6"/>
+  <rect x="290" y="320" width="2" height="40" fill="#3b82f6"/>
+  <rect x="300" y="325" width="2" height="30" fill="#3b82f6"/>
+  <rect x="310" y="330" width="2" height="20" fill="#3b82f6"/>
+  <rect x="320" y="335" width="2" height="10" fill="#3b82f6"/>
+  <rect x="330" y="320" width="2" height="40" fill="#3b82f6"/>
+  <rect x="340" y="325" width="2" height="30" fill="#3b82f6"/>
+  <rect x="350" y="330" width="2" height="20" fill="#3b82f6"/>
+  <rect x="360" y="335" width="2" height="10" fill="#3b82f6"/>
+  <rect x="370" y="320" width="2" height="40" fill="#3b82f6"/>
+  <rect x="380" y="325" width="2" height="30" fill="#3b82f6"/>
+  <rect x="390" y="330" width="2" height="20" fill="#3b82f6"/>
+  <rect x="400" y="335" width="2" height="10" fill="#3b82f6"/>
+  <rect x="410" y="320" width="2" height="40" fill="#3b82f6"/>
+  <rect x="420" y="325" width="2" height="30" fill="#3b82f6"/>
+  <rect x="430" y="330" width="2" height="20" fill="#3b82f6"/>
+  <rect x="440" y="335" width="2" height="10" fill="#3b82f6"/>
+  <rect x="450" y="320" width="2" height="40" fill="#3b82f6"/>
+  <rect x="460" y="325" width="2" height="30" fill="#3b82f6"/>
+  <rect x="470" y="330" width="2" height="20" fill="#3b82f6"/>
+  <rect x="480" y="335" width="2" height="10" fill="#3b82f6"/>
+  <rect x="490" y="320" width="2" height="40" fill="#3b82f6"/>
+  <rect x="500" y="325" width="2" height="30" fill="#3b82f6"/>
+  <rect x="510" y="330" width="2" height="20" fill="#3b82f6"/>
+  <rect x="520" y="335" width="2" height="10" fill="#3b82f6"/>
+  <rect x="530" y="320" width="2" height="40" fill="#3b82f6"/>
+  <rect x="540" y="325" width="2" height="30" fill="#3b82f6"/>
+  <rect x="550" y="330" width="2" height="20" fill="#3b82f6"/>
+  <rect x="560" y="335" width="2" height="10" fill="#3b82f6"/>
+  <rect x="570" y="320" width="2" height="40" fill="#3b82f6"/>
+  <rect x="580" y="325" width="2" height="30" fill="#3b82f6"/>
+  <rect x="590" y="330" width="2" height="20" fill="#3b82f6"/>
+  <rect x="600" y="335" width="2" height="10" fill="#3b82f6"/>
+  <rect x="610" y="320" width="2" height="40" fill="#3b82f6"/>
+  <rect x="620" y="325" width="2" height="30" fill="#3b82f6"/>
+  <rect x="630" y="330" width="2" height="20" fill="#3b82f6"/>
+  <rect x="640" y="335" width="2" height="10" fill="#3b82f6"/>
+  <rect x="650" y="320" width="2" height="40" fill="#3b82f6"/>
+  <rect x="660" y="325" width="2" height="30" fill="#3b82f6"/>
+  <rect x="670" y="330" width="2" height="20" fill="#3b82f6"/>
+  <rect x="680" y="335" width="2" height="10" fill="#3b82f6"/>
+  <rect x="690" y="320" width="2" height="40" fill="#3b82f6"/>
+  <rect x="700" y="325" width="2" height="30" fill="#3b82f6"/>
+  <rect x="710" y="330" width="2" height="20" fill="#3b82f6"/>
+  <rect x="720" y="335" width="2" height="10" fill="#3b82f6"/>
+  <rect x="730" y="320" width="2" height="40" fill="#3b82f6"/>
+  <rect x="740" y="325" width="2" height="30" fill="#3b82f6"/>
+  <rect x="750" y="330" width="2" height="20" fill="#3b82f6"/>
+  <rect x="760" y="335" width="2" height="10" fill="#3b82f6"/>
+
+  <!-- Playhead -->
+  <line x1="300" y1="300" x2="300" y2="380" stroke="#ef4444" stroke-width="2"/>
+  <polygon points="295,295 305,295 300,285" fill="#ef4444"/>
+
+  <!-- Time markers -->
+  <text x="40" y="395" font-family="Arial, sans-serif" font-size="12" fill="#64748b">0:00</text>
+  <text x="300" y="395" font-family="Arial, sans-serif" font-size="12" fill="#64748b">2:30</text>
+  <text x="740" y="395" font-family="Arial, sans-serif" font-size="12" fill="#64748b">5:00</text>
+
+  <!-- Controls -->
+  <rect x="20" y="320" width="20" height="20" fill="#ffffff" stroke="#d1d5db" rx="2"/>
+  <text x="30" y="332" font-family="Arial, sans-serif" font-size="12" fill="#374151" text-anchor="middle">⏮</text>
+
+  <rect x="45" y="320" width="20" height="20" fill="#ffffff" stroke="#d1d5db" rx="2"/>
+  <text x="55" y="332" font-family="Arial, sans-serif" font-size="12" fill="#374151" text-anchor="middle">▶</text>
+
+  <rect x="70" y="320" width="20" height="20" fill="#ffffff" stroke="#d1d5db" rx="2"/>
+  <text x="80" y="332" font-family="Arial, sans-serif" font-size="12" fill="#374151" text-anchor="middle">⏸</text>
+</svg>

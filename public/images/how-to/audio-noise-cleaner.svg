@@ -1,0 +1,147 @@
+<svg width="800" height="500" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="800" height="500" fill="#f8fafc"/>
+
+  <!-- Header -->
+  <rect x="0" y="0" width="800" height="60" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="20" y="25" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#1e293b">Noise Cleaner Tool</text>
+  <text x="20" y="45" font-family="Arial, sans-serif" font-size="12" fill="#64748b">Remove background noise and hiss from audio recordings.</text>
+
+  <!-- Waveform Visualization -->
+  <rect x="20" y="80" width="760" height="150" fill="#ffffff" stroke="#e2e8f0" rx="8"/>
+  <text x="40" y="105" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#1e293b">Audio Waveform</text>
+
+  <!-- Before/After toggle -->
+  <rect x="40" y="115" width="80" height="30" fill="#e5e7eb" rx="15"/>
+  <circle cx="70" cy="130" r="12" fill="#3b82f6"/>
+  <text x="50" y="135" font-family="Arial, sans-serif" font-size="12" fill="#ffffff" text-anchor="middle">Before</text>
+  <text x="110" y="135" font-family="Arial, sans-serif" font-size="12" fill="#6b7280">After</text>
+
+  <!-- Waveform bars (before) -->
+  <rect x="150" y="130" width="2" height="20" fill="#ef4444"/>
+  <rect x="160" y="125" width="2" height="30" fill="#ef4444"/>
+  <rect x="170" y="135" width="2" height="10" fill="#ef4444"/>
+  <rect x="180" y="120" width="2" height="40" fill="#ef4444"/>
+  <rect x="190" y="130" width="2" height="20" fill="#ef4444"/>
+  <rect x="200" y="125" width="2" height="30" fill="#ef4444"/>
+  <rect x="210" y="135" width="2" height="10" fill="#ef4444"/>
+  <rect x="220" y="120" width="2" height="40" fill="#ef4444"/>
+  <rect x="230" y="130" width="2" height="20" fill="#ef4444"/>
+  <rect x="240" y="125" width="2" height="30" fill="#ef4444"/>
+  <rect x="250" y="135" width="2" height="10" fill="#ef4444"/>
+  <rect x="260" y="120" width="2" height="40" fill="#ef4444"/>
+  <rect x="270" y="130" width="2" height="20" fill="#ef4444"/>
+  <rect x="280" y="125" width="2" height="30" fill="#ef4444"/>
+  <rect x="290" y="135" width="2" height="10" fill="#ef4444"/>
+  <rect x="300" y="120" width="2" height="40" fill="#ef4444"/>
+  <rect x="310" y="130" width="2" height="20" fill="#ef4444"/>
+  <rect x="320" y="125" width="2" height="30" fill="#ef4444"/>
+  <rect x="330" y="135" width="2" height="10" fill="#ef4444"/>
+  <rect x="340" y="120" width="2" height="40" fill="#ef4444"/>
+  <rect x="350" y="130" width="2" height="20" fill="#ef4444"/>
+  <rect x="360" y="125" width="2" height="30" fill="#ef4444"/>
+  <rect x="370" y="135" width="2" height="10" fill="#ef4444"/>
+  <rect x="380" y="120" width="2" height="40" fill="#ef4444"/>
+  <rect x="390" y="130" width="2" height="20" fill="#ef4444"/>
+  <rect x="400" y="125" width="2" height="30" fill="#ef4444"/>
+  <rect x="410" y="135" width="2" height="10" fill="#ef4444"/>
+  <rect x="420" y="120" width="2" height="40" fill="#ef4444"/>
+  <rect x="430" y="130" width="2" height="20" fill="#ef4444"/>
+  <rect x="440" y="125" width="2" height="30" fill="#ef4444"/>
+  <rect x="450" y="135" width="2" height="10" fill="#ef4444"/>
+  <rect x="460" y="120" width="2" height="40" fill="#ef4444"/>
+  <rect x="470" y="130" width="2" height="20" fill="#ef4444"/>
+  <rect x="480" y="125" width="2" height="30" fill="#ef4444"/>
+  <rect x="490" y="135" width="2" height="10" fill="#ef4444"/>
+  <rect x="500" y="120" width="2" height="40" fill="#ef4444"/>
+  <rect x="510" y="130" width="2" height="20" fill="#ef4444"/>
+  <rect x="520" y="125" width="2" height="30" fill="#ef4444"/>
+  <rect x="530" y="135" width="2" height="10" fill="#ef4444"/>
+  <rect x="540" y="120" width="2" height="40" fill="#ef4444"/>
+  <rect x="550" y="130" width="2" height="20" fill="#ef4444"/>
+  <rect x="560" y="125" width="2" height="30" fill="#ef4444"/>
+  <rect x="570" y="135" width="2" height="10" fill="#ef4444"/>
+  <rect x="580" y="120" width="2" height="40" fill="#ef4444"/>
+  <rect x="590" y="130" width="2" height="20" fill="#ef4444"/>
+  <rect x="600" y="125" width="2" height="30" fill="#ef4444"/>
+  <rect x="610" y="135" width="2" height="10" fill="#ef4444"/>
+  <rect x="620" y="120" width="2" height="40" fill="#ef4444"/>
+  <rect x="630" y="130" width="2" height="20" fill="#ef4444"/>
+  <rect x="640" y="125" width="2" height="30" fill="#ef4444"/>
+  <rect x="650" y="135" width="2" height="10" fill="#ef4444"/>
+  <rect x="660" y="120" width="2" height="40" fill="#ef4444"/>
+  <rect x="670" y="130" width="2" height="20" fill="#ef4444"/>
+  <rect x="680" y="125" width="2" height="30" fill="#ef4444"/>
+  <rect x="690" y="135" width="2" height="10" fill="#ef4444"/>
+  <rect x="700" y="120" width="2" height="40" fill="#ef4444"/>
+  <rect x="710" y="130" width="2" height="20" fill="#ef4444"/>
+  <rect x="720" y="125" width="2" height="30" fill="#ef4444"/>
+  <rect x="730" y="135" width="2" height="10" fill="#ef4444"/>
+  <rect x="740" y="120" width="2" height="40" fill="#ef4444"/>
+  <rect x="750" y="130" width="2" height="20" fill="#ef4444"/>
+
+  <!-- Settings Panel -->
+  <rect x="20" y="250" width="760" height="230" fill="#ffffff" stroke="#e2e8f0" rx="8"/>
+
+  <!-- Noise Type -->
+  <text x="40" y="280" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#1e293b">Noise Type</text>
+  <rect x="40" y="290" width="150" height="35" fill="#f9fafb" stroke="#d1d5db" rx="4"/>
+  <text x="115" y="310" font-family="Arial, sans-serif" font-size="14" fill="#374151" text-anchor="middle">Auto-detect</text>
+
+  <!-- Intensity -->
+  <text x="220" y="280" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#1e293b">Intensity: 50%</text>
+  <rect x="220" y="290" width="200" height="6" fill="#e5e7eb" rx="3"/>
+  <circle cx="320" cy="293" r="8" fill="#3b82f6"/>
+
+  <!-- Algorithm -->
+  <text x="450" y="280" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#1e293b">Algorithm</text>
+  <rect x="450" y="290" width="150" height="35" fill="#f9fafb" stroke="#d1d5db" rx="4"/>
+  <text x="525" y="310" font-family="Arial, sans-serif" font-size="14" fill="#374151" text-anchor="middle">Combined</text>
+
+  <!-- Frequency Spectrum -->
+  <text x="40" y="350" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#1e293b">Frequency Spectrum Analysis</text>
+  <rect x="40" y="360" width="320" height="80" fill="#f9fafb" stroke="#d1d5db" rx="4"/>
+  <!-- Spectrum bars -->
+  <rect x="60" y="380" width="4" height="40" fill="#10b981"/>
+  <rect x="70" y="385" width="4" height="35" fill="#10b981"/>
+  <rect x="80" y="375" width="4" height="45" fill="#10b981"/>
+  <rect x="90" y="390" width="4" height="30" fill="#10b981"/>
+  <rect x="100" y="370" width="4" height="50" fill="#10b981"/>
+  <rect x="110" y="385" width="4" height="35" fill="#10b981"/>
+  <rect x="120" y="375" width="4" height="45" fill="#10b981"/>
+  <rect x="130" y="380" width="4" height="40" fill="#10b981"/>
+  <rect x="140" y="390" width="4" height="30" fill="#10b981"/>
+  <rect x="150" y="370" width="4" height="50" fill="#10b981"/>
+  <rect x="160" y="385" width="4" height="35" fill="#10b981"/>
+  <rect x="170" y="375" width="4" height="45" fill="#10b981"/>
+  <rect x="180" y="380" width="4" height="40" fill="#10b981"/>
+  <rect x="190" y="390" width="4" height="30" fill="#10b981"/>
+  <rect x="200" y="370" width="4" height="50" fill="#10b981"/>
+  <rect x="210" y="385" width="4" height="35" fill="#10b981"/>
+  <rect x="220" y="375" width="4" height="45" fill="#10b981"/>
+  <rect x="230" y="380" width="4" height="40" fill="#10b981"/>
+  <rect x="240" y="390" width="4" height="30" fill="#10b981"/>
+  <rect x="250" y="370" width="4" height="50" fill="#10b981"/>
+  <rect x="260" y="385" width="4" height="35" fill="#10b981"/>
+  <rect x="270" y="375" width="4" height="45" fill="#10b981"/>
+  <rect x="280" y="380" width="4" height="40" fill="#10b981"/>
+  <rect x="290" y="390" width="4" height="30" fill="#10b981"/>
+  <rect x="300" y="370" width="4" height="50" fill="#10b981"/>
+  <rect x="310" y="385" width="4" height="35" fill="#10b981"/>
+  <rect x="320" y="375" width="4" height="45" fill="#10b981"/>
+  <rect x="330" y="380" width="4" height="40" fill="#10b981"/>
+  <rect x="340" y="390" width="4" height="30" fill="#10b981"/>
+  <rect x="350" y="370" width="4" height="50" fill="#10b981"/>
+
+  <!-- Play Buttons -->
+  <rect x="400" y="360" width="120" height="35" fill="#3b82f6" rx="6"/>
+  <text x="460" y="380" font-family="Arial, sans-serif" font-size="14" fill="#ffffff" text-anchor="middle">▶ Play cleaned</text>
+
+  <rect x="530" y="360" width="120" height="35" fill="#10b981" rx="6"/>
+  <text x="590" y="380" font-family="Arial, sans-serif" font-size="14" fill="#ffffff" text-anchor="middle">💾 Download</text>
+
+  <!-- Progress -->
+  <text x="400" y="420" font-family="Arial, sans-serif" font-size="12" fill="#64748b">Processing audio... 75%</text>
+  <rect x="400" y="430" width="250" height="6" fill="#e5e7eb" rx="3"/>
+  <rect x="400" y="430" width="187" height="6" fill="#10b981" rx="3"/>
+</svg>

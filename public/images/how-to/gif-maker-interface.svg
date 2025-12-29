@@ -1,0 +1,47 @@
+<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="800" height="600" fill="#f8fafc"/>
+
+  <!-- Header -->
+  <rect x="0" y="0" width="800" height="80" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="20" y="35" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#1e293b">GIF Maker from Video</text>
+  <text x="20" y="55" font-family="Arial, sans-serif" font-size="14" fill="#64748b">Convert video segments to animated GIFs with speed control options and loop settings.</text>
+
+  <!-- File Upload Area -->
+  <rect x="20" y="100" width="760" height="120" fill="#ffffff" stroke="#e2e8f0" rx="8"/>
+  <text x="40" y="130" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#1e293b">Select Video File</text>
+  <rect x="40" y="140" width="200" height="40" fill="#3b82f6" rx="6"/>
+  <text x="140" y="162" font-family="Arial, sans-serif" font-size="14" fill="#ffffff" text-anchor="middle">Choose Video File</text>
+
+  <!-- Video Preview -->
+  <rect x="20" y="240" width="400" height="200" fill="#000000" rx="8"/>
+  <circle cx="220" cy="340" r="30" fill="#ffffff" opacity="0.8"/>
+  <polygon points="210,325 210,355 235,340" fill="#000000"/>
+
+  <!-- Settings Panel -->
+  <rect x="440" y="240" width="340" height="320" fill="#ffffff" stroke="#e2e8f0" rx="8"/>
+  <text x="460" y="270" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#1e293b">Settings</text>
+
+  <!-- Start Time -->
+  <text x="460" y="300" font-family="Arial, sans-serif" font-size="14" fill="#374151">Start Time (seconds)</text>
+  <rect x="460" y="310" width="120" height="30" fill="#f9fafb" stroke="#d1d5db" rx="4"/>
+  <text x="520" y="328" font-family="Arial, sans-serif" font-size="14" fill="#374151" text-anchor="middle">0</text>
+
+  <!-- End Time -->
+  <text x="460" y="360" font-family="Arial, sans-serif" font-size="14" fill="#374151">End Time (seconds)</text>
+  <rect x="460" y="370" width="120" height="30" fill="#f9fafb" stroke="#d1d5db" rx="4"/>
+  <text x="520" y="388" font-family="Arial, sans-serif" font-size="14" fill="#374151" text-anchor="middle">5</text>
+
+  <!-- Speed -->
+  <text x="460" y="420" font-family="Arial, sans-serif" font-size="14" fill="#374151">Speed: 1.0x</text>
+  <rect x="460" y="430" width="280" height="6" fill="#e5e7eb" rx="3"/>
+  <rect x="540" y="428" width="20" height="10" fill="#3b82f6" rx="5"/>
+
+  <!-- Generate Button -->
+  <rect x="460" y="480" width="280" height="50" fill="#3b82f6" rx="8"/>
+  <text x="600" y="510" font-family="Arial, sans-serif" font-size="16" fill="#ffffff" text-anchor="middle">🎬 Generate GIF</text>
+
+  <!-- Progress Bar -->
+  <rect x="460" y="450" width="280" height="8" fill="#e5e7eb" rx="4"/>
+  <rect x="460" y="450" width="140" height="8" fill="#10b981" rx="4"/>
+</svg>
