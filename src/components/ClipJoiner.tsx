@@ -250,8 +250,10 @@ export default function ClipJoiner() {
 
       // Step 1: Process clips (trim if needed, normalize only if necessary)
       const processedClips: string[] = [];
-      // Only normalize if we need transitions or format conversion
-      const needsNormalization = exportFormat === 'webm' || transition.type !== 'none';
+      // Only normalize if we need format conversion
+      const needsNormalization = exportFormat === 'webm';
+      // For transitions, we'll normalize after concat to preserve aspect ratios
+      const needsTransition = transition.type !== 'none';
       
       for (let i = 0; i < clips.length; i++) {
         if (cancelRef.current) break;
@@ -274,10 +276,11 @@ export default function ClipJoiner() {
         
         if (needsTrim) {
           // Need to trim - re-encode to ensure precise cuts
+          // Use -ss after -i for more accurate seeking
           const processArgs = [
-            '-ss', clipStart.toFixed(3), // Seek before input for speed
             '-i', inputFileName,
-            '-t', clipDuration.toFixed(3), // Exact duration
+            '-ss', clipStart.toFixed(3),
+            '-t', clipDuration.toFixed(3),
             '-c:v', 'libx264',
             '-c:a', 'aac',
             '-b:a', '192k',
@@ -287,14 +290,13 @@ export default function ClipJoiner() {
             '-avoid_negative_ts', 'make_zero',
             '-map', '0:v:0',
             '-map', '0:a:0?', // Preserve audio
-            '-shortest', // Ensure video and audio end together
             processedFileName
           ];
           await ffmpeg.exec(processArgs);
           processedClips.push(processedFileName);
           await ffmpeg.deleteFile(inputFileName);
         } else if (needsNormalization) {
-          // Need normalization for transitions/format
+          // Need normalization for format conversion - preserve aspect ratio
           const processArgs = [
             '-i', inputFileName,
             '-c:v', 'libx264',
@@ -303,7 +305,8 @@ export default function ClipJoiner() {
             '-ar', '44100',
             '-preset', preset,
             '-crf', quality,
-            '-vf', 'scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2',
+            // Preserve aspect ratio, scale to max 1920x1080 (no padding)
+            '-vf', 'scale=1920:1080:force_original_aspect_ratio=decrease',
             '-pix_fmt', 'yuv420p',
             '-map', '0:v:0',
             '-map', '0:a:0?',
@@ -313,7 +316,7 @@ export default function ClipJoiner() {
           processedClips.push(processedFileName);
           await ffmpeg.deleteFile(inputFileName);
         } else {
-          // No processing needed - use copy mode to preserve quality and size
+          // No processing needed - use copy mode to preserve quality, size, and aspect ratio
           const processArgs = [
             '-i', inputFileName,
             '-c', 'copy',
@@ -346,49 +349,92 @@ export default function ClipJoiner() {
       setProgress(60);
       
       if (transition.type === 'none' && exportFormat === 'mp4') {
-        // Simple concatenation with copy mode (fastest, preserves quality and size)
+        // Simple concatenation with copy mode (fastest, preserves quality, size, and aspect ratio)
         const concatArgs = [
           '-f', 'concat',
           '-safe', '0',
           '-i', 'concat.txt',
           '-c', 'copy',
-          '-map', '0',
+          '-map', '0:v:0', // Explicitly map video
+          '-map', '0:a:0?', // Explicitly map audio (optional if missing)
           outputFileName
         ];
         await ffmpeg.exec(concatArgs);
       } else {
         // Need to re-encode for transitions or format conversion
-        // Note: Transitions require re-encoding all clips, which increases processing time
         if (transition.type !== 'none') {
-          // For transitions, we need to re-encode with filter
-          // This applies fade in/out to the entire video (simplified transition)
-          const transitionArgs = [
+          // For transitions, first concatenate, then apply filter
+          // Note: Transitions require re-encoding which increases file size
+          const tempConcat = 'temp_concat.mp4';
+          const concatArgs = [
             '-f', 'concat',
             '-safe', '0',
             '-i', 'concat.txt',
+            '-c', 'copy',
+            '-map', '0:v:0',
+            '-map', '0:a:0?',
+            tempConcat
+          ];
+          await ffmpeg.exec(concatArgs);
+          
+          // Verify temp file exists before proceeding
+          try {
+            await ffmpeg.readFile(tempConcat);
+          } catch (e) {
+            throw new Error('Failed to create concatenated video for transitions');
+          }
+          
+          // Get total duration for fade out
+          const totalDuration = clips.reduce((sum, clip) => {
+            const clipDuration = (clip.endTrim || clip.duration) - (clip.startTrim || 0);
+            return sum + clipDuration;
+          }, 0);
+          
+          // Apply transition filter
+          const transitionArgs = [
+            '-i', tempConcat,
             '-c:v', 'libx264',
             '-c:a', 'aac',
             '-b:a', '192k',
             '-preset', preset,
-            '-crf', quality,
-            '-map', '0:v:0',
-            '-map', '0:a:0?'
+            '-crf', quality
           ];
           
           // Add transition filter based on type
           if (transition.type === 'fade') {
             // Fade in at start and fade out at end
+            const fadeOutStart = Math.max(0.1, totalDuration - transition.duration);
+            // Use separate video and audio fade filters
             transitionArgs.push(
-              '-vf', `fade=t=in:st=0:d=${transition.duration},fade=t=out:st=*:d=${transition.duration}`
+              '-vf', `fade=t=in:st=0:d=${transition.duration},fade=t=out:st=${fadeOutStart.toFixed(3)}:d=${transition.duration}`,
+              '-af', `afade=t=in:st=0:d=${transition.duration},afade=t=out:st=${fadeOutStart.toFixed(3)}:d=${transition.duration}`
             );
           } else if (transition.type === 'crossfade') {
-            // Note: True crossfade between clips requires complex filter graph
-            // This is a simplified version that fades in/out
-            transitionArgs.push('-vf', `fade=t=in:st=0:d=${transition.duration}`);
+            // Simple fade in
+            transitionArgs.push(
+              '-vf', `fade=t=in:st=0:d=${transition.duration}`,
+              '-af', `afade=t=in:st=0:d=${transition.duration}`
+            );
+          } else if (transition.type === 'slide') {
+            // No filter for slide (would need complex filter graph)
+            // Just re-encode without filter
           }
           
-          transitionArgs.push(outputFileName);
+          // Always map streams after filters
+          transitionArgs.push(
+            '-map', '0:v:0',
+            '-map', '0:a:0?',
+            outputFileName
+          );
+          
           await ffmpeg.exec(transitionArgs);
+          
+          // Clean up temp file
+          try {
+            await ffmpeg.deleteFile(tempConcat);
+          } catch (e) {
+            // Ignore
+          }
         } else {
           // Just format conversion
           const concatArgs = [
@@ -396,7 +442,8 @@ export default function ClipJoiner() {
             '-safe', '0',
             '-i', 'concat.txt',
             '-c', 'copy',
-            '-map', '0',
+            '-map', '0:v:0',
+            '-map', '0:a:0?',
             outputFileName
           ];
           await ffmpeg.exec(concatArgs);
