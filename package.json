@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "browser-id3-writer": "^6.3.1",
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.4",
     "jsqr": "^1.4.0",

@@ -72,6 +72,8 @@ export default function TagEditorPro() {
   });
   const [originalTags, setOriginalTags] = useState<TagData | null>(null);
   const [albumArt, setAlbumArt] = useState<string | null>(null);
+  const [originalAlbumArt, setOriginalAlbumArt] = useState<string | null>(null);
+  const [albumArtRemoved, setAlbumArtRemoved] = useState(false);
   const [audioInfo, setAudioInfo] = useState<AudioInfo | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
   const [autoFillMode, setAutoFillMode] = useState(false);
@@ -82,10 +84,11 @@ export default function TagEditorPro() {
   // Check for changes
   useEffect(() => {
     if (originalTags) {
-      const changed = JSON.stringify(tags) !== JSON.stringify(originalTags) || albumArt !== null;
-      setHasChanges(changed);
+      const tagsChanged = JSON.stringify(tags) !== JSON.stringify(originalTags);
+      const albumArtChanged = albumArt !== originalAlbumArt || albumArtRemoved;
+      setHasChanges(tagsChanged || albumArtChanged);
     }
-  }, [tags, originalTags, albumArt]);
+  }, [tags, originalTags, albumArt, originalAlbumArt, albumArtRemoved]);
 
   // Load tags from file
   const loadTags = async (file: File) => {
@@ -116,17 +119,20 @@ export default function TagEditorPro() {
       setTags(tagsData);
       setOriginalTags(tagsData);
 
-      // Extract album art
-      if (metadata.common.picture && metadata.common.picture.length > 0) {
-        const picture = metadata.common.picture[0];
-        const base64String = btoa(
-          String.fromCharCode(...picture.data)
-        );
-        const imageUrl = `data:${picture.format};base64,${base64String}`;
-        setAlbumArt(imageUrl);
-      } else {
-        setAlbumArt(null);
-      }
+          // Extract album art
+          if (metadata.common.picture && metadata.common.picture.length > 0) {
+            const picture = metadata.common.picture[0];
+            const base64String = btoa(
+              String.fromCharCode(...picture.data)
+            );
+            const imageUrl = `data:${picture.format};base64,${base64String}`;
+            setAlbumArt(imageUrl);
+            setOriginalAlbumArt(imageUrl);
+          } else {
+            setAlbumArt(null);
+            setOriginalAlbumArt(null);
+          }
+          setAlbumArtRemoved(false);
 
       // Update audio info from metadata
       if (metadata.format) {
@@ -214,6 +220,8 @@ export default function TagEditorPro() {
     setSelectedFile(file);
     setError(null);
     setAlbumArt(null);
+    setOriginalAlbumArt(null);
+    setAlbumArtRemoved(false);
     setHasChanges(false);
     
     // Load existing tags
@@ -230,6 +238,7 @@ export default function TagEditorPro() {
       const reader = new FileReader();
       reader.onload = (event) => {
         setAlbumArt(event.target?.result as string);
+        setAlbumArtRemoved(false);
       };
       reader.readAsDataURL(file);
     }
@@ -237,12 +246,14 @@ export default function TagEditorPro() {
 
   const removeAlbumArt = () => {
     setAlbumArt(null);
+    setAlbumArtRemoved(true);
   };
 
   const resetTags = () => {
     if (originalTags) {
       setTags(originalTags);
-      setAlbumArt(null);
+      setAlbumArt(originalAlbumArt);
+      setAlbumArtRemoved(false);
     }
   };
 
@@ -267,16 +278,74 @@ export default function TagEditorPro() {
     setError(null);
 
     try {
+      // Dynamically import browser-id3-writer
+      const { ID3Writer } = await import('browser-id3-writer');
+      
       // Read the original file
       const arrayBuffer = await selectedFile.arrayBuffer();
-      const fileBuffer = new Uint8Array(arrayBuffer);
 
-      // For now, we'll create a new file with the same audio data
-      // In a real implementation, you'd use a library like music-metadata to write ID3 tags
-      // This is a simplified version that preserves the file
-      
-      // Create a blob with the same data (tags would be written here in full implementation)
-      const taggedBlob = new Blob([fileBuffer], { type: selectedFile.type });
+      // Create ID3 writer
+      const writer = new ID3Writer(arrayBuffer);
+
+      // Set text tags
+      if (tags.title) writer.setFrame('TIT2', tags.title);
+      if (tags.artist) writer.setFrame('TPE1', [tags.artist]); // TPE1 expects array
+      if (tags.album) writer.setFrame('TALB', tags.album);
+      if (tags.albumArtist) writer.setFrame('TPE2', tags.albumArtist);
+      if (tags.year) {
+        const yearNum = parseInt(tags.year);
+        if (!isNaN(yearNum)) {
+          writer.setFrame('TYER', yearNum);
+        }
+      }
+      if (tags.genre) writer.setFrame('TCON', [tags.genre]); // TCON expects array
+      if (tags.composer) writer.setFrame('TCOM', [tags.composer]); // TCOM expects array
+      if (tags.comment) writer.setFrame('COMM', { language: 'eng', description: '', text: tags.comment });
+      if (tags.lyrics) writer.setFrame('USLT', { language: 'eng', description: '', lyrics: tags.lyrics });
+
+      // Set track and disc numbers
+      if (tags.track) {
+        const trackNum = parseInt(tags.track);
+        if (!isNaN(trackNum)) {
+          writer.setFrame('TRCK', trackNum.toString());
+        }
+      }
+      if (tags.disc) {
+        const discNum = parseInt(tags.disc);
+        if (!isNaN(discNum)) {
+          writer.setFrame('TPOS', discNum.toString());
+        }
+      }
+
+      // Set album art if provided
+      if (albumArt) {
+        try {
+          // Convert data URL to ArrayBuffer
+          const base64Data = albumArt.split(',')[1];
+          const binaryString = atob(base64Data);
+          const bytes = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+
+          // Set album art with proper ImageType (CoverFront = 0x03 = 3)
+          writer.setFrame('APIC', {
+            type: 3, // CoverFront
+            data: bytes.buffer,
+            description: 'Cover',
+            useUnicodeEncoding: false
+          });
+        } catch (artError) {
+          console.warn('Error setting album art:', artError);
+          // Continue without album art if there's an error
+        }
+      }
+
+      // Add ID3 tag to the file and get the tagged buffer
+      const taggedBuffer = writer.addTag();
+
+      // Create blob and download
+      const taggedBlob = new Blob([taggedBuffer], { type: selectedFile.type });
       const url = URL.createObjectURL(taggedBlob);
 
       const a = document.createElement('a');
@@ -290,8 +359,10 @@ export default function TagEditorPro() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      // Update original tags to reflect saved state
+      // Update original tags and album art to reflect saved state
       setOriginalTags({ ...tags });
+      setOriginalAlbumArt(albumArt);
+      setAlbumArtRemoved(false);
       setHasChanges(false);
 
     } catch (err) {
