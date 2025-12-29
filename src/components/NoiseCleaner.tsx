@@ -529,17 +529,8 @@ export default function NoiseCleaner() {
       // Detect noise profile
       const profile = detectNoiseProfile(buffer);
       setNoiseProfile(profile);
-      if (noiseType === 'auto') {
-        setNoiseType(profile.type);
-      }
-
-      // Auto-clean with detected profile
-      const cleaned = await cleanNoise(buffer, profile.type, intensity, algorithm);
-      setCleanedAudioBuffer(cleaned);
       
-      const cleanedWaveform = generateWaveformData(cleaned);
-      const cleanedSpectrum = generateFrequencySpectrum(cleaned);
-      setCleanedWaveform(cleanedWaveform);
+      // Don't auto-clean here - let useEffect handle it after state updates
       
     } catch (err) {
       console.error('Error loading audio:', err);
@@ -551,28 +542,38 @@ export default function NoiseCleaner() {
 
   // Re-process when settings change
   useEffect(() => {
-    if (originalAudioBuffer && noiseType !== 'auto') {
-      setIsProcessing(true);
-      cleanNoise(originalAudioBuffer, noiseType, intensity, algorithm)
-        .then((cleaned) => {
-          setCleanedAudioBuffer(cleaned);
-          const cleanedWaveform = generateWaveformData(cleaned);
-          const cleanedSpectrum = generateFrequencySpectrum(cleaned);
-          setCleanedWaveform(cleanedWaveform);
-          setFrequencySpectrum(cleanedSpectrum);
-          if (!showingOriginalWaveform) {
-            drawWaveform(cleanedWaveform, '#10b981');
-            drawSpectrum(cleanedSpectrum);
-          }
-          setIsProcessing(false);
-        })
-        .catch((err) => {
-          console.error('Error cleaning noise:', err);
-          setError('Failed to clean noise. Please try again.');
-          setIsProcessing(false);
-        });
-    }
-  }, [noiseType, intensity, algorithm, originalAudioBuffer, cleanNoise, generateWaveformData, generateFrequencySpectrum, showingOriginalWaveform, drawWaveform, drawSpectrum]);
+    if (!originalAudioBuffer) return;
+    
+    // If auto mode, wait for noise profile to be detected
+    if (noiseType === 'auto' && !noiseProfile) return;
+    
+    // Determine actual noise type to use
+    const actualNoiseType = noiseType === 'auto' && noiseProfile 
+      ? noiseProfile.type 
+      : noiseType === 'auto' 
+      ? 'background' 
+      : noiseType;
+    
+    setIsProcessing(true);
+    cleanNoise(originalAudioBuffer, actualNoiseType, intensity, algorithm)
+      .then((cleaned) => {
+        setCleanedAudioBuffer(cleaned);
+        const cleanedWaveform = generateWaveformData(cleaned);
+        const cleanedSpectrum = generateFrequencySpectrum(cleaned);
+        setCleanedWaveform(cleanedWaveform);
+        setFrequencySpectrum(cleanedSpectrum);
+        if (!showingOriginalWaveform) {
+          drawWaveform(cleanedWaveform, '#10b981');
+          drawSpectrum(cleanedSpectrum);
+        }
+        setIsProcessing(false);
+      })
+      .catch((err) => {
+        console.error('Error cleaning noise:', err);
+        setError('Failed to clean noise. Please try again.');
+        setIsProcessing(false);
+      });
+  }, [noiseType, intensity, algorithm, originalAudioBuffer, noiseProfile, cleanNoise, generateWaveformData, generateFrequencySpectrum, showingOriginalWaveform, drawWaveform, drawSpectrum]);
 
   // Update waveform display
   useEffect(() => {
