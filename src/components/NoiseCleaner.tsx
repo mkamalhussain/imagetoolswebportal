@@ -213,7 +213,7 @@ export default function NoiseCleaner() {
     };
   }, []);
 
-  // Spectral subtraction algorithm
+  // Spectral subtraction algorithm with proper noise gating
   const spectralSubtraction = useCallback((buffer: AudioBuffer, intensity: number): AudioBuffer => {
     if (!audioContext) throw new Error('AudioContext not initialized');
 
@@ -226,23 +226,73 @@ export default function NoiseCleaner() {
       const inputData = buffer.getChannelData(channel);
       const outputData = newBuffer.getChannelData(channel);
       
-      // Estimate noise floor from first 10% of audio
+      // Estimate noise floor from first 10% of audio (assuming it's mostly noise)
       const noiseSampleLength = Math.floor(length * 0.1);
       let noiseFloor = 0;
+      let noiseMax = 0;
       for (let i = 0; i < noiseSampleLength; i++) {
-        noiseFloor += Math.abs(inputData[i]);
+        const abs = Math.abs(inputData[i]);
+        noiseFloor += abs;
+        noiseMax = Math.max(noiseMax, abs);
       }
-      noiseFloor = (noiseFloor / noiseSampleLength) * intensity;
+      noiseFloor = (noiseFloor / noiseSampleLength) * (1 + intensity);
+      const noiseThreshold = noiseMax * (0.5 + intensity * 0.5);
 
-      // Apply spectral subtraction
+      // Apply spectral subtraction with noise gating
       for (let i = 0; i < length; i++) {
         const sample = inputData[i];
         const magnitude = Math.abs(sample);
-        const phase = Math.sign(sample);
         
-        // Subtract noise floor
-        const cleanedMagnitude = Math.max(0, magnitude - noiseFloor);
-        outputData[i] = cleanedMagnitude * phase;
+        // Only process if above noise threshold
+        if (magnitude > noiseThreshold) {
+          // Subtract noise floor with over-subtraction factor
+          const overSubtraction = 1.0 + intensity * 0.5;
+          const cleanedMagnitude = Math.max(0, magnitude - noiseFloor * overSubtraction);
+          
+          // Apply spectral floor to prevent musical noise
+          const spectralFloor = noiseFloor * 0.1;
+          const finalMagnitude = Math.max(cleanedMagnitude, spectralFloor);
+          
+          // Preserve phase
+          outputData[i] = (finalMagnitude / magnitude) * sample;
+        } else {
+          // Gate out noise below threshold
+          const gateFactor = Math.max(0, (magnitude - noiseThreshold * 0.5) / (noiseThreshold * 0.5));
+          outputData[i] = sample * gateFactor * (1 - intensity * 0.5);
+        }
+      }
+    }
+
+    return newBuffer;
+  }, [audioContext]);
+
+  // Low-pass filter for removing high-frequency noise (hiss)
+  const lowPassFilter = useCallback((buffer: AudioBuffer, cutoffFreq: number): AudioBuffer => {
+    if (!audioContext) throw new Error('AudioContext not initialized');
+
+    const numberOfChannels = buffer.numberOfChannels;
+    const sampleRate = buffer.sampleRate;
+    const length = buffer.length;
+    const newBuffer = audioContext.createBuffer(numberOfChannels, length, sampleRate);
+
+    // First-order low-pass filter
+    const rc = 1.0 / (cutoffFreq * 2 * Math.PI);
+    const dt = 1.0 / sampleRate;
+    const alpha = dt / (rc + dt);
+
+    for (let channel = 0; channel < numberOfChannels; channel++) {
+      const inputData = buffer.getChannelData(channel);
+      const outputData = newBuffer.getChannelData(channel);
+      
+      let prevOutput = inputData[0];
+      outputData[0] = prevOutput;
+
+      for (let i = 1; i < length; i++) {
+        const input = inputData[i];
+        // Low-pass filter: y[n] = alpha * x[n] + (1 - alpha) * y[n-1]
+        const output = alpha * input + (1 - alpha) * prevOutput;
+        outputData[i] = output;
+        prevOutput = output;
       }
     }
 
@@ -258,6 +308,7 @@ export default function NoiseCleaner() {
     const length = buffer.length;
     const newBuffer = audioContext.createBuffer(numberOfChannels, length, sampleRate);
 
+    // First-order high-pass filter coefficients
     const rc = 1.0 / (cutoffFreq * 2 * Math.PI);
     const dt = 1.0 / sampleRate;
     const alpha = rc / (rc + dt);
@@ -266,11 +317,15 @@ export default function NoiseCleaner() {
       const inputData = buffer.getChannelData(channel);
       const outputData = newBuffer.getChannelData(channel);
       
-      let prevInput = 0;
+      let prevInput = inputData[0];
       let prevOutput = 0;
 
-      for (let i = 0; i < length; i++) {
+      // Initialize with first sample
+      outputData[0] = 0;
+
+      for (let i = 1; i < length; i++) {
         const input = inputData[i];
+        // High-pass filter: y[n] = alpha * (y[n-1] + x[n] - x[n-1])
         const output = alpha * (prevOutput + input - prevInput);
         outputData[i] = output;
         prevInput = input;
@@ -323,7 +378,7 @@ export default function NoiseCleaner() {
     return newBuffer;
   }, [audioContext]);
 
-  // Adaptive noise reduction
+  // Adaptive noise reduction with better noise gating
   const adaptiveNoiseReduction = useCallback((buffer: AudioBuffer, intensity: number): AudioBuffer => {
     if (!audioContext) throw new Error('AudioContext not initialized');
 
@@ -333,31 +388,54 @@ export default function NoiseCleaner() {
     const newBuffer = audioContext.createBuffer(numberOfChannels, length, sampleRate);
 
     const windowSize = Math.floor(sampleRate * 0.02); // 20ms window
-    const smoothingFactor = 0.95;
+    const noiseSmoothing = 0.98; // Slow adaptation for noise
+    const signalSmoothing = 0.9; // Fast adaptation for signal
 
     for (let channel = 0; channel < numberOfChannels; channel++) {
       const inputData = buffer.getChannelData(channel);
       const outputData = newBuffer.getChannelData(channel);
       
+      // Initialize noise estimate from first 10% (assumed to be mostly noise)
+      const noiseInitLength = Math.floor(length * 0.1);
       let noiseEstimate = 0;
-      let signalEstimate = 0;
+      for (let i = 0; i < noiseInitLength; i++) {
+        noiseEstimate += Math.abs(inputData[i]);
+      }
+      noiseEstimate = noiseEstimate / noiseInitLength;
+      
+      let signalEstimate = noiseEstimate;
+      const minNoiseLevel = noiseEstimate * 0.5;
 
       for (let i = 0; i < length; i++) {
         const sample = inputData[i];
         const magnitude = Math.abs(sample);
 
-        // Update noise estimate (slow adaptation)
-        if (magnitude < noiseEstimate) {
-          noiseEstimate = noiseEstimate * smoothingFactor + magnitude * (1 - smoothingFactor);
+        // Update noise estimate (slow adaptation, only when signal is low)
+        if (magnitude < noiseEstimate * 1.5) {
+          noiseEstimate = noiseEstimate * noiseSmoothing + magnitude * (1 - noiseSmoothing);
         }
+        noiseEstimate = Math.max(noiseEstimate, minNoiseLevel);
 
         // Update signal estimate (fast adaptation)
-        signalEstimate = signalEstimate * 0.9 + magnitude * 0.1;
+        signalEstimate = signalEstimate * signalSmoothing + magnitude * (1 - signalSmoothing);
 
-        // Calculate gain
+        // Calculate SNR and gain
         const snr = signalEstimate / (noiseEstimate + 0.0001);
-        const gain = Math.max(0, Math.min(1, (snr - 1) / (snr + intensity)));
+        
+        // Improved gain function with intensity control
+        const snrThreshold = 1.0 + intensity;
+        let gain = 1.0;
+        
+        if (snr < snrThreshold) {
+          // Below threshold, apply noise reduction
+          const snrRatio = snr / snrThreshold;
+          gain = Math.max(0.1, snrRatio * (1 - intensity * 0.5));
+        } else {
+          // Above threshold, minimal reduction
+          gain = 1.0 - (intensity * 0.1);
+        }
 
+        // Apply gain with smoothing to prevent artifacts
         outputData[i] = sample * gain;
       }
     }
@@ -385,21 +463,39 @@ export default function NoiseCleaner() {
         cleaned = adaptiveNoiseReduction(buffer, intensity);
         break;
       case 'combined':
-        // Apply multiple algorithms
-        cleaned = spectralSubtraction(buffer, intensity * 0.8);
+        // Apply multiple algorithms for best results
+        // Start with spectral subtraction for general noise
+        cleaned = spectralSubtraction(buffer, intensity * 0.9);
+        
+        // Apply specific filters based on noise type
         if (noiseType === 'hum') {
+          // Remove 50Hz and 60Hz hum
+          cleaned = notchFilter(cleaned, 50, 30);
           cleaned = notchFilter(cleaned, 60, 30);
           cleaned = highPassFilter(cleaned, 80);
         } else if (noiseType === 'wind') {
+          // Remove low-frequency wind noise
           cleaned = highPassFilter(cleaned, 100);
+          cleaned = adaptiveNoiseReduction(cleaned, intensity * 0.7);
         } else if (noiseType === 'hiss') {
+          // Remove high-frequency hiss with low-pass filter
+          const sampleRate = buffer.sampleRate;
+          const cutoff = sampleRate * 0.4; // Keep frequencies below 40% of sample rate
+          cleaned = lowPassFilter(cleaned, cutoff);
           cleaned = adaptiveNoiseReduction(cleaned, intensity);
+        } else if (noiseType === 'background') {
+          // General background noise - use adaptive + spectral
+          cleaned = adaptiveNoiseReduction(cleaned, intensity * 0.8);
+        } else {
+          // Auto-detect - apply all methods lightly
+          cleaned = adaptiveNoiseReduction(cleaned, intensity * 0.7);
+          cleaned = highPassFilter(cleaned, 60);
         }
         break;
     }
 
     return cleaned;
-  }, [spectralSubtraction, highPassFilter, notchFilter, adaptiveNoiseReduction]);
+  }, [spectralSubtraction, highPassFilter, lowPassFilter, notchFilter, adaptiveNoiseReduction]);
 
   // Load audio file
   const handleFileSelect = async (file: File) => {
