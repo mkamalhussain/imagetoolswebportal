@@ -25,7 +25,7 @@ export default function HowToClient() {
   }, {} as Record<string, typeof allTools>);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         {/* Google AdSense Top Banner */}
         <div className="w-full max-w-4xl mb-16">

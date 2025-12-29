@@ -462,7 +462,7 @@ export default function ToolGuideClient({ toolSlug }: ToolGuideClientProps) {
 
   if (!tool || !guide) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center py-16">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
             Guide Not Found
@@ -486,7 +486,7 @@ export default function ToolGuideClient({ toolSlug }: ToolGuideClientProps) {
     .filter(Boolean);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Google AdSense Top Banner */}
         <div className="w-full mb-8">

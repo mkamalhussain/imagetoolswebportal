@@ -9,9 +9,10 @@ interface LayoutProps {
 export default function Layout({ children }: LayoutProps) {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-800 dark:text-gray-200 font-sans">
-      <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-800 py-3 px-6">
+      {/* Header - Visible on all pages */}
+      <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-800 py-3 px-6 sticky top-0 z-50">
         <div className="max-w-screen-xl mx-auto flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 text-xl font-bold text-gray-900 dark:text-white">
+          <Link href="/" className="flex items-center gap-2 text-xl font-bold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
             Free Tools
           </Link>
           <nav className="flex items-center gap-6">
@@ -30,10 +31,14 @@ export default function Layout({ children }: LayoutProps) {
           </nav>
         </div>
       </header>
-      <main className="flex-grow max-w-screen-xl mx-auto w-full p-6 sm:p-8">
+
+      {/* Main Content */}
+      <main className="flex-grow">
         {children}
       </main>
-      <footer className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 py-8 px-6 mt-12">
+
+      {/* Footer - Visible on all pages */}
+      <footer className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 py-8 px-6 mt-auto">
         <div className="max-w-screen-xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div>
@@ -45,27 +50,27 @@ export default function Layout({ children }: LayoutProps) {
             <div>
               <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Tools</h3>
               <ul className="space-y-2 text-sm">
-                <li><a href="/" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">Home</a></li>
-                <li><a href="/modules" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">All Tools</a></li>
-                <li><a href="/how-to" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">How To Guides</a></li>
+                <li><Link href="/" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Home</Link></li>
+                <li><Link href="/modules" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">All Tools</Link></li>
+                <li><Link href="/how-to" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">How To Guides</Link></li>
               </ul>
             </div>
             <div>
               <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Categories</h3>
               <ul className="space-y-2 text-sm">
-                <li><a href="/?tab=image" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">Image Tools</a></li>
-                <li><a href="/audio" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">Audio Tools</a></li>
-                <li><a href="/video" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">Video Tools</a></li>
-                <li><a href="/pdf" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">PDF Tools</a></li>
+                <li><Link href="/?tab=image" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Image Tools</Link></li>
+                <li><Link href="/audio" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Audio Tools</Link></li>
+                <li><Link href="/video" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Video Tools</Link></li>
+                <li><Link href="/pdf" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">PDF Tools</Link></li>
               </ul>
             </div>
             <div>
               <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Legal</h3>
               <ul className="space-y-2 text-sm">
-                <li><a href="/privacy" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">Privacy Policy</a></li>
-                <li><a href="/terms-of-service" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">Terms of Service</a></li>
-                <li><a href="/about" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">About Us</a></li>
-                <li><a href="/contact" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">Contact</a></li>
+                <li><Link href="/privacy" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Privacy Policy</Link></li>
+                <li><Link href="/terms-of-service" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Terms of Service</Link></li>
+                <li><Link href="/about" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">About Us</Link></li>
+                <li><Link href="/contact" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Contact</Link></li>
               </ul>
             </div>
           </div>
