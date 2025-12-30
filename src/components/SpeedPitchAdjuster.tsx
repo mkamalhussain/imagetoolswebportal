@@ -872,10 +872,11 @@ export default function SpeedPitchAdjuster() {
       });
 
     } catch (err) {
-      console.error('Error processing audio:', err);
-      setError('Failed to process audio. Please try again.');
+      console.error('❌ Error processing audio:', err);
+      setError(`Failed to process audio: ${err instanceof Error ? err.message : 'Unknown error'}. Using original audio.`);
       // Fallback: use original buffer
       setProcessedAudioBuffer(buffer);
+      console.log('🎵 Fallback: Using original buffer due to processing error');
     }
   }, [audioContext, showingOriginalWaveform, audioEffects, selectedCreativeEffect, applyAudioEffects, applyCreativeEffect]);
 
@@ -1092,18 +1093,25 @@ export default function SpeedPitchAdjuster() {
       return;
     }
 
+    if (isProcessing) {
+      console.log('⏳ Processing is still in progress, waiting...');
+      setError('Please wait for processing to complete before downloading.');
+      return;
+    }
+
     // Use processed buffer if available, otherwise use original
     const bufferToDownload = processedAudioBuffer || originalAudioBuffer;
     console.log('🎵 Buffer selection:', {
       hasProcessed: !!processedAudioBuffer,
       hasOriginal: !!originalAudioBuffer,
       usingProcessed: !!processedAudioBuffer,
-      usingOriginal: !processedAudioBuffer && !!originalAudioBuffer
+      usingOriginal: !processedAudioBuffer && !!originalAudioBuffer,
+      isProcessing
     });
 
     if (!bufferToDownload) {
       console.log('❌ No audio data available to download');
-      setError('No audio data available to download.');
+      setError('No audio data available to download. Please upload and process an audio file first.');
       return;
     }
 
@@ -1135,20 +1143,40 @@ export default function SpeedPitchAdjuster() {
       }
       console.log('Buffer validation:', { hasValidData, bufferLength: bufferToDownload?.length });
 
+      // If buffer appears empty, warn the user
+      if (!hasValidData) {
+        console.warn('⚠️ WARNING: Buffer appears to contain no audio data!');
+        console.warn('⚠️ This will result in an empty or silent WAV file');
+        console.warn('⚠️ Check if audio processing is working correctly');
+      }
+
       // Check if buffer has actual audio data
+      let totalSamplesWithData = 0;
       if (bufferToDownload && bufferToDownload.length > 0) {
         let hasData = false;
         for (let ch = 0; ch < bufferToDownload.numberOfChannels; ch++) {
           const data = bufferToDownload.getChannelData(ch);
-          for (let i = 0; i < Math.min(100, data.length); i++) {
+          let channelSamples = 0;
+          for (let i = 0; i < Math.min(1000, data.length); i++) { // Check more samples
             if (Math.abs(data[i]) > 0.001) {
               hasData = true;
-              break;
+              channelSamples++;
             }
           }
+          totalSamplesWithData += channelSamples;
+          console.log(`Channel ${ch} has ${channelSamples} non-zero samples`);
           if (hasData) break;
         }
-        console.log('Buffer has audio data:', hasData);
+        console.log('Buffer validation:', {
+          hasData,
+          totalSamplesWithData,
+          bufferLength: bufferToDownload.length,
+          channels: bufferToDownload.numberOfChannels
+        });
+
+        if (!hasData) {
+          console.warn('⚠️ Buffer appears to have no audio data - this will create an empty file');
+        }
       }
 
       // Convert AudioBuffer to WAV
@@ -1200,19 +1228,43 @@ export default function SpeedPitchAdjuster() {
       const effectsString = effects.length > 0 ? '_' + effects.slice(0, 3).join('_') : '';
       const filename = `processed_${originalName}${effectsString}.wav`;
 
+      console.log('🎵 Attempting download:', { filename, blobSize: blob.size });
+
       // Try multiple download methods
       try {
         // Method 1: Direct blob download
+        console.log('🎵 Method 1: Direct blob download');
         const url = URL.createObjectURL(blob);
+        console.log('🎵 Blob URL created:', url);
+
         const a = document.createElement('a');
         a.href = url;
         a.download = filename;
         a.style.display = 'none';
 
+        console.log('🎵 Clicking download link...');
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+
+        console.log('🎵 Download initiated successfully');
+
+      } catch (downloadErr) {
+        console.error('🎵 Download method 1 failed:', downloadErr);
+
+        // Method 2: Alternative download approach
+        try {
+          console.log('🎵 Method 2: Alternative download');
+          const url = URL.createObjectURL(blob);
+          window.open(url, '_blank');
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+          console.log('🎵 Alternative download attempted');
+        } catch (altErr) {
+          console.error('🎵 Alternative download also failed:', altErr);
+          throw new Error('Download failed completely');
+        }
+      }
       } catch (blobError) {
         console.warn('Blob download failed, trying alternative method:', blobError);
 
@@ -1989,6 +2041,39 @@ export default function SpeedPitchAdjuster() {
           >
             {isProcessing ? '⏳ Processing...' : '💾 Download Processed Audio'}
           </Button>
+
+          {/* Test download button for debugging */}
+          {originalAudioBuffer && (
+            <Button
+              onClick={async () => {
+                console.log('🎵 TEST: Downloading original audio...');
+                setIsProcessing(true);
+                try {
+                  const wavBuffer = audioBufferToWav(originalAudioBuffer);
+                  const blob = new Blob([wavBuffer], { type: 'audio/wav' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `original_${selectedFile?.name.replace(/\.[^/.]+$/, '')}.wav`;
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                  URL.revokeObjectURL(url);
+                  console.log('🎵 TEST: Original audio download completed');
+                } catch (err) {
+                  console.error('🎵 TEST: Original audio download failed:', err);
+                  setError('Test download failed');
+                } finally {
+                  setIsProcessing(false);
+                }
+              }}
+              disabled={isProcessing}
+              variant="outline"
+              size="sm"
+            >
+              🧪 Test Download (Original)
+            </Button>
+          )}
         </div>
       )}
 
