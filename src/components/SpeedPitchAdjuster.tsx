@@ -175,6 +175,8 @@ const CREATIVE_EFFECTS: CreativeEffect[] = [
 
 export default function SpeedPitchAdjuster() {
   console.log('🎵🎵🎵 SPEED PITCH ADJUSTER COMPONENT RENDERED 🎵🎵🎵');
+  console.log('🚨🚨🚨 COMPONENT IS RENDERING 🚨🚨🚨');
+  console.log('🔥🔥🔥 COMPONENT VERSION WITH DEBUG LOGS LOADED 🔥🔥🔥');
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -1084,8 +1086,11 @@ export default function SpeedPitchAdjuster() {
 
   // Download processed audio
   const downloadProcessed = async () => {
-    console.log('🎵 ========== DOWNLOAD FUNCTION STARTED ==========');
+    const timestamp = new Date().toISOString();
+    console.log(`🎵 ========== DOWNLOAD FUNCTION STARTED at ${timestamp} ==========`);
     console.log('🎵 DOWNLOAD FUNCTION CALLED - checking conditions');
+    console.log('🚨🚨🚨 DOWNLOAD BUTTON CLICKED - THIS SHOULD APPEAR 🚨🚨🚨');
+    console.log('🕐 Timestamp:', timestamp);
 
     if (!selectedFile) {
       console.log('❌ No file selected');
