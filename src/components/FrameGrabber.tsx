@@ -26,6 +26,7 @@ export default function FrameGrabber() {
   const [error, setError] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [ffmpeg, setFfmpeg] = useState<FFmpeg | null>(null);
   const [isFfmpegLoaded, setIsFfmpegLoaded] = useState(false);
   const [settings, setSettings] = useState<FrameSettings>({
@@ -45,7 +46,11 @@ export default function FrameGrabber() {
       try {
         const ffmpegInstance = new FFmpeg();
         ffmpegInstance.on('log', ({ message }) => {
-          console.log('FFmpeg:', message);
+          console.log('FrameGrabber FFmpeg:', message);
+        });
+
+        ffmpegInstance.on('progress', ({ progress: ffmpegProgress }) => {
+          setProgress(Math.round(ffmpegProgress * 100));
         });
 
         const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
