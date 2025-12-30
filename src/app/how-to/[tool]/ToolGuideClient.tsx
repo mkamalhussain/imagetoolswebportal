@@ -438,6 +438,147 @@ const toolGuides: Record<string, {
     ],
     relatedTools: ['noise-cleaner', 'multi-track-mixer', 'tag-editor-pro'],
   },
+  'subtitle-burner': {
+    title: 'How to Burn Subtitles into Videos',
+    description: 'Learn to permanently embed SRT subtitles into videos with custom styling, positioning, and encoding support.',
+    difficulty: 'Intermediate',
+    timeRequired: '10-15 minutes',
+    steps: [
+      {
+        title: 'Upload Video and Subtitle Files',
+        description: 'Select your video file and corresponding SRT subtitle file. Supported video formats: MP4, AVI, MOV, WebM.',
+        tip: 'Ensure your SRT file timing matches your video exactly',
+      },
+      {
+        title: 'Configure Character Encoding',
+        description: 'Select the correct text encoding for your subtitle file. Common options: UTF-8, Windows-1252, ISO-8859-1.',
+        tip: 'If subtitles appear as gibberish, try a different encoding like Windows-1252',
+      },
+      {
+        title: 'Customize Subtitle Styling',
+        description: 'Choose font family, size, color, and outline settings. Use style presets (Classic, Modern, Bold) for quick setup.',
+        tip: 'White text with black outline provides excellent readability on most videos',
+      },
+      {
+        title: 'Adjust Position and Alignment',
+        description: 'Set subtitle position (bottom/top/middle) and alignment (left/center/right) using the position controls.',
+        tip: 'Bottom center position works best for most videos to avoid covering important content',
+      },
+      {
+        title: 'Generate Preview (Optional)',
+        description: 'Click "Generate Preview" to see how subtitles will look in the first 10 seconds of your video.',
+        tip: 'Use preview to verify styling before processing the full video',
+      },
+      {
+        title: 'Burn Subtitles and Download',
+        description: 'Click "Burn Subtitles & Download" to permanently embed subtitles into your entire video.',
+        tip: 'Processing time depends on video length - longer videos may take several minutes',
+      },
+    ],
+    tips: [
+      'Always use correctly timed SRT files for best results',
+      'Test different encodings if subtitles appear corrupted',
+      'Choose contrasting colors (white text, black outline) for readability',
+      'Position subtitles to avoid covering faces or important visual elements',
+      'Use preview feature to verify styling before full processing',
+      'MP4 output maintains video quality while embedding subtitles permanently',
+    ],
+    relatedTools: ['video-trimmer', 'gif-maker', 'clip-joiner'],
+  },
+  'frame-grabber': {
+    title: 'How to Extract Frames from Videos',
+    description: 'Master frame extraction with automatic capture, manual selection, and batch processing for thumbnails and analysis.',
+    difficulty: 'Beginner',
+    timeRequired: '5-10 minutes',
+    steps: [
+      {
+        title: 'Upload Your Video',
+        description: 'Select your video file using the upload button. Supported formats: MP4, AVI, MOV, WebM.',
+        tip: 'Videos up to 500MB work well - longer videos may take more time to process',
+      },
+      {
+        title: 'Configure Extraction Settings',
+        description: 'Set interval between frames (seconds), maximum frames to extract, output format (PNG/JPG/WebP), and quality.',
+        tip: '1-second intervals work well for most videos - adjust based on your needs',
+      },
+      {
+        title: 'Manual Frame Capture (Optional)',
+        description: 'Play your video and click "Capture Current Frame" at any point to grab specific frames manually.',
+        tip: 'Use this for extracting key moments, thumbnails, or specific scenes',
+      },
+      {
+        title: 'Automatic Frame Extraction',
+        description: 'Click "🤖 Auto Extract Frames" to automatically extract frames at your specified intervals.',
+        tip: 'This creates a gallery of frames you can download individually or all at once',
+      },
+      {
+        title: 'Review Extracted Frames',
+        description: 'Browse through your captured frames in the gallery view. Each frame shows timestamp and format.',
+        tip: 'Frames are sorted by capture time for easy navigation',
+      },
+      {
+        title: 'Download Frames',
+        description: 'Download individual frames or use "Download All" to get a ZIP of all extracted frames.',
+        tip: 'PNG format preserves quality, JPG/WebP offer smaller file sizes',
+      },
+    ],
+    tips: [
+      'Use 1-2 second intervals for overview frames of longer videos',
+      'PNG format gives highest quality but larger file sizes',
+      'Extract keyframes for video thumbnails and previews',
+      'Use manual capture for specific moments (goals, highlights, etc.)',
+      'Consider video frame rate when setting extraction intervals',
+      'Batch extraction is perfect for creating video thumbnails',
+    ],
+    relatedTools: ['video-trimmer', 'gif-maker', 'image-resizer'],
+  },
+  'audio-stripper': {
+    title: 'How to Extract Audio from Videos',
+    description: 'Learn to strip audio tracks from videos with multiple format support, quality settings, and processing options.',
+    difficulty: 'Beginner',
+    timeRequired: '5-15 minutes',
+    steps: [
+      {
+        title: 'Upload Your Video',
+        description: 'Select a video file containing the audio you want to extract. Supported formats: MP4, AVI, MOV, WebM.',
+        tip: 'Any video with an audio track will work - even silent videos can be processed',
+      },
+      {
+        title: 'Configure Audio Format',
+        description: 'Choose output format (MP3/AAC/WAV/FLAC) and adjust quality settings like bitrate and sample rate.',
+        tip: 'MP3 at 192kbps provides excellent quality for most music/audio applications',
+      },
+      {
+        title: 'Set Audio Properties',
+        description: 'Select channels (Mono/Stereo), sample rate (44.1kHz recommended), and other audio parameters.',
+        tip: 'Keep stereo for music, mono for voice recordings to save space',
+      },
+      {
+        title: 'Apply Processing Options',
+        description: 'Enable audio normalization, silence removal, or set custom trim points for start/end times.',
+        tip: 'Normalization ensures consistent volume levels across the extracted audio',
+      },
+      {
+        title: 'Extract Audio',
+        description: 'Click "Extract Audio & Download" to begin processing. Progress bar shows extraction status.',
+        tip: 'Processing time depends on video length and selected quality settings',
+      },
+      {
+        title: 'Download and Verify',
+        description: 'Your audio file will download automatically. Check the file in your preferred audio player.',
+        tip: 'Verify audio quality and length match your expectations before using',
+      },
+    ],
+    tips: [
+      'FLAC format provides lossless quality for archival purposes',
+      'MP3/AAC formats offer good compression with minimal quality loss',
+      'Use normalization for consistent volume across different source videos',
+      'Trim functionality allows extracting specific audio segments',
+      'Higher bitrates = better quality but larger file sizes',
+      '44.1kHz sample rate matches CD quality standards',
+    ],
+    relatedTools: ['video-trimmer', 'noise-cleaner', 'tag-editor-pro'],
+  },
 };
 
 interface ToolGuideClientProps {
