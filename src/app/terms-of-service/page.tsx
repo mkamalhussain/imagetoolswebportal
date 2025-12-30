@@ -58,108 +58,104 @@ export default function TermsOfServicePage() {
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">2. Use License</h2>
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">2. Description of Service</h2>
               <p className="text-gray-600 dark:text-gray-400 mb-4">
-                Permission is granted to temporarily use our tools for personal, non-commercial transitory viewing only. This is the grant of a license, not a transfer of title, and under this license you may not:
+                Free Tools provides online tools for processing images, audio files, videos, and PDF documents. All processing occurs in your web browser using client-side technologies.
+              </p>
+            </section>
+
+            <section className="mb-8">
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">3. Free Service</h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
+                Our services are provided free of charge. We reserve the right to modify or discontinue any service at any time without notice.
+              </p>
+            </section>
+
+            <section className="mb-8">
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">4. User Responsibilities</h2>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">4.1 Lawful Use</h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
+                You agree to use our services only for lawful purposes. You may not use our services to:
               </p>
               <ul className="list-disc pl-6 text-gray-600 dark:text-gray-400 mb-4">
-                <li>modify or copy the tools</li>
-                <li>use the tools for any commercial purpose or for any public display (commercial or non-commercial)</li>
-                <li>attempt to decompile or reverse engineer any software contained in our tools</li>
-                <li>remove any copyright or other proprietary notations from the tools</li>
+                <li>Process illegal, harmful, or offensive content</li>
+                <li>Violate intellectual property rights</li>
+                <li>Distribute malware or viruses</li>
+                <li>Harass, abuse, or harm others</li>
+                <li>Attempt to gain unauthorized access to our systems</li>
+              </ul>
+
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">4.2 Content Ownership</h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
+                You retain ownership of all content you process through our services. You are responsible for ensuring you have the right to process and modify the files you upload.
+              </p>
+            </section>
+
+            <section className="mb-8">
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">5. Privacy and Data Protection</h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
+                Your privacy is important to us. Please review our Privacy Policy, which is incorporated into these Terms by reference. Key points:
+              </p>
+              <ul className="list-disc pl-6 text-gray-600 dark:text-gray-400 mb-4">
+                <li>All processing occurs in your browser</li>
+                <li>Your files are never uploaded to our servers</li>
+                <li>We do not store or track your usage</li>
+                <li>We do not collect personal information</li>
               </ul>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">3. User Data and Privacy</h2>
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">6. Service Availability</h2>
               <p className="text-gray-600 dark:text-gray-400 mb-4">
-                We are committed to protecting your privacy. Please review our Privacy Policy, which also governs your use of our tools, to understand our practices.
-              </p>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
-                <strong>GDPR Compliance:</strong> If you are located in the European Union, you have certain data protection rights under the General Data Protection Regulation (GDPR). You can:
-              </p>
-              <ul className="list-disc pl-6 text-gray-600 dark:text-gray-400 mb-4">
-                <li>Access your personal data</li>
-                <li>Rectify inaccurate data</li>
-                <li>Erase your personal data</li>
-                <li>Restrict processing of your personal data</li>
-                <li>Data portability</li>
-                <li>Object to processing</li>
-              </ul>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">4. File Upload and Processing</h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
-                When you upload files to our tools:
-              </p>
-              <ul className="list-disc pl-6 text-gray-600 dark:text-gray-400 mb-4">
-                <li>Files are processed temporarily and deleted after processing</li>
-                <li>We do not store your files permanently</li>
-                <li>You retain ownership of your original content</li>
-                <li>You are responsible for ensuring you have rights to process the files</li>
-                <li>Maximum file sizes are specified for each tool</li>
-              </ul>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">5. Intellectual Property Rights</h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
-                Our tools and their original content, features, and functionality are and will remain the exclusive property of Free Tools and its licensors. The tools are protected by copyright, trademark, and other laws.
+                While we strive to provide reliable service, we do not guarantee uninterrupted access. Our services may be temporarily unavailable due to maintenance, technical issues, or other reasons beyond our control.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">6. User Content</h2>
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">7. Limitation of Liability</h2>
               <p className="text-gray-600 dark:text-gray-400 mb-4">
-                Our tools may allow you to upload, process, or generate content. You retain ownership of your content, but you grant us a limited license to process it for the purpose of providing our services.
+                Our services are provided "as is" without warranties of any kind. We shall not be liable for any direct, indirect, incidental, special, or consequential damages arising from your use of our services.
+              </p>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
+                We are not responsible for the quality or accuracy of processed files. Always keep backups of your original files.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">7. Disclaimer</h2>
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">8. Intellectual Property</h2>
               <p className="text-gray-600 dark:text-gray-400 mb-4">
-                The information on this website is provided on an 'as is' basis. To the fullest extent permitted by law, Free Tools:
+                The Free Tools website, software, and branding are owned by us and protected by intellectual property laws. You may not copy, modify, or distribute our content without permission.
               </p>
-              <ul className="list-disc pl-6 text-gray-600 dark:text-gray-400 mb-4">
-                <li>excludes all representations and warranties relating to this website and its contents</li>
-                <li>does not guarantee that the tools will be error-free or uninterrupted</li>
-                <li>shall not be liable for any direct, indirect, incidental, or consequential damages</li>
-              </ul>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">8. Limitations</h2>
               <p className="text-gray-600 dark:text-gray-400 mb-4">
-                In no event shall Free Tools or its suppliers be liable for any damages (including, without limitation, damages for loss of data or profit, or due to business interruption) arising out of the use or inability to use the tools.
+                We use open-source libraries and tools, which are subject to their respective licenses.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">9. Accuracy of Materials</h2>
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">9. Termination</h2>
               <p className="text-gray-600 dark:text-gray-400 mb-4">
-                The materials appearing on our tools could include technical, typographical, or photographic errors. Free Tools does not warrant that any of the materials on its tools are accurate, complete, or current.
+                We reserve the right to terminate or suspend your access to our services at any time, without notice, for any reason, including violation of these terms.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">10. Modifications</h2>
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">10. Governing Law</h2>
               <p className="text-gray-600 dark:text-gray-400 mb-4">
-                Free Tools may revise these terms of service at any time without notice. By using our tools, you are agreeing to be bound by the then current version of these terms of service.
+                These Terms shall be governed by and construed in accordance with applicable laws. Any disputes shall be resolved through binding arbitration.
               </p>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">11. Governing Law</h2>
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">11. Changes to Terms</h2>
               <p className="text-gray-600 dark:text-gray-400 mb-4">
-                These terms and conditions are governed by and construed in accordance with applicable laws, and any disputes relating to these terms and conditions will be subject to the exclusive jurisdiction of the courts.
+                We may update these Terms at any time. Continued use of our services after changes constitutes acceptance of the new terms.
               </p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">12. Contact Information</h2>
               <p className="text-gray-600 dark:text-gray-400 mb-4">
-                If you have any questions about these Terms of Service, please contact us through our Contact page.
+                If you have questions about these Terms, please contact us at legal@freetools.com.
               </p>
             </section>
           </div>

@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary',
     title: 'Privacy Policy - How We Protect Your Data',
-    description: 'Learn about our privacy practices and data protection policies.',
+    description: 'Learn about our privacy practices, data collection policies, and how we protect your information.',
   },
   alternates: {
     canonical: 'https://freetools.com/privacy',
@@ -64,76 +64,51 @@ export default function PrivacyPolicy() {
               <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
                 2. Information We Collect
               </h2>
-
-              <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-3">
-                2.1 Information You Provide
-              </h3>
-              <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 mb-4 ml-4">
-                <li>Files you upload for processing (images, PDFs, etc.)</li>
-                <li>Account information if you create an account</li>
-                <li>Communications you send to us</li>
-              </ul>
-
-              <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-3">
-                2.2 Automatically Collected Information
-              </h3>
-              <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 mb-4 ml-4">
-                <li>IP address and location information</li>
-                <li>Browser type and version</li>
-                <li>Device information</li>
-                <li>Usage patterns and preferences</li>
-                <li>Cookies and similar tracking technologies</li>
-              </ul>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
-                3. How We Use Your Information
-              </h2>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
-                We use the information we collect for various purposes:
+                We do not collect any personal information from our users. Our services are designed to process your files entirely in your browser, without any data being transmitted to our servers.
               </p>
-              <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 mb-4 ml-4">
-                <li>To provide and maintain our services</li>
-                <li>To process and convert your files</li>
-                <li>To improve our services and develop new features</li>
-                <li>To communicate with you about updates and changes</li>
-                <li>To ensure security and prevent fraud</li>
-                <li>To comply with legal obligations</li>
-              </ul>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
-                4. File Processing and Data Security
-              </h2>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">2.1 Files Processed</h3>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
-                <strong>Client-Side Processing:</strong> Most of our tools process your files directly in your browser. Files are not uploaded to our servers for processing.
+                When you use our tools, your files are processed locally in your web browser using WebAssembly and JavaScript. Your files never leave your device or get uploaded to our servers.
               </p>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">2.2 Usage Analytics</h3>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
-                <strong>Temporary Storage:</strong> Some files may be temporarily stored in your browser's memory during processing and are automatically deleted when you close your browser or refresh the page.
-              </p>
-              <p className="text-gray-700 dark:text-gray-300 mb-4">
-                <strong>Security Measures:</strong> We implement appropriate technical and organizational security measures to protect your information against unauthorized access, alteration, disclosure, or destruction.
+                We do not track, collect, or store any usage analytics, browsing patterns, or behavioral data.
               </p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
-                5. Cookies and Tracking Technologies
+                3. How We Use Information
               </h2>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
-                We use cookies and similar tracking technologies to enhance your experience, analyze usage patterns, and provide personalized content. You can control cookie settings through your browser preferences.
+                Since we do not collect any personal information, we do not use your information for any purposes.
               </p>
+            </section>
+
+            <section className="mb-8">
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
+                4. Information Sharing and Disclosure
+              </h2>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
-                <strong>Essential Cookies:</strong> Required for basic website functionality.
+                We do not share, sell, or disclose any personal information because we do not collect any.
               </p>
+            </section>
+
+            <section className="mb-8">
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
+                5. Data Security
+              </h2>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
-                <strong>Analytics Cookies:</strong> Help us understand how users interact with our website.
+                Your privacy and security are our highest priorities. Here's how we protect your data:
               </p>
-              <p className="text-gray-700 dark:text-gray-300 mb-4">
-                <strong>Advertising Cookies:</strong> Used to deliver relevant advertisements.
-              </p>
+              <ul className="list-disc pl-6 text-gray-700 dark:text-gray-300 mb-4">
+                <li><strong>Client-side processing:</strong> All file processing happens in your browser, not on our servers</li>
+                <li><strong>No data storage:</strong> We never store your files or personal information</li>
+                <li><strong>No data transmission:</strong> Your files never leave your device</li>
+                <li><strong>HTTPS encryption:</strong> Our website uses HTTPS to secure the connection</li>
+                <li><strong>Open source:</strong> Our code is transparent and auditable</li>
+              </ul>
             </section>
 
             <section className="mb-8">
@@ -141,40 +116,34 @@ export default function PrivacyPolicy() {
                 6. Third-Party Services
               </h2>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
-                Our website may contain links to third-party websites or integrate with third-party services. We are not responsible for the privacy practices of these third parties.
+                We use third-party services for website hosting and analytics. These services may collect anonymous usage statistics, but we have configured them to minimize data collection.
               </p>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">6.1 Hosting</h3>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
-                <strong>Google AdSense:</strong> We use Google AdSense to display advertisements. Google may collect information about your visits to our website. Please refer to Google's Privacy Policy for more information.
+                Our website is hosted on Vercel, which provides the infrastructure for our site. Vercel may collect anonymous server logs for security and performance monitoring.
+              </p>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">6.2 Google AdSense (Future)</h3>
+              <p className="text-gray-700 dark:text-gray-300 mb-4">
+                We may implement Google AdSense in the future. Google AdSense uses cookies and similar technologies to serve personalized ads. You can opt out of personalized advertising by visiting Google's Ads Settings.
               </p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
-                7. Data Retention
+                7. Cookies and Tracking
               </h2>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
-                We retain your personal information only as long as necessary to provide our services and fulfill the purposes outlined in this Privacy Policy, unless a longer retention period is required by law.
-              </p>
-              <p className="text-gray-700 dark:text-gray-300 mb-4">
-                Files uploaded for processing are typically processed immediately and not stored on our servers. Temporary browser storage is cleared when you close your browser.
+                Currently, our website does not use cookies or tracking technologies. If we implement them in the future, we will update this policy accordingly.
               </p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
-                8. Your Rights
+                8. International Data Transfers
               </h2>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
-                Depending on your location, you may have certain rights regarding your personal information:
+                Since we do not collect or store personal data, there are no international data transfers.
               </p>
-              <ul className="list-disc list-inside text-gray-700 dark:text-gray-300 mb-4 ml-4">
-                <li>Access to your personal information</li>
-                <li>Correction of inaccurate information</li>
-                <li>Deletion of your personal information</li>
-                <li>Restriction of processing</li>
-                <li>Data portability</li>
-                <li>Objection to processing</li>
-              </ul>
             </section>
 
             <section className="mb-8">
@@ -182,13 +151,30 @@ export default function PrivacyPolicy() {
                 9. Children's Privacy
               </h2>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
-                Our services are not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13. If you are a parent or guardian and believe your child has provided us with personal information, please contact us.
+                Our services are not directed to children under 13. We do not knowingly collect personal information from children under 13.
               </p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
-                10. Changes to This Privacy Policy
+                10. GDPR Rights (EU Users)
+              </h2>
+              <p className="text-gray-700 dark:text-gray-300 mb-4">
+                As a European user, you have certain rights regarding your personal data. However, since we do not collect any personal information, these rights are automatically fulfilled:
+              </p>
+              <ul className="list-disc pl-6 text-gray-700 dark:text-gray-300 mb-4">
+                <li><strong>Right to access:</strong> We don't have your data to access</li>
+                <li><strong>Right to rectification:</strong> No data to correct</li>
+                <li><strong>Right to erasure:</strong> No data to delete</li>
+                <li><strong>Right to restrict processing:</strong> No processing to restrict</li>
+                <li><strong>Right to data portability:</strong> No data to port</li>
+                <li><strong>Right to object:</strong> No processing to object to</li>
+              </ul>
+            </section>
+
+            <section className="mb-8">
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
+                11. Changes to This Privacy Policy
               </h2>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
                 We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last updated" date.
@@ -197,26 +183,25 @@ export default function PrivacyPolicy() {
 
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
-                11. Contact Us
+                12. Contact Us
               </h2>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
-                If you have any questions about this Privacy Policy or our privacy practices, please contact us at:
+                If you have any questions about this Privacy Policy, please contact us:
               </p>
-              <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">
-                <p className="text-gray-700 dark:text-gray-300">
-                  <strong>Email:</strong> privacy@freetools.com<br />
-                  <strong>Address:</strong> [Your Business Address]<br />
-                  <strong>Phone:</strong> [Your Phone Number]
-                </p>
-              </div>
+              <ul className="list-disc pl-6 text-gray-700 dark:text-gray-300 mb-4">
+                <li>Email: privacy@freetools.com</li>
+                <li>Address: [Company Address - To be updated]</li>
+              </ul>
             </section>
           </div>
         </div>
 
-        {/* Google AdSense Footer */}
-        <div className="bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center mt-8">
-          <p className="text-gray-500 dark:text-gray-400">📢 Google AdSense Placeholder</p>
-          <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">728x90 Banner Ad</p>
+        {/* Google AdSense Bottom Banner */}
+        <div className="w-full mt-12">
+          <div className="bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center">
+            <p className="text-gray-500 dark:text-gray-400">📢 Google AdSense Placeholder</p>
+            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">728x90 Banner Ad</p>
+          </div>
         </div>
       </div>
     </div>

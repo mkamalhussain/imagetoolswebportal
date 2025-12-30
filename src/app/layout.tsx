@@ -176,35 +176,8 @@ export default function RootLayout({
   return (
     <html lang="en" itemScope itemType="https://schema.org/WebSite">
       <head>
-        {/* Essential Meta Tags */}
-        <meta name="description" content="Free online tools for image resizing, conversion, meme creation, audio processing, video editing, and PDF manipulation. No signup required. Professional quality tools." />
-        <meta name="keywords" content="free online tools, image editor, photo editing, audio tools, video editor, PDF tools, image converter, GIF maker, noise remover, video trimmer, PDF merger" />
-        <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
-        <meta name="author" content="Free Tools Team" />
+        {/* Viewport meta tag is required */}
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-        {/* Canonical URL */}
-        <link rel="canonical" href="https://freetools.com" />
-
-        {/* Open Graph / Facebook */}
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://freetools.com" />
-        <meta property="og:title" content="Free Tools - Professional Online Image, Audio, Video & PDF Tools" />
-        <meta property="og:description" content="Free online tools for image resizing, conversion, meme creation, audio processing, video editing, and PDF manipulation. No signup required. Professional quality tools." />
-        <meta property="og:image" content="https://freetools.com/og-image.png" />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta property="og:site_name" content="Free Tools" />
-        <meta property="og:locale" content="en_US" />
-
-        {/* Twitter */}
-        <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:url" content="https://freetools.com" />
-        <meta property="twitter:title" content="Free Tools - Professional Online Image, Audio, Video & PDF Tools" />
-        <meta property="twitter:description" content="Free online tools for image resizing, conversion, meme creation, audio processing, video editing, and PDF manipulation. No signup required." />
-        <meta property="twitter:image" content="https://freetools.com/og-image.png" />
-        <meta name="twitter:creator" content="@FreeToolsOnline" />
-        <meta name="twitter:site" content="@FreeToolsOnline" />
 
         {/* Preconnect to external domains for performance */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
