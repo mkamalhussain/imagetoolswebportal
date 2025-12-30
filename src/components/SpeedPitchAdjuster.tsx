@@ -318,7 +318,10 @@ export default function SpeedPitchAdjuster() {
       const arrayBuffer = await file.arrayBuffer();
       const buffer = await audioContext.decodeAudioData(arrayBuffer);
       setOriginalAudioBuffer(buffer);
-      
+
+      // Immediately set processed buffer to original (will be updated by processAudio)
+      setProcessedAudioBuffer(buffer);
+
       // Generate and store original waveform
       const origWaveform = generateWaveformData(buffer);
       setOriginalWaveformData(origWaveform);
@@ -711,7 +714,12 @@ export default function SpeedPitchAdjuster() {
     try {
       let processedBuffer = buffer;
 
-      // Only process if speed or pitch is changed from default
+      console.log('🎵 Processing audio - speed:', speedValue, 'pitch:', pitchValue);
+
+      // Always start with the original buffer
+      processedBuffer = buffer;
+
+      // Apply speed/pitch changes if needed
       if (speedValue !== 1.0 || pitchValue !== 1.0) {
         const sampleRate = buffer.sampleRate;
         const numberOfChannels = buffer.numberOfChannels;
@@ -803,7 +811,8 @@ export default function SpeedPitchAdjuster() {
 
       // Final validation
       if (!effectsBuffer || effectsBuffer.length === 0 || isNaN(effectsBuffer.length)) {
-        throw new Error('Audio processing resulted in invalid buffer');
+        console.warn('Audio processing resulted in invalid buffer, using original');
+        effectsBuffer = buffer;
       }
 
       // Check if buffer has any non-zero data
@@ -819,8 +828,7 @@ export default function SpeedPitchAdjuster() {
       }
 
       if (!hasAudioData) {
-        console.warn('Processed buffer contains no audio data');
-        // Return original buffer if processing resulted in silence
+        console.warn('Processed buffer contains no audio data, using original');
         effectsBuffer = buffer;
       }
 
@@ -860,12 +868,13 @@ export default function SpeedPitchAdjuster() {
     }
   }, [audioContext, showingOriginalWaveform, audioEffects, selectedCreativeEffect, applyAudioEffects, applyCreativeEffect]);
 
-  // Update processed audio when speed or pitch changes
+  // Process audio whenever original buffer or settings change
   useEffect(() => {
     if (originalAudioBuffer) {
+      console.log('🎵 Processing audio - original buffer loaded or settings changed');
       processAudio(originalAudioBuffer, speed, pitch);
     }
-  }, [speed, pitch, originalAudioBuffer, processAudio]);
+  }, [originalAudioBuffer, speed, pitch, processAudio]);
 
   // Update waveform display when switching between original/processed
   useEffect(() => {
