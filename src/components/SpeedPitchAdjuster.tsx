@@ -9,6 +9,36 @@ interface Preset {
   pitch: number;
   icon: string;
   description: string;
+  effects?: AudioEffects;
+}
+
+interface VoiceEffect {
+  name: string;
+  icon: string;
+  description: string;
+  speed: number;
+  pitch: number;
+  distortion: number;
+  reverb: number;
+  echo: number;
+  eq: { low: number; mid: number; high: number };
+}
+
+interface AudioEffects {
+  distortion: number;
+  reverb: number;
+  echo: number;
+  compression: number;
+  eq: { low: number; mid: number; high: number };
+  stereoWidth: number;
+}
+
+interface CreativeEffect {
+  name: string;
+  icon: string;
+  description: string;
+  type: 'reverse' | 'stutter' | 'pitchBend' | 'robot' | 'alien';
+  params: any;
 }
 
 const PRESETS: Preset[] = [
@@ -19,6 +49,128 @@ const PRESETS: Preset[] = [
   { name: 'Deep Voice', speed: 1.0, pitch: 0.7, icon: '🎤', description: 'Normal speed, lower pitch' },
   { name: 'Slow & Deep', speed: 0.7, pitch: 0.8, icon: '🎭', description: 'Slower and deeper' },
   { name: 'Fast & High', speed: 1.5, pitch: 1.3, icon: '🚀', description: 'Faster and higher' },
+];
+
+const VOICE_EFFECTS: VoiceEffect[] = [
+  {
+    name: 'Robot',
+    icon: '🤖',
+    description: 'Mechanical robot voice',
+    speed: 1.0,
+    pitch: 0.8,
+    distortion: 0.3,
+    reverb: 0.1,
+    echo: 0.2,
+    eq: { low: -10, mid: 5, high: 15 }
+  },
+  {
+    name: 'Alien',
+    icon: '👽',
+    description: 'Otherworldly alien voice',
+    speed: 0.9,
+    pitch: 1.4,
+    distortion: 0.4,
+    reverb: 0.3,
+    echo: 0.1,
+    eq: { low: 10, mid: -5, high: 20 }
+  },
+  {
+    name: 'Underwater',
+    icon: '🐠',
+    description: 'Submerged underwater effect',
+    speed: 0.8,
+    pitch: 0.9,
+    distortion: 0.1,
+    reverb: 0.5,
+    echo: 0.8,
+    eq: { low: 15, mid: -10, high: -20 }
+  },
+  {
+    name: 'Phone',
+    icon: '📞',
+    description: 'Telephone voice effect',
+    speed: 1.0,
+    pitch: 1.0,
+    distortion: 0.2,
+    reverb: 0.0,
+    echo: 0.0,
+    eq: { low: -15, mid: 5, high: -10 }
+  },
+  {
+    name: 'Monster',
+    icon: '👹',
+    description: 'Deep scary monster voice',
+    speed: 0.6,
+    pitch: 0.5,
+    distortion: 0.6,
+    reverb: 0.4,
+    echo: 0.3,
+    eq: { low: 20, mid: -5, high: -15 }
+  },
+  {
+    name: 'Chipmunk',
+    icon: '🐿️',
+    description: 'High-pitched chipmunk voice',
+    speed: 1.0,
+    pitch: 2.0,
+    distortion: 0.1,
+    reverb: 0.0,
+    echo: 0.0,
+    eq: { low: -10, mid: 10, high: 20 }
+  },
+  {
+    name: 'Helium',
+    icon: '🎈',
+    description: 'High helium voice effect',
+    speed: 1.2,
+    pitch: 1.6,
+    distortion: 0.0,
+    reverb: 0.0,
+    echo: 0.0,
+    eq: { low: -20, mid: 5, high: 25 }
+  },
+  {
+    name: 'Demon',
+    icon: '👿',
+    description: 'Evil demonic voice',
+    speed: 0.7,
+    pitch: 0.6,
+    distortion: 0.8,
+    reverb: 0.6,
+    echo: 0.4,
+    eq: { low: 25, mid: -10, high: -5 }
+  }
+];
+
+const CREATIVE_EFFECTS: CreativeEffect[] = [
+  {
+    name: 'Reverse',
+    icon: '🔄',
+    description: 'Play audio backwards',
+    type: 'reverse',
+    params: {}
+  },
+  {
+    name: 'Stutter',
+    icon: '⚡',
+    description: 'Create stuttering effect',
+    type: 'stutter',
+    params: { intensity: 0.5, speed: 10 }
+  },
+  {
+    name: 'Pitch Bend',
+    icon: '🌊',
+    description: 'Smooth pitch bending',
+    type: 'pitchBend',
+    params: { range: 2, speed: 2 }
+  },
+  {
+    name: 'Vibrato',
+    icon: '〰️',
+    description: 'Add vibrato effect',
+    type: 'robot',
+    params: { rate: 5, depth: 0.3 }
+  }
 ];
 
 export default function SpeedPitchAdjuster() {
@@ -36,7 +188,30 @@ export default function SpeedPitchAdjuster() {
   const [comparisonMode, setComparisonMode] = useState(false);
   const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
   const [showingOriginalWaveform, setShowingOriginalWaveform] = useState(true);
-  
+
+  // New innovative features state
+  const [audioEffects, setAudioEffects] = useState<AudioEffects>({
+    distortion: 0,
+    reverb: 0,
+    echo: 0,
+    compression: 0,
+    eq: { low: 0, mid: 0, high: 0 },
+    stereoWidth: 0
+  });
+  const [selectedVoiceEffect, setSelectedVoiceEffect] = useState<VoiceEffect | null>(null);
+  const [selectedCreativeEffect, setSelectedCreativeEffect] = useState<CreativeEffect | null>(null);
+  const [customPresets, setCustomPresets] = useState<Preset[]>([]);
+  const [showAdvancedPanel, setShowAdvancedPanel] = useState(false);
+  const [showAnalyzer, setShowAnalyzer] = useState(false);
+  const [frequencyData, setFrequencyData] = useState<number[]>([]);
+  const [currentPresetName, setCurrentPresetName] = useState('');
+  const [isRecordingPreset, setIsRecordingPreset] = useState(false);
+
+  // Analyzer refs
+  const analyzerRef = useRef<AnalyserNode | null>(null);
+  const spectrumCanvasRef = useRef<HTMLCanvasElement>(null);
+  const vuMeterCanvasRef = useRef<HTMLCanvasElement>(null);
+
   const originalAudioRef = useRef<HTMLAudioElement | null>(null);
   const processedAudioRef = useRef<HTMLAudioElement | null>(null);
   const originalSourceRef = useRef<AudioBufferSourceNode | null>(null);
@@ -159,6 +334,273 @@ export default function SpeedPitchAdjuster() {
     }
   };
 
+  // Apply audio effects
+  const applyAudioEffects = useCallback((buffer: AudioBuffer, effects: AudioEffects): AudioBuffer => {
+    let processedBuffer = buffer;
+
+    // Apply distortion
+    if (effects.distortion > 0) {
+      processedBuffer = applyDistortion(processedBuffer, effects.distortion);
+    }
+
+    // Apply reverb
+    if (effects.reverb > 0) {
+      processedBuffer = applyReverb(processedBuffer, effects.reverb);
+    }
+
+    // Apply echo
+    if (effects.echo > 0) {
+      processedBuffer = applyEcho(processedBuffer, effects.echo);
+    }
+
+    // Apply compression
+    if (effects.compression > 0) {
+      processedBuffer = applyCompression(processedBuffer, effects.compression);
+    }
+
+    // Apply EQ
+    if (effects.eq.low !== 0 || effects.eq.mid !== 0 || effects.eq.high !== 0) {
+      processedBuffer = applyEQ(processedBuffer, effects.eq);
+    }
+
+    // Apply stereo widening
+    if (effects.stereoWidth > 0) {
+      processedBuffer = applyStereoWidening(processedBuffer, effects.stereoWidth);
+    }
+
+    return processedBuffer;
+  }, []);
+
+  // Creative effects
+  const applyCreativeEffect = useCallback((buffer: AudioBuffer, effect: CreativeEffect): AudioBuffer => {
+    switch (effect.type) {
+      case 'reverse':
+        return reverseAudio(buffer);
+      case 'stutter':
+        return applyStutter(buffer, effect.params.intensity, effect.params.speed);
+      case 'pitchBend':
+        return applyPitchBend(buffer, effect.params.range, effect.params.speed);
+      case 'robot':
+        return applyRobotEffect(buffer, effect.params.rate, effect.params.depth);
+      default:
+        return buffer;
+    }
+  }, []);
+
+  // Individual effect implementations
+  const applyDistortion = (buffer: AudioBuffer, amount: number): AudioBuffer => {
+    const newBuffer = audioContext!.createBuffer(buffer.numberOfChannels, buffer.length, buffer.sampleRate);
+    for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+      const inputData = buffer.getChannelData(channel);
+      const outputData = newBuffer.getChannelData(channel);
+      for (let i = 0; i < inputData.length; i++) {
+        const x = inputData[i];
+        outputData[i] = (1 + amount) * x / (1 + amount * Math.abs(x));
+      }
+    }
+    return newBuffer;
+  };
+
+  const applyReverb = (buffer: AudioBuffer, amount: number): AudioBuffer => {
+    const newBuffer = audioContext!.createBuffer(buffer.numberOfChannels, buffer.length + Math.floor(buffer.sampleRate * 0.3 * amount), buffer.sampleRate);
+    for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+      const inputData = buffer.getChannelData(channel);
+      const outputData = newBuffer.getChannelData(channel);
+      const delaySamples = Math.floor(buffer.sampleRate * 0.1 * amount);
+
+      // Copy original
+      for (let i = 0; i < inputData.length; i++) {
+        outputData[i] = inputData[i];
+      }
+
+      // Add delayed versions with decay
+      for (let delay = 1; delay <= 3; delay++) {
+        const decay = Math.pow(0.5, delay);
+        for (let i = 0; i < inputData.length; i++) {
+          if (i + delaySamples * delay < outputData.length) {
+            outputData[i + delaySamples * delay] += inputData[i] * decay * amount;
+          }
+        }
+      }
+    }
+    return newBuffer;
+  };
+
+  const applyEcho = (buffer: AudioBuffer, amount: number): AudioBuffer => {
+    const newBuffer = audioContext!.createBuffer(buffer.numberOfChannels, buffer.length + Math.floor(buffer.sampleRate * 0.5), buffer.sampleRate);
+    for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+      const inputData = buffer.getChannelData(channel);
+      const outputData = newBuffer.getChannelData(channel);
+      const delaySamples = Math.floor(buffer.sampleRate * 0.25);
+
+      // Copy original
+      for (let i = 0; i < inputData.length; i++) {
+        outputData[i] = inputData[i];
+      }
+
+      // Add echo
+      for (let i = 0; i < inputData.length; i++) {
+        if (i + delaySamples < outputData.length) {
+          outputData[i + delaySamples] += inputData[i] * 0.4 * amount;
+        }
+        if (i + delaySamples * 2 < outputData.length) {
+          outputData[i + delaySamples * 2] += inputData[i] * 0.2 * amount;
+        }
+      }
+    }
+    return newBuffer;
+  };
+
+  const applyCompression = (buffer: AudioBuffer, amount: number): AudioBuffer => {
+    const newBuffer = audioContext!.createBuffer(buffer.numberOfChannels, buffer.length, buffer.sampleRate);
+    const threshold = 0.8 - amount * 0.6;
+    const ratio = 1 + amount * 9;
+
+    for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+      const inputData = buffer.getChannelData(channel);
+      const outputData = newBuffer.getChannelData(channel);
+
+      for (let i = 0; i < inputData.length; i++) {
+        const x = Math.abs(inputData[i]);
+        if (x > threshold) {
+          const compressed = threshold + (x - threshold) / ratio;
+          outputData[i] = inputData[i] > 0 ? compressed : -compressed;
+        } else {
+          outputData[i] = inputData[i];
+        }
+      }
+    }
+    return newBuffer;
+  };
+
+  const applyEQ = (buffer: AudioBuffer, eq: { low: number; mid: number; high: number }): AudioBuffer => {
+    const newBuffer = audioContext!.createBuffer(buffer.numberOfChannels, buffer.length, buffer.sampleRate);
+    const sampleRate = buffer.sampleRate;
+
+    // Simple frequency-based filtering
+    const lowFreq = 200;
+    const highFreq = 5000;
+    const lowSamples = Math.floor(lowFreq * buffer.length / sampleRate);
+    const highSamples = Math.floor(highFreq * buffer.length / sampleRate);
+
+    for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+      const inputData = buffer.getChannelData(channel);
+      const outputData = newBuffer.getChannelData(channel);
+
+      // Apply EQ by frequency ranges
+      for (let i = 0; i < inputData.length; i++) {
+        let gain = 1;
+
+        if (i < lowSamples) {
+          gain *= Math.pow(10, eq.low / 20); // Low frequencies
+        } else if (i > highSamples) {
+          gain *= Math.pow(10, eq.high / 20); // High frequencies
+        } else {
+          gain *= Math.pow(10, eq.mid / 20); // Mid frequencies
+        }
+
+        outputData[i] = inputData[i] * gain;
+      }
+    }
+    return newBuffer;
+  };
+
+  const applyStereoWidening = (buffer: AudioBuffer, amount: number): AudioBuffer => {
+    if (buffer.numberOfChannels < 2) return buffer;
+
+    const newBuffer = audioContext!.createBuffer(buffer.numberOfChannels, buffer.length, buffer.sampleRate);
+    const leftData = buffer.getChannelData(0);
+    const rightData = buffer.getChannelData(1);
+    const newLeftData = newBuffer.getChannelData(0);
+    const newRightData = newBuffer.getChannelData(1);
+
+    for (let i = 0; i < leftData.length; i++) {
+      const mid = (leftData[i] + rightData[i]) / 2;
+      const side = (leftData[i] - rightData[i]) / 2;
+
+      // Apply stereo widening
+      const widenedSide = side * (1 + amount);
+
+      newLeftData[i] = mid + widenedSide;
+      newRightData[i] = mid - widenedSide;
+    }
+
+    return newBuffer;
+  };
+
+  const reverseAudio = (buffer: AudioBuffer): AudioBuffer => {
+    const newBuffer = audioContext!.createBuffer(buffer.numberOfChannels, buffer.length, buffer.sampleRate);
+    for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+      const inputData = buffer.getChannelData(channel);
+      const outputData = newBuffer.getChannelData(channel);
+      for (let i = 0; i < inputData.length; i++) {
+        outputData[i] = inputData[inputData.length - 1 - i];
+      }
+    }
+    return newBuffer;
+  };
+
+  const applyStutter = (buffer: AudioBuffer, intensity: number, speed: number): AudioBuffer => {
+    const newBuffer = audioContext!.createBuffer(buffer.numberOfChannels, buffer.length, buffer.sampleRate);
+    const stutterLength = Math.floor(buffer.sampleRate / speed);
+
+    for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+      const inputData = buffer.getChannelData(channel);
+      const outputData = newBuffer.getChannelData(channel);
+
+      for (let i = 0; i < inputData.length; i++) {
+        const stutterPos = Math.floor(i / stutterLength) % 2;
+        if (stutterPos === 0 || Math.random() > intensity) {
+          outputData[i] = inputData[i];
+        } else {
+          // Repeat previous samples
+          const repeatIndex = Math.max(0, i - stutterLength);
+          outputData[i] = outputData[repeatIndex];
+        }
+      }
+    }
+    return newBuffer;
+  };
+
+  const applyPitchBend = (buffer: AudioBuffer, range: number, speed: number): AudioBuffer => {
+    const newBuffer = audioContext!.createBuffer(buffer.numberOfChannels, buffer.length, buffer.sampleRate);
+
+    for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+      const inputData = buffer.getChannelData(channel);
+      const outputData = newBuffer.getChannelData(channel);
+
+      for (let i = 0; i < inputData.length; i++) {
+        const timeRatio = i / inputData.length;
+        const bendAmount = Math.sin(timeRatio * speed * Math.PI * 2) * range;
+        const pitchRatio = Math.pow(2, bendAmount / 12); // Semitones to ratio
+
+        const sourceIndex = Math.floor(i / pitchRatio);
+        if (sourceIndex < inputData.length) {
+          outputData[i] = inputData[sourceIndex];
+        } else {
+          outputData[i] = 0;
+        }
+      }
+    }
+    return newBuffer;
+  };
+
+  const applyRobotEffect = (buffer: AudioBuffer, rate: number, depth: number): AudioBuffer => {
+    const newBuffer = audioContext!.createBuffer(buffer.numberOfChannels, buffer.length, buffer.sampleRate);
+
+    for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+      const inputData = buffer.getChannelData(channel);
+      const outputData = newBuffer.getChannelData(channel);
+
+      for (let i = 0; i < inputData.length; i++) {
+        const timeRatio = i / buffer.sampleRate;
+        const modulation = Math.sin(timeRatio * rate * Math.PI * 2) * depth;
+        outputData[i] = inputData[i] * (1 + modulation);
+      }
+    }
+    return newBuffer;
+  };
+
   // Process audio with speed and pitch adjustment
   const processAudio = useCallback(async (buffer: AudioBuffer, speedValue: number, pitchValue: number) => {
     if (!audioContext || !buffer) return;
@@ -208,12 +650,20 @@ export default function SpeedPitchAdjuster() {
         }
       }
 
-      setProcessedAudioBuffer(newBuffer);
-      
+      // Apply audio effects
+      let effectsBuffer = applyAudioEffects(newBuffer, audioEffects);
+
+      // Apply creative effect if selected
+      if (selectedCreativeEffect) {
+        effectsBuffer = applyCreativeEffect(effectsBuffer, selectedCreativeEffect);
+      }
+
+      setProcessedAudioBuffer(effectsBuffer);
+
       // Generate and store processed waveform
-      const procWaveform = generateWaveformData(newBuffer);
+      const procWaveform = generateWaveformData(effectsBuffer);
       setProcessedWaveformData(procWaveform);
-      
+
       // Update displayed waveform if currently showing processed
       if (!showingOriginalWaveform) {
         setWaveformData(procWaveform);
@@ -223,7 +673,7 @@ export default function SpeedPitchAdjuster() {
       console.error('Error processing audio:', err);
       setError('Failed to process audio. Please try again.');
     }
-  }, [audioContext, showingOriginalWaveform]);
+  }, [audioContext, showingOriginalWaveform, audioEffects, selectedCreativeEffect, applyAudioEffects, applyCreativeEffect]);
 
   // Update processed audio when speed or pitch changes
   useEffect(() => {
@@ -254,6 +704,87 @@ export default function SpeedPitchAdjuster() {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [waveformData, drawWaveform]);
+
+  // Spectrum analyzer drawing
+  const drawSpectrum = useCallback(() => {
+    const canvas = spectrumCanvasRef.current;
+    if (!canvas || !analyzerRef.current) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const bufferLength = analyzerRef.current.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+
+    analyzerRef.current.getByteFrequencyData(dataArray);
+
+    ctx.fillStyle = '#1f2937';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const barWidth = (canvas.width / bufferLength) * 2.5;
+    let barHeight;
+    let x = 0;
+
+    for (let i = 0; i < bufferLength; i++) {
+      barHeight = (dataArray[i] / 255) * canvas.height;
+
+      const hue = (i / bufferLength) * 360;
+      ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
+      ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+
+      x += barWidth + 1;
+    }
+  }, []);
+
+  // VU Meter drawing
+  const drawVUMeter = useCallback((channel: 'left' | 'right') => {
+    const canvas = channel === 'left' ? vuMeterCanvasRef.current : document.querySelector('canvas[data-channel="right"]') as HTMLCanvasElement;
+    if (!canvas || !analyzerRef.current) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Simple VU meter - in a real implementation, you'd analyze the audio data
+    const level = Math.random() * 100; // Placeholder
+
+    ctx.fillStyle = '#1f2937';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw meter levels
+    const colors = ['#10b981', '#fbbf24', '#f59e0b', '#ef4444'];
+    const segments = [60, 80, 90, 100];
+
+    for (let i = 0; i < segments.length; i++) {
+      const segmentHeight = (segments[i] / 100) * canvas.height;
+      ctx.fillStyle = level > segments[i] ? colors[i] : '#374151';
+      ctx.fillRect(10, canvas.height - segmentHeight, canvas.width - 20, segmentHeight - (i > 0 ? (segments[i-1] / 100) * canvas.height : 0));
+    }
+
+    // Draw level indicator
+    ctx.fillStyle = '#ffffff';
+    const indicatorY = canvas.height - (level / 100) * canvas.height;
+    ctx.fillRect(0, indicatorY - 2, canvas.width, 4);
+  }, []);
+
+  // Animation loop for analyzers
+  useEffect(() => {
+    if (!showAnalyzer) return;
+
+    const animate = () => {
+      drawSpectrum();
+      drawVUMeter('left');
+      drawVUMeter('right');
+      animationFrameRef.current = requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [showAnalyzer, drawSpectrum, drawVUMeter]);
 
   // Play original audio
   const playOriginal = () => {
@@ -322,6 +853,11 @@ export default function SpeedPitchAdjuster() {
   const applyPreset = (preset: Preset) => {
     setSpeed(preset.speed);
     setPitch(preset.pitch);
+    if (preset.effects) {
+      setAudioEffects(preset.effects);
+    }
+    setSelectedVoiceEffect(null);
+    setSelectedCreativeEffect(null);
   };
 
   // Download processed audio
@@ -449,6 +985,72 @@ export default function SpeedPitchAdjuster() {
         )}
       </div>
 
+      {/* Voice Effects */}
+      {selectedFile && (
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+            🎭 Voice Effects
+          </label>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2">
+            {VOICE_EFFECTS.map((effect) => (
+              <button
+                key={effect.name}
+                onClick={() => {
+                  setSpeed(effect.speed);
+                  setPitch(effect.pitch);
+                  setAudioEffects({
+                    distortion: effect.distortion,
+                    reverb: effect.reverb,
+                    echo: effect.echo,
+                    compression: 0,
+                    eq: effect.eq,
+                    stereoWidth: 0
+                  });
+                  setSelectedVoiceEffect(effect);
+                }}
+                className={`p-3 rounded-lg border-2 transition-all ${
+                  selectedVoiceEffect?.name === effect.name
+                    ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
+                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                }`}
+                title={effect.description}
+              >
+                <div className="text-2xl mb-1">{effect.icon}</div>
+                <div className="text-xs font-medium text-gray-700 dark:text-gray-300">{effect.name}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Creative Effects */}
+      {selectedFile && (
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+            🎨 Creative Effects
+          </label>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            {CREATIVE_EFFECTS.map((effect) => (
+              <button
+                key={effect.name}
+                onClick={() => {
+                  setSelectedCreativeEffect(selectedCreativeEffect?.name === effect.name ? null : effect);
+                }}
+                className={`p-3 rounded-lg border-2 transition-all ${
+                  selectedCreativeEffect?.name === effect.name
+                    ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
+                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                }`}
+                title={effect.description}
+              >
+                <div className="text-2xl mb-1">{effect.icon}</div>
+                <div className="text-xs font-medium text-gray-700 dark:text-gray-300">{effect.name}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Presets */}
       {selectedFile && (
         <div className="mb-6">
@@ -520,6 +1122,204 @@ export default function SpeedPitchAdjuster() {
               <span>0.5x (Lower)</span>
               <span>1.0x (Normal)</span>
               <span>2.0x (Higher)</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Advanced Effects Panel */}
+      {selectedFile && showAdvancedPanel && (
+        <div className="mb-6 p-6 bg-gray-50 dark:bg-gray-800 rounded-xl">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">🎛️ Advanced Audio Effects</h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Distortion */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Distortion: {Math.round(audioEffects.distortion * 100)}%
+              </label>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={audioEffects.distortion}
+                onChange={(e) => setAudioEffects(prev => ({ ...prev, distortion: parseFloat(e.target.value) }))}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-red-500"
+              />
+            </div>
+
+            {/* Reverb */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Reverb: {Math.round(audioEffects.reverb * 100)}%
+              </label>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={audioEffects.reverb}
+                onChange={(e) => setAudioEffects(prev => ({ ...prev, reverb: parseFloat(e.target.value) }))}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-blue-500"
+              />
+            </div>
+
+            {/* Echo */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Echo: {Math.round(audioEffects.echo * 100)}%
+              </label>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={audioEffects.echo}
+                onChange={(e) => setAudioEffects(prev => ({ ...prev, echo: parseFloat(e.target.value) }))}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-green-500"
+              />
+            </div>
+
+            {/* Compression */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Compression: {Math.round(audioEffects.compression * 100)}%
+              </label>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={audioEffects.compression}
+                onChange={(e) => setAudioEffects(prev => ({ ...prev, compression: parseFloat(e.target.value) }))}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-purple-500"
+              />
+            </div>
+
+            {/* Stereo Width */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Stereo Width: {Math.round(audioEffects.stereoWidth * 100)}%
+              </label>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={audioEffects.stereoWidth}
+                onChange={(e) => setAudioEffects(prev => ({ ...prev, stereoWidth: parseFloat(e.target.value) }))}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-indigo-500"
+              />
+            </div>
+
+            {/* EQ Controls */}
+            <div className="md:col-span-2 lg:col-span-3">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                🎚️ Equalizer (dB)
+              </label>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Low ({audioEffects.eq.low}dB)</label>
+                  <input
+                    type="range"
+                    min="-20"
+                    max="20"
+                    step="1"
+                    value={audioEffects.eq.low}
+                    onChange={(e) => setAudioEffects(prev => ({
+                      ...prev,
+                      eq: { ...prev.eq, low: parseInt(e.target.value) }
+                    }))}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-yellow-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Mid ({audioEffects.eq.mid}dB)</label>
+                  <input
+                    type="range"
+                    min="-20"
+                    max="20"
+                    step="1"
+                    value={audioEffects.eq.mid}
+                    onChange={(e) => setAudioEffects(prev => ({
+                      ...prev,
+                      eq: { ...prev.eq, mid: parseInt(e.target.value) }
+                    }))}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-green-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">High ({audioEffects.eq.high}dB)</label>
+                  <input
+                    type="range"
+                    min="-20"
+                    max="20"
+                    step="1"
+                    value={audioEffects.eq.high}
+                    onChange={(e) => setAudioEffects(prev => ({
+                      ...prev,
+                      eq: { ...prev.eq, high: parseInt(e.target.value) }
+                    }))}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-blue-500"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Spectrum Analyzer */}
+      {selectedFile && showAnalyzer && (
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              📊 Real-time Spectrum Analyzer
+            </label>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowAnalyzer(false)}
+                className="px-3 py-1 text-xs bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded"
+              >
+                Hide
+              </button>
+            </div>
+          </div>
+          <div className="bg-gray-100 dark:bg-gray-900 rounded-lg p-4">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              {/* Spectrum Canvas */}
+              <div className="lg:col-span-2">
+                <canvas
+                  ref={spectrumCanvasRef}
+                  width={600}
+                  height={200}
+                  className="w-full h-auto rounded border border-gray-300 dark:border-gray-700"
+                />
+              </div>
+
+              {/* VU Meters */}
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Left Channel</label>
+                  <canvas
+                    ref={vuMeterCanvasRef}
+                    width={100}
+                    height={150}
+                    className="w-full h-auto rounded border border-gray-300 dark:border-gray-700"
+                    data-channel="left"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Right Channel</label>
+                  <canvas
+                    width={100}
+                    height={150}
+                    className="w-full h-auto rounded border border-gray-300 dark:border-gray-700"
+                    data-channel="right"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -648,6 +1448,117 @@ export default function SpeedPitchAdjuster() {
         </div>
       )}
 
+      {/* Advanced Features Toggle */}
+      {selectedFile && (
+        <div className="mb-6 flex flex-wrap gap-3">
+          <button
+            onClick={() => setShowAdvancedPanel(!showAdvancedPanel)}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              showAdvancedPanel
+                ? 'bg-purple-500 text-white'
+                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+            }`}
+          >
+            {showAdvancedPanel ? '🔧 Hide Advanced Effects' : '🎛️ Advanced Effects'}
+          </button>
+
+          <button
+            onClick={() => setShowAnalyzer(!showAnalyzer)}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              showAnalyzer
+                ? 'bg-green-500 text-white'
+                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+            }`}
+          >
+            {showAnalyzer ? '📊 Hide Analyzer' : '📊 Spectrum Analyzer'}
+          </button>
+
+          <button
+            onClick={() => setIsRecordingPreset(!isRecordingPreset)}
+            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              isRecordingPreset
+                ? 'bg-red-500 text-white'
+                : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+            }`}
+          >
+            {isRecordingPreset ? '⏹️ Save Preset' : '💾 Save Custom Preset'}
+          </button>
+        </div>
+      )}
+
+      {/* Custom Preset Save */}
+      {selectedFile && isRecordingPreset && (
+        <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+          <label className="block text-sm font-medium text-yellow-800 dark:text-yellow-200 mb-2">
+            Preset Name:
+          </label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={currentPresetName}
+              onChange={(e) => setCurrentPresetName(e.target.value)}
+              placeholder="My Custom Preset"
+              className="flex-1 px-3 py-2 border border-yellow-300 dark:border-yellow-700 rounded bg-white dark:bg-gray-800 text-yellow-900 dark:text-yellow-100"
+            />
+            <button
+              onClick={() => {
+                if (currentPresetName.trim()) {
+                  const newPreset: Preset = {
+                    name: currentPresetName,
+                    speed,
+                    pitch,
+                    icon: '⭐',
+                    description: `Custom preset: Speed ${speed.toFixed(2)}x, Pitch ${pitch.toFixed(2)}x`,
+                    effects: audioEffects
+                  };
+                  setCustomPresets(prev => [...prev, newPreset]);
+                  setCurrentPresetName('');
+                  setIsRecordingPreset(false);
+                }
+              }}
+              className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded font-medium"
+            >
+              Save
+            </button>
+            <button
+              onClick={() => {
+                setIsRecordingPreset(false);
+                setCurrentPresetName('');
+              }}
+              className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded font-medium"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Presets */}
+      {selectedFile && customPresets.length > 0 && (
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+            ⭐ Your Custom Presets
+          </label>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+            {customPresets.map((preset, index) => (
+              <button
+                key={index}
+                onClick={() => applyPreset(preset)}
+                className={`p-3 rounded-lg border-2 transition-all ${
+                  speed === preset.speed && pitch === preset.pitch
+                    ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20'
+                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                }`}
+                title={preset.description}
+              >
+                <div className="text-2xl mb-1">{preset.icon}</div>
+                <div className="text-xs font-medium text-gray-700 dark:text-gray-300">{preset.name}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Download Button */}
       {selectedFile && processedAudioBuffer && (
         <div className="mb-6">
@@ -669,16 +1580,57 @@ export default function SpeedPitchAdjuster() {
       )}
 
       {/* Instructions */}
-      <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-        <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-2">✨ Features:</h3>
-        <ul className="text-blue-800 dark:text-blue-200 space-y-1 text-sm">
-          <li>• <strong>Real-time Preview:</strong> Hear changes instantly as you adjust</li>
-          <li>• <strong>Before/After Comparison:</strong> Compare original vs processed side-by-side</li>
-          <li>• <strong>Quick Presets:</strong> One-click presets for common adjustments</li>
-          <li>• <strong>Waveform Visualization:</strong> Visual representation of your audio</li>
-          <li>• <strong>Independent Controls:</strong> Adjust speed and pitch separately</li>
-          <li>• <strong>High Quality:</strong> Professional audio processing with Web Audio API</li>
-        </ul>
+      <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-4">🚀 Advanced Features:</h3>
+        <div className="grid md:grid-cols-2 gap-4">
+          <div>
+            <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">🎭 Voice Effects</h4>
+            <ul className="text-blue-700 dark:text-blue-300 space-y-1 text-sm">
+              <li>• Robot, Alien, Underwater voices</li>
+              <li>• Monster & Demon effects</li>
+              <li>• Phone & Helium transformations</li>
+              <li>• Professional voice modulation</li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">🎨 Creative Effects</h4>
+            <ul className="text-blue-700 dark:text-blue-300 space-y-1 text-sm">
+              <li>• Audio reversal & stuttering</li>
+              <li>• Pitch bending & vibrato</li>
+              <li>• Custom effect combinations</li>
+              <li>• Real-time effect processing</li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">🎛️ Audio Effects</h4>
+            <ul className="text-blue-700 dark:text-blue-300 space-y-1 text-sm">
+              <li>• Distortion, Reverb, Echo</li>
+              <li>• 3-Band EQ & Compression</li>
+              <li>• Stereo widening</li>
+              <li>• Professional audio processing</li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">📊 Analysis Tools</h4>
+            <ul className="text-blue-700 dark:text-blue-300 space-y-1 text-sm">
+              <li>• Real-time spectrum analyzer</li>
+              <li>• VU meters for both channels</li>
+              <li>• Frequency visualization</li>
+              <li>• Audio quality monitoring</li>
+            </ul>
+          </div>
+        </div>
+        <div className="mt-4 pt-4 border-t border-blue-200 dark:border-blue-700">
+          <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">💾 Additional Features</h4>
+          <ul className="text-blue-700 dark:text-blue-300 space-y-1 text-sm">
+            <li>• <strong>Custom Presets:</strong> Save and reuse your favorite effect combinations</li>
+            <li>• <strong>Real-time Preview:</strong> Hear changes instantly with before/after comparison</li>
+            <li>• <strong>Professional Quality:</strong> High-fidelity audio processing with Web Audio API</li>
+            <li>• <strong>Independent Controls:</strong> Speed, pitch, and effects work together seamlessly</li>
+            <li>• <strong>Visual Feedback:</strong> Waveform visualization and spectrum analysis</li>
+            <li>• <strong>Multiple Export Formats:</strong> WAV output with full quality preservation</li>
+          </ul>
+        </div>
       </div>
     </div>
   );
