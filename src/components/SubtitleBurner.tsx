@@ -136,10 +136,58 @@ export default function SubtitleBurner() {
     setError(null);
   };
 
-  const generateSubtitleFilter = (): string => {
-    // Use subtitles filter with proper syntax
-    // The subtitles filter in FFmpeg expects the filename as parameter
-    return `subtitles=input.srt`;
+  const parseSubtitles = (subtitleText: string) => {
+    // Simple SRT parser
+    const subtitles = [];
+    const blocks = subtitleText.split('\n\n');
+
+    for (const block of blocks) {
+      const lines = block.trim().split('\n');
+      if (lines.length >= 3) {
+        // Parse timing (format: 00:00:00,000 --> 00:00:00,000)
+        const timingMatch = lines[1].match(/(\d{2}:\d{2}:\d{2},\d{3}) --> (\d{2}:\d{2}:\d{2},\d{3})/);
+        if (timingMatch) {
+          const startTime = timingMatch[1];
+          const endTime = timingMatch[2];
+          const text = lines.slice(2).join('\n');
+
+          subtitles.push({
+            start: startTime,
+            end: endTime,
+            text: text
+          });
+        }
+      }
+    }
+
+    return subtitles;
+  };
+
+  const generateSubtitleFilter = async (): Promise<string> => {
+    // Read and parse subtitle file
+    try {
+      const subtitleData = await ffmpeg.readFile('input.srt');
+      const subtitleText = new TextDecoder().decode(subtitleData);
+      const subtitles = parseSubtitles(subtitleText);
+
+      console.log('🎬 Parsed subtitles:', subtitles.length, 'entries');
+
+      if (subtitles.length === 0) {
+        console.warn('🎬 No subtitles parsed from file');
+        return '';
+      }
+
+      // For now, just show the first subtitle as a test
+      const firstSubtitle = subtitles[0];
+      const escapedText = firstSubtitle.text.replace(/'/g, "\\'").replace(/:/g, '\\:');
+
+      // Use drawtext filter to show subtitle
+      return `drawtext=text='${escapedText}':fontsize=24:fontcolor=white:borderw=2:bordercolor=black:x=(w-text_w)/2:y=h-100:enable='between(t,0,10)'`;
+
+    } catch (err) {
+      console.error('🎬 Error parsing subtitles:', err);
+      return '';
+    }
   };
 
   const generatePreview = async () => {
@@ -207,8 +255,12 @@ export default function SubtitleBurner() {
       }
 
       // Generate subtitle filter
-      const subtitleFilter = generateSubtitleFilter();
-      const fullFilter = timingFilter + subtitleFilter;
+      const subtitleFilter = await generateSubtitleFilter();
+      const fullFilter = timingFilter + (subtitleFilter ? subtitleFilter : '');
+
+      if (!subtitleFilter) {
+        console.warn('🎬 No subtitle filter generated, falling back to basic processing');
+      }
 
       // DEBUG: Try without subtitles first to test basic processing
       console.log('🎬 DEBUG: Testing without subtitles first...');
