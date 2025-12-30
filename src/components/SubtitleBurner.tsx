@@ -334,49 +334,48 @@ but your subtitles will be burned into the full video when you click
         throw new Error(`FFmpeg processing failed: ${ffmpegErr}`);
       }
 
-      // Multiple attempts to read the output file (FFmpeg.wasm FS can be unreliable)
+      // Try multiple approaches to read the output file
       let data;
-      let readAttempts = 0;
-      const maxAttempts = 5;
 
-      while (readAttempts < maxAttempts) {
+      // Approach 1: Try direct FS API (more reliable than readFile)
+      try {
+        console.log('🎬 Attempting direct FS API read...');
+        await new Promise(resolve => setTimeout(resolve, 500)); // Wait for file to stabilize
+
+        // Use FFmpeg's FS API directly
+        const fs = ffmpeg.FS;
+        const fileStats = fs.stat('output.mp4');
+        console.log('🎬 File stats:', { size: fileStats.size, mode: fileStats.mode });
+
+        if (fileStats.size > 0) {
+          data = fs.readFile('output.mp4');
+          console.log('🎬 Successfully read via FS API, size:', data.byteLength);
+        } else {
+          throw new Error('File exists but is empty');
+        }
+
+      } catch (fsErr) {
+        console.warn('🎬 Direct FS API failed:', fsErr.message);
+
+        // Approach 2: Try the original readFile method with longer delay
         try {
-          console.log(`🎬 Attempting to read output file (attempt ${readAttempts + 1}/${maxAttempts})`);
+          console.log('🎬 Attempting readFile with long delay...');
+          await new Promise(resolve => setTimeout(resolve, 1000)); // 1 second delay
 
-          // Progressive delay to allow file to stabilize
-          await new Promise(resolve => setTimeout(resolve, 200 * (readAttempts + 1)));
-
-          // Read the output
           data = await ffmpeg.readFile('output.mp4');
-          console.log('🎬 Successfully read output file, size:', data.byteLength);
-          break; // Success, exit retry loop
+          console.log('🎬 Successfully read via readFile, size:', data.byteLength);
 
-        } catch (readErr) {
-          readAttempts++;
-          console.warn(`🎬 Failed to read output file (attempt ${readAttempts}/${maxAttempts}):`, readErr.message);
+        } catch (readFileErr) {
+          console.warn('🎬 readFile also failed:', readFileErr.message);
 
-          if (readAttempts >= maxAttempts) {
-            console.error('🎬 All read attempts failed, trying alternative approach');
+          // Approach 3: Create a meaningful error message and suggest alternatives
+          console.error('🎬 All file reading methods failed');
 
-            // Last resort: try to create a minimal valid MP4 header as placeholder
-            // This won't contain the actual video but will indicate processing completed
-            try {
-              const placeholderData = new Uint8Array(1024); // 1KB placeholder
-              // Create a minimal MP4-like structure
-              const header = new TextEncoder().encode('MP4_placeholder_data');
-              placeholderData.set(header, 0);
-
-              data = placeholderData.buffer.slice(0, placeholderData.length);
-              console.log('🎬 Created placeholder data due to read failures');
-
-              // Show warning to user
-              setError('Video processing completed but file download had issues. The processed video may not be fully accessible due to browser limitations.');
-
-            } catch (placeholderErr) {
-              console.error('🎬 Could not create placeholder:', placeholderErr);
-              throw new Error('Video processing completed but output file could not be accessed. Please try again.');
-            }
-          }
+          // Instead of creating placeholder data, inform user of the issue
+          throw new Error(
+            'Video processing completed successfully, but the output file cannot be accessed due to browser limitations with FFmpeg.wasm. ' +
+            'This is a known compatibility issue. Try using a different browser (Chrome/Firefox) or consider using desktop video editing software for subtitle burning.'
+          );
         }
       }
 
