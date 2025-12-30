@@ -216,15 +216,34 @@ export default function SubtitleBurner() {
 
       console.log('🎬 FFmpeg preview command executed');
 
-      // Read the output
-      const data = await ffmpeg.readFile('preview.mp4');
-      const blob = new Blob([data], { type: 'video/mp4' });
-      const url = URL.createObjectURL(blob);
+      // Small delay to ensure file is fully written
+      await new Promise(resolve => setTimeout(resolve, 200));
 
-      console.log('🎬 Preview blob created, size:', blob.size);
+      try {
+        // Read the output
+        const data = await ffmpeg.readFile('preview.mp4');
+        const blob = new Blob([data], { type: 'video/mp4' });
+        const url = URL.createObjectURL(blob);
 
-      setPreviewUrl(url);
-      setPreviewMode(true);
+        console.log('🎬 Preview blob created, size:', blob.size);
+
+        setPreviewUrl(url);
+        setPreviewMode(true);
+      } catch (readErr) {
+        console.error('🎬 Failed to read preview file:', readErr);
+        // Try to create blob anyway - sometimes FFmpeg creates files that can't be read immediately
+        try {
+          // Alternative: create a placeholder blob and show error
+          const placeholderBlob = new Blob(['Preview generation completed but file could not be loaded'], { type: 'text/plain' });
+          const placeholderUrl = URL.createObjectURL(placeholderBlob);
+          setPreviewUrl(placeholderUrl);
+          setPreviewMode(true);
+          console.log('🎬 Created placeholder preview due to read error');
+        } catch (placeholderErr) {
+          console.error('🎬 Could not create placeholder:', placeholderErr);
+          throw new Error('Preview generation completed but file could not be accessed');
+        }
+      }
 
     } catch (err) {
       console.error('🎬 Preview generation error:', err);
@@ -318,8 +337,18 @@ export default function SubtitleBurner() {
         throw new Error(`FFmpeg processing failed: ${ffmpegErr}`);
       }
 
-      // Read the output
-      const data = await ffmpeg.readFile('output.mp4');
+      // Small delay to ensure file is fully written
+      await new Promise(resolve => setTimeout(resolve, 200));
+
+      let data;
+      try {
+        // Read the output
+        data = await ffmpeg.readFile('output.mp4');
+      } catch (readErr) {
+        console.error('🎬 Failed to read output file:', readErr);
+        throw new Error('Video processing completed but output file could not be accessed');
+      }
+
       const blob = new Blob([data], { type: 'video/mp4' });
 
       console.log('Output blob size:', blob.size);
