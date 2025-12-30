@@ -216,15 +216,6 @@ export default function SubtitleBurner() {
 
       console.log('🎬 FFmpeg preview command executed');
 
-      // Verify preview file
-      try {
-        const previewData = await ffmpeg.readFile('preview.mp4');
-        console.log('🎬 Preview file verified, size:', previewData.byteLength);
-      } catch (previewErr) {
-        console.error('🎬 Failed to verify preview file:', previewErr);
-        throw new Error('Preview generation completed but file was not created');
-      }
-
       // Read the output
       const data = await ffmpeg.readFile('preview.mp4');
       const blob = new Blob([data], { type: 'video/mp4' });
@@ -312,15 +303,6 @@ export default function SubtitleBurner() {
         console.log('🎬 Executing FFmpeg command...');
         await ffmpeg.exec(ffmpegCommand);
         console.log('🎬 FFmpeg command executed successfully');
-
-        // Verify output file was created
-        try {
-          const outputData = await ffmpeg.readFile('output.mp4');
-          console.log('🎬 Output file verified, size:', outputData.byteLength);
-        } catch (verifyErr) {
-          console.error('🎬 Failed to verify output file:', verifyErr);
-          throw new Error('FFmpeg completed but output file was not created');
-        }
 
         // Check if output file was created
         try {
