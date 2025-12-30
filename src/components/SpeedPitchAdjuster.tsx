@@ -371,6 +371,7 @@ export default function SpeedPitchAdjuster() {
     return processedBuffer;
   }, []);
 
+
   // Creative effects
   const applyCreativeEffect = useCallback((buffer: AudioBuffer, effect: CreativeEffect): AudioBuffer => {
     switch (effect.type) {
@@ -618,7 +619,8 @@ export default function SpeedPitchAdjuster() {
   };
 
   const applyRobotEffect = (buffer: AudioBuffer, rate: number, depth: number): AudioBuffer => {
-    const newBuffer = audioContext!.createBuffer(buffer.numberOfChannels, buffer.length, buffer.sampleRate);
+    if (!audioContext) return buffer;
+    const newBuffer = audioContext.createBuffer(buffer.numberOfChannels, buffer.length, buffer.sampleRate);
 
     for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
       const inputData = buffer.getChannelData(channel);
@@ -633,6 +635,72 @@ export default function SpeedPitchAdjuster() {
     return newBuffer;
   };
 
+  // Apply voice effect preset
+  const applyVoiceEffectPreset = useCallback((buffer: AudioBuffer, preset: VoiceEffect): AudioBuffer => {
+    if (!audioContext) return buffer;
+
+    try {
+      let processedBuffer = buffer;
+
+      // Apply speed/pitch changes from preset
+      if (preset.speed !== 1.0 || preset.pitch !== 1.0) {
+        const newLength = Math.floor(buffer.length / preset.speed);
+        const speedBuffer = audioContext.createBuffer(
+          buffer.numberOfChannels,
+          newLength,
+          buffer.sampleRate
+        );
+
+        for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+          const originalData = buffer.getChannelData(channel);
+          const newData = speedBuffer.getChannelData(channel);
+
+          for (let i = 0; i < newLength; i++) {
+            const originalIndex = i * preset.speed;
+            const index = Math.floor(originalIndex);
+            const fraction = originalIndex - index;
+
+            if (index < buffer.length - 1) {
+              const sample1 = originalData[index];
+              const sample2 = originalData[index + 1];
+              newData[i] = sample1 + (sample2 - sample1) * fraction;
+            } else if (index < buffer.length) {
+              newData[i] = originalData[index];
+            } else {
+              newData[i] = 0;
+            }
+          }
+        }
+        processedBuffer = speedBuffer;
+      }
+
+      // Apply distortion
+      if (preset.distortion > 0) {
+        processedBuffer = applyDistortion(processedBuffer, preset.distortion);
+      }
+
+      // Apply reverb
+      if (preset.reverb > 0) {
+        processedBuffer = applyReverb(processedBuffer, preset.reverb);
+      }
+
+      // Apply echo
+      if (preset.echo > 0) {
+        processedBuffer = applyEcho(processedBuffer, preset.echo);
+      }
+
+      // Apply EQ
+      if (preset.eq.low !== 0 || preset.eq.mid !== 0 || preset.eq.high !== 0) {
+        processedBuffer = applyEQ(processedBuffer, preset.eq);
+      }
+
+      return processedBuffer;
+    } catch (error) {
+      console.warn('Voice effect application failed:', error);
+      return buffer;
+    }
+  }, [audioContext, applyDistortion, applyReverb, applyEcho, applyEQ]);
+
   // Process audio with speed and pitch adjustment
   const processAudio = useCallback(async (buffer: AudioBuffer, speedValue: number, pitchValue: number) => {
     if (!audioContext || !buffer) {
@@ -641,84 +709,146 @@ export default function SpeedPitchAdjuster() {
     }
 
     try {
-      const sampleRate = buffer.sampleRate;
-      const numberOfChannels = buffer.numberOfChannels;
-      const originalLength = buffer.length;
-      
-      // Calculate new length based on speed
-      const newLength = Math.floor(originalLength / speedValue);
-      
-      // Create new audio buffer
-      const newBuffer = audioContext.createBuffer(
-        numberOfChannels,
-        newLength,
-        sampleRate
-      );
+      let processedBuffer = buffer;
 
-      // Process each channel
-      for (let channel = 0; channel < numberOfChannels; channel++) {
-        const originalData = buffer.getChannelData(channel);
-        const newData = newBuffer.getChannelData(channel);
+      // Only process if speed or pitch is changed from default
+      if (speedValue !== 1.0 || pitchValue !== 1.0) {
+        const sampleRate = buffer.sampleRate;
+        const numberOfChannels = buffer.numberOfChannels;
+        const originalLength = buffer.length;
 
-        // Resample and adjust pitch
-        for (let i = 0; i < newLength; i++) {
-          const originalIndex = i * speedValue;
-          const index = Math.floor(originalIndex);
-          const fraction = originalIndex - index;
+        // For speed change: resample the audio
+        let newLength = originalLength;
+        if (speedValue !== 1.0) {
+          newLength = Math.floor(originalLength / speedValue);
+        }
 
-          if (index + 1 < originalLength) {
-            // Linear interpolation for smooth pitch adjustment
-            const sample1 = originalData[index];
-            const sample2 = originalData[index + 1];
-            let interpolated = sample1 + (sample2 - sample1) * fraction;
+        // Create new audio buffer with correct length
+        processedBuffer = audioContext.createBuffer(
+          numberOfChannels,
+          newLength,
+          sampleRate
+        );
 
-            // Apply pitch shift using simple resampling
-            const pitchIndex = Math.floor(i / pitchValue);
-            if (pitchIndex < originalLength) {
-              newData[i] = interpolated;
+        // Process each channel
+        for (let channel = 0; channel < numberOfChannels; channel++) {
+          const originalData = buffer.getChannelData(channel);
+          const newData = processedBuffer.getChannelData(channel);
+
+          // Simple speed adjustment with linear interpolation
+          for (let i = 0; i < newLength; i++) {
+            const originalIndex = i * speedValue;
+            const index = Math.floor(originalIndex);
+            const fraction = originalIndex - index;
+
+            if (index < originalLength - 1) {
+              // Linear interpolation
+              const sample1 = originalData[index];
+              const sample2 = originalData[index + 1];
+              newData[i] = sample1 + (sample2 - sample1) * fraction;
+            } else if (index < originalLength) {
+              newData[i] = originalData[index];
             } else {
               newData[i] = 0;
             }
-          } else {
-            newData[i] = 0;
           }
+        }
+
+        // For pitch adjustment (if different from speed), we use a simple pitch shifting approach
+        if (pitchValue !== 1.0 && pitchValue !== speedValue) {
+          // Create another buffer for pitch adjustment
+          const pitchBuffer = audioContext.createBuffer(
+            numberOfChannels,
+            Math.floor(newLength / pitchValue),
+            sampleRate
+          );
+
+          for (let channel = 0; channel < numberOfChannels; channel++) {
+            const sourceData = processedBuffer.getChannelData(channel);
+            const pitchData = pitchBuffer.getChannelData(channel);
+
+            // Simple pitch shifting by resampling
+            for (let i = 0; i < pitchBuffer.length; i++) {
+              const sourceIndex = i * pitchValue;
+              const index = Math.floor(sourceIndex);
+              const fraction = sourceIndex - index;
+
+              if (index < processedBuffer.length - 1) {
+                const sample1 = sourceData[index];
+                const sample2 = sourceData[index + 1];
+                pitchData[i] = sample1 + (sample2 - sample1) * fraction;
+              } else if (index < processedBuffer.length) {
+                pitchData[i] = sourceData[index];
+              } else {
+                pitchData[i] = 0;
+              }
+            }
+          }
+          processedBuffer = pitchBuffer;
         }
       }
 
       // Apply audio effects
-      let effectsBuffer = applyAudioEffects(newBuffer, audioEffects);
+      let effectsBuffer = applyAudioEffects(processedBuffer, audioEffects);
+
+      // Apply voice effect if selected
+      if (selectedVoiceEffect) {
+        effectsBuffer = applyVoiceEffectPreset(effectsBuffer, selectedVoiceEffect);
+      }
 
       // Apply creative effect if selected
       if (selectedCreativeEffect) {
         effectsBuffer = applyCreativeEffect(effectsBuffer, selectedCreativeEffect);
       }
 
-      // Validate the processed buffer
-      if (effectsBuffer && effectsBuffer.length > 0 && !isNaN(effectsBuffer.length)) {
-        setProcessedAudioBuffer(effectsBuffer);
-
-        // Generate and store processed waveform
-        const procWaveform = generateWaveformData(effectsBuffer);
-        setProcessedWaveformData(procWaveform);
-
-        // Update displayed waveform if currently showing processed
-        if (!showingOriginalWaveform) {
-          setWaveformData(procWaveform);
-          drawWaveform(procWaveform);
-        }
-
-        console.log('Audio processed successfully:', {
-          originalLength: buffer.length,
-          processedLength: effectsBuffer.length,
-          sampleRate: effectsBuffer.sampleRate,
-          channels: effectsBuffer.numberOfChannels
-        });
-      } else {
-        throw new Error('Invalid processed audio buffer');
+      // Final validation
+      if (!effectsBuffer || effectsBuffer.length === 0 || isNaN(effectsBuffer.length)) {
+        throw new Error('Audio processing resulted in invalid buffer');
       }
+
+      // Check if buffer has any non-zero data
+      let hasAudioData = false;
+      for (let channel = 0; channel < effectsBuffer.numberOfChannels && !hasAudioData; channel++) {
+        const data = effectsBuffer.getChannelData(channel);
+        for (let i = 0; i < Math.min(data.length, 1000); i++) { // Check first 1000 samples
+          if (Math.abs(data[i]) > 0.0001) { // Allow for small floating point errors
+            hasAudioData = true;
+            break;
+          }
+        }
+      }
+
+      if (!hasAudioData) {
+        console.warn('Processed buffer contains no audio data');
+        // Return original buffer if processing resulted in silence
+        effectsBuffer = buffer;
+      }
+
+      setProcessedAudioBuffer(effectsBuffer);
+
+      // Generate and store processed waveform
+      const procWaveform = generateWaveformData(effectsBuffer);
+      setProcessedWaveformData(procWaveform);
+
+      // Update displayed waveform if currently showing processed
+      if (!showingOriginalWaveform) {
+        setWaveformData(procWaveform);
+        drawWaveform(procWaveform);
+      }
+
+      console.log('Audio processed successfully:', {
+        originalLength: buffer.length,
+        processedLength: effectsBuffer.length,
+        sampleRate: effectsBuffer.sampleRate,
+        channels: effectsBuffer.numberOfChannels,
+        hasAudioData: hasAudioData
+      });
+
     } catch (err) {
       console.error('Error processing audio:', err);
       setError('Failed to process audio. Please try again.');
+      // Fallback: use original buffer
+      setProcessedAudioBuffer(buffer);
     }
   }, [audioContext, showingOriginalWaveform, audioEffects, selectedCreativeEffect, applyAudioEffects, applyCreativeEffect]);
 
@@ -909,13 +1039,15 @@ export default function SpeedPitchAdjuster() {
 
   // Download processed audio
   const downloadProcessed = async () => {
-    if (!processedAudioBuffer || !audioContext) {
-      setError('No processed audio available to download.');
+    if (!selectedFile) {
+      setError('No file selected.');
       return;
     }
 
-    if (!selectedFile) {
-      setError('No original file selected.');
+    // Use processed buffer if available, otherwise use original
+    const bufferToDownload = processedAudioBuffer || originalAudioBuffer;
+    if (!bufferToDownload) {
+      setError('No audio data available to download.');
       return;
     }
 
@@ -924,14 +1056,14 @@ export default function SpeedPitchAdjuster() {
 
     try {
       console.log('Downloading audio buffer:', {
-        length: processedAudioBuffer.length,
-        sampleRate: processedAudioBuffer.sampleRate,
-        channels: processedAudioBuffer.numberOfChannels,
-        duration: processedAudioBuffer.length / processedAudioBuffer.sampleRate
+        length: bufferToDownload.length,
+        sampleRate: bufferToDownload.sampleRate,
+        channels: bufferToDownload.numberOfChannels,
+        duration: bufferToDownload.length / bufferToDownload.sampleRate
       });
 
       // Convert AudioBuffer to WAV
-      const wavBuffer = audioBufferToWav(processedAudioBuffer);
+      const wavBuffer = audioBufferToWav(bufferToDownload);
       console.log('WAV buffer created:', wavBuffer.byteLength, 'bytes');
 
       // Validate WAV buffer
