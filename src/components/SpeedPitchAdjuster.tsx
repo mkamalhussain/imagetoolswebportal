@@ -174,9 +174,11 @@ const CREATIVE_EFFECTS: CreativeEffect[] = [
 ];
 
 export default function SpeedPitchAdjuster() {
-  console.log('🎵🎵🎵 SPEED PITCH ADJUSTER COMPONENT RENDERED 🎵🎵🎵');
-  console.log('🚨🚨🚨 COMPONENT IS RENDERING 🚨🚨🚨');
-  console.log('🔥🔥🔥 COMPONENT VERSION WITH DEBUG LOGS LOADED 🔥🔥🔥');
+  try {
+    console.log('🎵🎵🎵 SPEED PITCH ADJUSTER COMPONENT RENDERED 🎵🎵🎵');
+    console.log('🚨🚨🚨 COMPONENT IS RENDERING 🚨🚨🚨');
+    console.log('🔥🔥🔥 COMPONENT VERSION WITH DEBUG LOGS LOADED 🔥🔥🔥');
+    console.log('🧪🧪🧪 BASIC TEST LOG - COMPONENT EXECUTING 🧪🧪🧪');
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -305,10 +307,13 @@ export default function SpeedPitchAdjuster() {
 
   // Load and decode audio file
   const handleFileSelect = async (file: File) => {
+    console.log('🎵 FILE SELECT HANDLER CALLED with file:', file.name, 'type:', file.type);
     if (!file.type.startsWith('audio/')) {
+      console.log('❌ File type not audio:', file.type);
       setError('Please select an audio file');
       return;
     }
+    console.log('✅ File type is audio, proceeding...');
 
     setError(null);
     setSelectedFile(file);
@@ -1414,8 +1419,9 @@ export default function SpeedPitchAdjuster() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  return (
-    <div className="max-w-6xl mx-auto p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
+  try {
+    return (
+      <div className="max-w-6xl mx-auto p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
       <div className="mb-8">
         <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Speed/Pitch Adjuster Pro</h2>
         <p className="text-gray-600 dark:text-gray-400">
@@ -2143,5 +2149,31 @@ export default function SpeedPitchAdjuster() {
         </div>
       </div>
     </div>
-  );
+    );
+  } catch (renderError) {
+    console.error('🚨🚨🚨 COMPONENT RENDER ERROR 🚨🚨🚨', renderError);
+    console.error('Error details:', {
+      message: renderError.message,
+      stack: renderError.stack,
+      name: renderError.name
+    });
+
+    return (
+      <div className="max-w-4xl mx-auto p-6 bg-red-50 dark:bg-red-900/20 rounded-xl shadow-lg border border-red-200 dark:border-red-800">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-red-600 dark:text-red-400 mb-4">
+            🚨 Component Error
+          </h2>
+          <p className="text-red-700 dark:text-red-300 mb-4">
+            The Speed Changer Pro component encountered an error and cannot render properly.
+          </p>
+          <div className="bg-red-100 dark:bg-red-800 p-4 rounded text-left">
+            <p className="text-red-800 dark:text-red-200 text-sm font-mono">
+              {renderError.message}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 }
