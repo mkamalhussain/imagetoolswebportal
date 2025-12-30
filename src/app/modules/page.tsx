@@ -13,7 +13,11 @@ export const metadata: Metadata = {
     'PDF tools overview',
     'online tool directory',
     'free software tools',
-    'web tools collection'
+    'web tools collection',
+    'image editor',
+    'photo tools',
+    'audio processor',
+    'video editor'
   ],
   openGraph: {
     title: 'All Tools - Complete Collection of Free Online Tools',
@@ -26,11 +30,17 @@ export const metadata: Metadata = {
         alt: 'All Tools Collection - Free Online Image, Audio, Video & PDF Tools',
       },
     ],
+    type: 'website',
+    url: 'https://freetools.com/modules',
   },
   twitter: {
     title: 'All Tools - Complete Collection of Free Online Tools',
     description: 'Browse 50+ free online tools for creative work. No signup, no limits.',
     images: ['/og-all-tools.png'],
+    card: 'summary_large_image',
+  },
+  alternates: {
+    canonical: 'https://freetools.com/modules',
   },
 };
 

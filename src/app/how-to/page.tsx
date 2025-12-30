@@ -14,7 +14,9 @@ export const metadata: Metadata = {
     'audio processing tutorial',
     'PDF tools guide',
     'free tool tutorials',
-    'online tool help'
+    'online tool help',
+    'user manual',
+    'tool documentation'
   ],
   openGraph: {
     title: 'How To Guides - Step-by-Step Tutorials for All Tools',
@@ -27,11 +29,17 @@ export const metadata: Metadata = {
         alt: 'How To Guides - Step-by-Step Tutorials for Free Online Tools',
       },
     ],
+    type: 'website',
+    url: 'https://freetools.com/how-to',
   },
   twitter: {
     title: 'How To Guides - Step-by-Step Tutorials for All Tools',
     description: 'Learn how to use our free online tools with detailed guides and visual examples.',
     images: ['/og-how-to.png'],
+    card: 'summary_large_image',
+  },
+  alternates: {
+    canonical: 'https://freetools.com/how-to',
   },
 };
 

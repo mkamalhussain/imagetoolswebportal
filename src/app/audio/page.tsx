@@ -14,17 +14,23 @@ export const metadata: Metadata = {
     'audio mixer',
     'free audio tools',
     'online audio processor',
-    'sound editing'
+    'sound editing',
+    'voice effects',
+    'audio enhancement'
   ],
   openGraph: {
     title: 'Audio Tools - Free Online Audio Processing & Editing',
-    description: 'Professional audio tools for processing, editing, and enhancing audio files. No signup required.',
+    description: 'Professional audio tools for processing, editing, and enhancing audio files. Noise removal, speed adjustment, format conversion, and more.',
     type: 'website',
+    url: 'https://freetools.com/audio',
   },
   twitter: {
     card: 'summary',
     title: 'Audio Tools - Free Online Audio Processing',
     description: 'Professional audio tools for processing and editing audio files.',
+  },
+  alternates: {
+    canonical: 'https://freetools.com/audio',
   },
 };
 

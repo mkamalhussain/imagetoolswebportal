@@ -3,7 +3,7 @@ import HomeClient from './HomeClient';
 
 export const metadata: Metadata = {
   title: 'Free Online Tools - Image, Audio, Video & PDF Processing | No Signup Required',
-  description: 'Access 50+ free online tools for image editing, audio processing, video editing, and PDF manipulation. Professional quality tools powered by modern web technologies.',
+  description: 'Access 50+ free online tools for image resizing, conversion, meme creation, audio processing, video editing, and PDF manipulation. No signup required. Professional quality tools.',
   keywords: [
     'free online tools',
     'image editor online',
@@ -23,11 +23,14 @@ export const metadata: Metadata = {
     'image optimization',
     'audio cleaning',
     'video processing',
-    'document tools'
+    'document tools',
+    'image resizer',
+    'background remover',
+    'meme generator'
   ],
   openGraph: {
     title: 'Free Online Tools - Professional Image, Audio, Video & PDF Processing',
-    description: '50+ free online tools for creative professionals. No signup required. Privacy-first, powered by modern web technologies.',
+    description: '50+ free online tools for image resizing, conversion, meme creation, audio processing, video editing, and PDF manipulation. No signup required.',
     images: [
       {
         url: '/og-homepage.png',
@@ -36,11 +39,16 @@ export const metadata: Metadata = {
         alt: 'Free Tools Homepage - Online Image, Audio, Video & PDF Tools',
       },
     ],
+    type: 'website',
   },
   twitter: {
     title: 'Free Online Tools - Image, Audio, Video & PDF Processing',
     description: '50+ free online tools for creative work. No signup, no limits, privacy-first.',
     images: ['/og-homepage.png'],
+    card: 'summary_large_image',
+  },
+  alternates: {
+    canonical: 'https://freetools.com',
   },
 };
 
