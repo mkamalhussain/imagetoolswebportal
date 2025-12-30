@@ -1,8 +1,44 @@
 import Link from "next/link";
 import ClientModuleRenderer from "./ClientModuleRenderer";
 import { modules } from "@/data/modules";
+import type { Metadata } from "next";
 
 type Props = { params: Promise<{ slug: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const module = modules.find(m => m.slug === slug);
+
+  if (!module) {
+    return {
+      title: "Tool Not Found | Free Tools",
+      description: "The requested tool could not be found.",
+    };
+  }
+
+  return {
+    title: `${module.title} | Free Tools`,
+    description: module.description,
+    keywords: [
+      module.title.toLowerCase(),
+      "free online tool",
+      "image processing",
+      slug.replace('-', ' '),
+      "online tool",
+      "free tool"
+    ],
+    openGraph: {
+      title: `${module.title} - Free Online Tool`,
+      description: module.description,
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary',
+      title: `${module.title} - Free Online Tool`,
+      description: module.description,
+    },
+  };
+}
 
 export default async function ModulePage({ params }: Props) {
   const { slug } = await params;
