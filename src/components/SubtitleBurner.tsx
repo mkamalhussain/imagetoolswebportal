@@ -94,10 +94,11 @@ export default function SubtitleBurner() {
           setProgress(Math.round(progress * 100));
         });
 
+        // Use CDN for better compatibility with Next.js/Turbopack
+        const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
         await ffmpegInstance.load({
-          coreURL: await toBlobURL('/ffmpeg-core.js', 'text/javascript'),
-          wasmURL: await toBlobURL('/ffmpeg-core.wasm', 'application/wasm'),
-          workerURL: await toBlobURL('/ffmpeg-core.worker.js', 'text/javascript'),
+          coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+          wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
         });
 
         setFfmpeg(ffmpegInstance);
@@ -105,7 +106,7 @@ export default function SubtitleBurner() {
         console.log('FFmpeg loaded successfully');
       } catch (err) {
         console.error('Failed to load FFmpeg:', err);
-        setError('Failed to initialize video processing engine');
+        setError('Failed to initialize video processing engine. Please refresh the page and try again.');
       }
     };
 
