@@ -389,66 +389,98 @@ export default function SpeedPitchAdjuster() {
 
   // Individual effect implementations
   const applyDistortion = (buffer: AudioBuffer, amount: number): AudioBuffer => {
-    const newBuffer = audioContext!.createBuffer(buffer.numberOfChannels, buffer.length, buffer.sampleRate);
-    for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
-      const inputData = buffer.getChannelData(channel);
-      const outputData = newBuffer.getChannelData(channel);
-      for (let i = 0; i < inputData.length; i++) {
-        const x = inputData[i];
-        outputData[i] = (1 + amount) * x / (1 + amount * Math.abs(x));
+    if (!audioContext || amount <= 0) return buffer;
+
+    try {
+      const newBuffer = audioContext.createBuffer(buffer.numberOfChannels, buffer.length, buffer.sampleRate);
+      for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+        const inputData = buffer.getChannelData(channel);
+        const outputData = newBuffer.getChannelData(channel);
+        for (let i = 0; i < inputData.length; i++) {
+          const x = inputData[i];
+          // Soft clipping distortion
+          outputData[i] = Math.tanh(x * (1 + amount * 2));
+        }
       }
+      return newBuffer;
+    } catch (error) {
+      console.warn('Distortion effect failed:', error);
+      return buffer;
     }
-    return newBuffer;
   };
 
   const applyReverb = (buffer: AudioBuffer, amount: number): AudioBuffer => {
-    const newBuffer = audioContext!.createBuffer(buffer.numberOfChannels, buffer.length + Math.floor(buffer.sampleRate * 0.3 * amount), buffer.sampleRate);
-    for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
-      const inputData = buffer.getChannelData(channel);
-      const outputData = newBuffer.getChannelData(channel);
-      const delaySamples = Math.floor(buffer.sampleRate * 0.1 * amount);
+    if (!audioContext || amount <= 0) return buffer;
 
-      // Copy original
-      for (let i = 0; i < inputData.length; i++) {
-        outputData[i] = inputData[i];
-      }
+    try {
+      // Use convolution reverb approach (simplified)
+      const reverbTime = 0.3 * amount; // 0-300ms based on amount
+      const decaySamples = Math.floor(buffer.sampleRate * reverbTime);
 
-      // Add delayed versions with decay
-      for (let delay = 1; delay <= 3; delay++) {
-        const decay = Math.pow(0.5, delay);
+      const newBuffer = audioContext.createBuffer(buffer.numberOfChannels, buffer.length, buffer.sampleRate);
+
+      for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+        const inputData = buffer.getChannelData(channel);
+        const outputData = newBuffer.getChannelData(channel);
+
+        // Copy original with slight dampening
         for (let i = 0; i < inputData.length; i++) {
-          if (i + delaySamples * delay < outputData.length) {
-            outputData[i + delaySamples * delay] += inputData[i] * decay * amount;
+          outputData[i] = inputData[i] * (1 - amount * 0.1);
+        }
+
+        // Add simple reverb tail
+        const feedback = 0.3 * amount;
+        let reverbLevel = feedback;
+
+        for (let delay = 1; delay <= Math.min(5, Math.floor(decaySamples / 100)); delay++) {
+          const delaySamples = Math.floor(buffer.sampleRate * 0.05 * delay * amount);
+          reverbLevel *= 0.7;
+
+          for (let i = 0; i < inputData.length; i++) {
+            if (i + delaySamples < outputData.length) {
+              outputData[i + delaySamples] += inputData[i] * reverbLevel;
+            }
           }
         }
       }
+      return newBuffer;
+    } catch (error) {
+      console.warn('Reverb effect failed:', error);
+      return buffer;
     }
-    return newBuffer;
   };
 
   const applyEcho = (buffer: AudioBuffer, amount: number): AudioBuffer => {
-    const newBuffer = audioContext!.createBuffer(buffer.numberOfChannels, buffer.length + Math.floor(buffer.sampleRate * 0.5), buffer.sampleRate);
-    for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
-      const inputData = buffer.getChannelData(channel);
-      const outputData = newBuffer.getChannelData(channel);
-      const delaySamples = Math.floor(buffer.sampleRate * 0.25);
+    if (!audioContext || amount <= 0) return buffer;
 
-      // Copy original
-      for (let i = 0; i < inputData.length; i++) {
-        outputData[i] = inputData[i];
-      }
+    try {
+      const newBuffer = audioContext.createBuffer(buffer.numberOfChannels, buffer.length, buffer.sampleRate);
+      const delaySamples = Math.floor(buffer.sampleRate * 0.25 * amount); // Variable delay based on amount
 
-      // Add echo
-      for (let i = 0; i < inputData.length; i++) {
-        if (i + delaySamples < outputData.length) {
-          outputData[i + delaySamples] += inputData[i] * 0.4 * amount;
+      for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+        const inputData = buffer.getChannelData(channel);
+        const outputData = newBuffer.getChannelData(channel);
+
+        // Copy original
+        for (let i = 0; i < inputData.length; i++) {
+          outputData[i] = inputData[i];
         }
-        if (i + delaySamples * 2 < outputData.length) {
-          outputData[i + delaySamples * 2] += inputData[i] * 0.2 * amount;
+
+        // Add echo within buffer bounds
+        const feedback = 0.3 * amount;
+        for (let i = 0; i < inputData.length - delaySamples; i++) {
+          outputData[i + delaySamples] += inputData[i] * feedback;
+          // Add second echo if space allows
+          if (i + delaySamples * 2 < inputData.length) {
+            outputData[i + delaySamples * 2] += inputData[i] * feedback * 0.5;
+          }
         }
       }
+      return newBuffer;
+    } catch (error) {
+      console.warn('Echo effect failed:', error);
+      return buffer;
     }
-    return newBuffer;
   };
 
   const applyCompression = (buffer: AudioBuffer, amount: number): AudioBuffer => {
@@ -603,7 +635,10 @@ export default function SpeedPitchAdjuster() {
 
   // Process audio with speed and pitch adjustment
   const processAudio = useCallback(async (buffer: AudioBuffer, speedValue: number, pitchValue: number) => {
-    if (!audioContext || !buffer) return;
+    if (!audioContext || !buffer) {
+      console.warn('AudioContext or buffer not available');
+      return;
+    }
 
     try {
       const sampleRate = buffer.sampleRate;
@@ -658,16 +693,28 @@ export default function SpeedPitchAdjuster() {
         effectsBuffer = applyCreativeEffect(effectsBuffer, selectedCreativeEffect);
       }
 
-      setProcessedAudioBuffer(effectsBuffer);
+      // Validate the processed buffer
+      if (effectsBuffer && effectsBuffer.length > 0 && !isNaN(effectsBuffer.length)) {
+        setProcessedAudioBuffer(effectsBuffer);
 
-      // Generate and store processed waveform
-      const procWaveform = generateWaveformData(effectsBuffer);
-      setProcessedWaveformData(procWaveform);
+        // Generate and store processed waveform
+        const procWaveform = generateWaveformData(effectsBuffer);
+        setProcessedWaveformData(procWaveform);
 
-      // Update displayed waveform if currently showing processed
-      if (!showingOriginalWaveform) {
-        setWaveformData(procWaveform);
-        drawWaveform(procWaveform);
+        // Update displayed waveform if currently showing processed
+        if (!showingOriginalWaveform) {
+          setWaveformData(procWaveform);
+          drawWaveform(procWaveform);
+        }
+
+        console.log('Audio processed successfully:', {
+          originalLength: buffer.length,
+          processedLength: effectsBuffer.length,
+          sampleRate: effectsBuffer.sampleRate,
+          channels: effectsBuffer.numberOfChannels
+        });
+      } else {
+        throw new Error('Invalid processed audio buffer');
       }
     } catch (err) {
       console.error('Error processing audio:', err);
@@ -862,21 +909,92 @@ export default function SpeedPitchAdjuster() {
 
   // Download processed audio
   const downloadProcessed = async () => {
-    if (!processedAudioBuffer || !audioContext) return;
+    if (!processedAudioBuffer || !audioContext) {
+      setError('No processed audio available to download.');
+      return;
+    }
+
+    if (!selectedFile) {
+      setError('No original file selected.');
+      return;
+    }
 
     setIsProcessing(true);
+    setError(null);
+
     try {
+      console.log('Downloading audio buffer:', {
+        length: processedAudioBuffer.length,
+        sampleRate: processedAudioBuffer.sampleRate,
+        channels: processedAudioBuffer.numberOfChannels,
+        duration: processedAudioBuffer.length / processedAudioBuffer.sampleRate
+      });
+
       // Convert AudioBuffer to WAV
-      const wav = audioBufferToWav(processedAudioBuffer);
-      const blob = new Blob([wav], { type: 'audio/wav' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `adjusted_${selectedFile?.name.replace(/\.[^/.]+$/, '')}.wav`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      const wavBuffer = audioBufferToWav(processedAudioBuffer);
+      console.log('WAV buffer created:', wavBuffer.byteLength, 'bytes');
+
+      // Validate WAV buffer
+      if (wavBuffer.byteLength < 44) {
+        throw new Error('Invalid WAV buffer generated');
+      }
+
+      // Create blob with correct MIME type
+      const blob = new Blob([wavBuffer], { type: 'audio/wav' });
+      console.log('Blob created:', blob.size, 'bytes');
+
+      // Generate filename
+      const originalName = selectedFile.name.replace(/\.[^/.]+$/, '');
+      const effects = [];
+      if (speed !== 1.0) effects.push(`speed${speed.toFixed(1)}`);
+      if (pitch !== 1.0) effects.push(`pitch${pitch.toFixed(1)}`);
+      if (selectedVoiceEffect) effects.push(selectedVoiceEffect.name.toLowerCase());
+      if (selectedCreativeEffect) effects.push(selectedCreativeEffect.name.toLowerCase().replace(' ', ''));
+      if (audioEffects.distortion > 0) effects.push('dist');
+      if (audioEffects.reverb > 0) effects.push('rvb');
+      if (audioEffects.echo > 0) effects.push('echo');
+
+      const effectsString = effects.length > 0 ? '_' + effects.slice(0, 3).join('_') : '';
+      const filename = `processed_${originalName}${effectsString}.wav`;
+
+      // Try multiple download methods
+      try {
+        // Method 1: Direct blob download
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.style.display = 'none';
+
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch (blobError) {
+        console.warn('Blob download failed, trying alternative method:', blobError);
+
+        // Method 2: Fallback - create a data URL
+        try {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const dataUrl = reader.result as string;
+            const a = document.createElement('a');
+            a.href = dataUrl;
+            a.download = filename;
+            a.style.display = 'none';
+
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+          };
+          reader.readAsDataURL(blob);
+        } catch (fallbackError) {
+          console.error('All download methods failed:', fallbackError);
+          throw new Error('Download failed with all methods');
+        }
+      }
+
+      console.log('Audio downloaded successfully:', filename);
     } catch (err) {
       console.error('Error downloading audio:', err);
       setError('Failed to download audio. Please try again.');
@@ -890,13 +1008,14 @@ export default function SpeedPitchAdjuster() {
     const length = buffer.length;
     const numberOfChannels = buffer.numberOfChannels;
     const sampleRate = buffer.sampleRate;
-    const arrayBuffer = new ArrayBuffer(44 + length * numberOfChannels * 2);
-    const view = new DataView(arrayBuffer);
-    const channels: Float32Array[] = [];
+    const bytesPerSample = 2; // 16-bit
+    const blockAlign = numberOfChannels * bytesPerSample;
+    const byteRate = sampleRate * blockAlign;
+    const dataSize = length * blockAlign;
+    const bufferSize = 44 + dataSize;
 
-    for (let i = 0; i < numberOfChannels; i++) {
-      channels.push(buffer.getChannelData(i));
-    }
+    const arrayBuffer = new ArrayBuffer(bufferSize);
+    const view = new DataView(arrayBuffer);
 
     // WAV header
     const writeString = (offset: number, string: string) => {
@@ -906,25 +1025,28 @@ export default function SpeedPitchAdjuster() {
     };
 
     writeString(0, 'RIFF');
-    view.setUint32(4, 36 + length * numberOfChannels * 2, true);
+    view.setUint32(4, 36 + dataSize, true); // File size - 8
     writeString(8, 'WAVE');
     writeString(12, 'fmt ');
-    view.setUint32(16, 16, true);
-    view.setUint16(20, 1, true);
-    view.setUint16(22, numberOfChannels, true);
-    view.setUint32(24, sampleRate, true);
-    view.setUint32(28, sampleRate * numberOfChannels * 2, true);
-    view.setUint16(32, numberOfChannels * 2, true);
-    view.setUint16(34, 16, true);
+    view.setUint32(16, 16, true); // Format chunk size
+    view.setUint16(20, 1, true); // Audio format (PCM)
+    view.setUint16(22, numberOfChannels, true); // Number of channels
+    view.setUint32(24, sampleRate, true); // Sample rate
+    view.setUint32(28, byteRate, true); // Byte rate
+    view.setUint16(32, blockAlign, true); // Block align
+    view.setUint16(34, 16, true); // Bits per sample
     writeString(36, 'data');
-    view.setUint32(40, length * numberOfChannels * 2, true);
+    view.setUint32(40, dataSize, true); // Data size
 
     // Convert float samples to 16-bit PCM
     let offset = 44;
     for (let i = 0; i < length; i++) {
       for (let channel = 0; channel < numberOfChannels; channel++) {
-        const sample = Math.max(-1, Math.min(1, channels[channel][i]));
-        view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+        const floatSample = buffer.getChannelData(channel)[i];
+        // Clamp and convert to 16-bit PCM
+        const sample = Math.max(-1, Math.min(1, floatSample));
+        const intSample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
+        view.setInt16(offset, intSample, true);
         offset += 2;
       }
     }
