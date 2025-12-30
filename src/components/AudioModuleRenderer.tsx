@@ -9,11 +9,14 @@ interface AudioModuleRendererProps {
 }
 
 export default function AudioModuleRenderer({ slug }: AudioModuleRendererProps) {
+  console.log('🎵🎵🎵 AUDIO MODULE RENDERER CALLED with slug:', slug, '🎵🎵🎵');
+
   const [Component, setComponent] = useState<React.ComponentType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const module = audioModules.find(m => m.slug === slug);
+  console.log('🎵 Found module:', module ? module.title : 'NOT FOUND');
 
   useEffect(() => {
     const loadComponent = async () => {
@@ -28,7 +31,9 @@ export default function AudioModuleRenderer({ slug }: AudioModuleRendererProps) 
             componentModule = await import('./MultiTrackMixer');
             break;
           case 'speed-pitch-adjuster':
+            console.log('🎵 Importing SpeedPitchAdjuster...');
             componentModule = await import('./SpeedPitchAdjuster');
+            console.log('🎵 SpeedPitchAdjuster imported successfully');
             break;
           case 'noise-cleaner':
             componentModule = await import('./NoiseCleaner');
