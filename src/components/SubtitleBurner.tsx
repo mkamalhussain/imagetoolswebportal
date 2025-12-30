@@ -137,41 +137,9 @@ export default function SubtitleBurner() {
   };
 
   const generateSubtitleFilter = (): string => {
-    const { fontSize, fontColor, fontFamily, outlineColor, outlineWidth, shadowColor, shadowOffset, position, alignment, marginV, marginH } = subtitleStyle;
-
-    // Position mapping
-    const positionY = position === 'top' ? marginV : position === 'bottom' ? 'h-th-marginV' : '(h/2)';
-    const alignmentX = alignment === 'left' ? marginH : alignment === 'right' ? 'w-tw-marginH' : '(w/2)';
-
-    // Build subtitle filter
-    let filter = `subtitles=input.srt:force_style='`;
-
-    // Font settings
-    filter += `FontName=${fontFamily},`;
-    filter += `FontSize=${fontSize},`;
-    filter += `PrimaryColour=&H${fontColor.replace('#', '').slice(4, 6)}${fontColor.replace('#', '').slice(2, 4)}${fontColor.replace('#', '').slice(0, 2)}&,`;
-
-    // Outline settings
-    if (outlineWidth > 0) {
-      filter += `OutlineColour=&H${outlineColor.replace('#', '').slice(4, 6)}${outlineColor.replace('#', '').slice(2, 4)}${outlineColor.replace('#', '').slice(0, 2)}&,`;
-      filter += `Outline=${outlineWidth},`;
-    }
-
-    // Shadow settings
-    if (shadowOffset > 0) {
-      filter += `ShadowColour=&H${shadowColor.replace('#', '').slice(4, 6)}${shadowColor.replace('#', '').slice(2, 4)}${shadowColor.replace('#', '').slice(0, 2)}&,`;
-      filter += `Shadow=${shadowOffset},`;
-    }
-
-    // Position and alignment
-    filter += `Alignment=${alignment === 'left' ? 1 : alignment === 'center' ? 2 : 3},`;
-    filter += `MarginV=${marginV},`;
-    filter += `MarginL=${alignment === 'left' ? marginH : 0},`;
-    filter += `MarginR=${alignment === 'right' ? marginH : 0}`;
-
-    filter += `'`;
-
-    return filter;
+    // Use subtitles filter with proper syntax
+    // The subtitles filter in FFmpeg expects the filename as parameter
+    return `subtitles=input.srt`;
   };
 
   const generatePreview = async () => {
@@ -242,10 +210,43 @@ export default function SubtitleBurner() {
       const subtitleFilter = generateSubtitleFilter();
       const fullFilter = timingFilter + subtitleFilter;
 
-      console.log('Using filter:', fullFilter);
+      // DEBUG: Try without subtitles first to test basic processing
+      console.log('🎬 DEBUG: Testing without subtitles first...');
+      const testCommand = [
+        '-i', 'input.mp4',
+        '-c:v', 'libx264',
+        '-c:a', 'aac',
+        '-preset', 'fast',
+        '-crf', '23',
+        '-y',
+        'output.mp4'
+      ];
 
-      // Burn subtitles using FFmpeg
-      await ffmpeg.exec([
+      try {
+        console.log('🎬 Running test command (no subtitles):', testCommand.join(' '));
+        await ffmpeg.exec(testCommand);
+        console.log('🎬 Test command successful - basic processing works');
+      } catch (testErr) {
+        console.error('🎬 Test command failed:', testErr);
+        throw new Error('Basic video processing failed - subtitles cannot be the issue');
+      }
+
+      console.log('🎬 Subtitle burning - Input files written');
+      console.log('🎬 Video file size:', selectedVideo.size);
+      console.log('🎬 Subtitle file size:', selectedSubtitles.size);
+      console.log('🎬 Using filter:', fullFilter);
+
+      // Debug: Check if files exist in FFmpeg FS
+      try {
+        const videoData = await ffmpeg.readFile('input.mp4');
+        const subtitleData = await ffmpeg.readFile('input.srt');
+        console.log('🎬 File verification - Video size in FS:', videoData.byteLength, 'Subtitle size in FS:', subtitleData.byteLength);
+      } catch (readErr) {
+        console.error('🎬 Error reading files from FFmpeg FS:', readErr);
+        throw new Error('Failed to write input files to processing engine');
+      }
+
+      const ffmpegCommand = [
         '-i', 'input.mp4',
         '-vf', fullFilter,
         '-c:v', 'libx264',
@@ -254,7 +255,29 @@ export default function SubtitleBurner() {
         '-crf', '23',
         '-y',
         'output.mp4'
-      ]);
+      ];
+
+      console.log('🎬 FFmpeg command:', ffmpegCommand.join(' '));
+
+      // Burn subtitles using FFmpeg
+      try {
+        console.log('🎬 Executing FFmpeg command...');
+        await ffmpeg.exec(ffmpegCommand);
+        console.log('🎬 FFmpeg command executed successfully');
+
+        // Check if output file was created
+        try {
+          const outputData = await ffmpeg.readFile('output.mp4');
+          console.log('🎬 Output file created, size:', outputData.byteLength);
+        } catch (outputErr) {
+          console.error('🎬 Failed to read output file:', outputErr);
+          throw new Error('FFmpeg completed but no output file was created');
+        }
+
+      } catch (ffmpegErr) {
+        console.error('🎬 FFmpeg execution error:', ffmpegErr);
+        throw new Error(`FFmpeg processing failed: ${ffmpegErr}`);
+      }
 
       // Read the output
       const data = await ffmpeg.readFile('output.mp4');
