@@ -824,6 +824,14 @@ export default function SpeedPitchAdjuster() {
         effectsBuffer = buffer;
       }
 
+      console.log('Setting processed audio buffer:', {
+        exists: !!effectsBuffer,
+        length: effectsBuffer.length,
+        sampleRate: effectsBuffer.sampleRate,
+        channels: effectsBuffer.numberOfChannels,
+        hasAudioData: hasAudioData
+      });
+
       setProcessedAudioBuffer(effectsBuffer);
 
       // Generate and store processed waveform
@@ -1055,16 +1063,42 @@ export default function SpeedPitchAdjuster() {
     setError(null);
 
     try {
-      console.log('Downloading audio buffer:', {
-        length: bufferToDownload.length,
-        sampleRate: bufferToDownload.sampleRate,
-        channels: bufferToDownload.numberOfChannels,
-        duration: bufferToDownload.length / bufferToDownload.sampleRate
+      console.log('=== DOWNLOAD DEBUG ===');
+      console.log('Buffer to download:', {
+        exists: !!bufferToDownload,
+        length: bufferToDownload?.length || 'N/A',
+        sampleRate: bufferToDownload?.sampleRate || 'N/A',
+        channels: bufferToDownload?.numberOfChannels || 'N/A',
+        duration: bufferToDownload ? bufferToDownload.length / bufferToDownload.sampleRate : 'N/A'
       });
+
+      // Check if buffer has actual audio data
+      if (bufferToDownload && bufferToDownload.length > 0) {
+        let hasData = false;
+        for (let ch = 0; ch < bufferToDownload.numberOfChannels; ch++) {
+          const data = bufferToDownload.getChannelData(ch);
+          for (let i = 0; i < Math.min(100, data.length); i++) {
+            if (Math.abs(data[i]) > 0.001) {
+              hasData = true;
+              break;
+            }
+          }
+          if (hasData) break;
+        }
+        console.log('Buffer has audio data:', hasData);
+      }
 
       // Convert AudioBuffer to WAV
       const wavBuffer = audioBufferToWav(bufferToDownload);
-      console.log('WAV buffer created:', wavBuffer.byteLength, 'bytes');
+      console.log('WAV buffer created:', {
+        byteLength: wavBuffer.byteLength,
+        expectedSize: bufferToDownload ? 44 + bufferToDownload.length * bufferToDownload.numberOfChannels * 2 : 'N/A'
+      });
+
+      if (wavBuffer.byteLength < 44) {
+        console.error('WAV buffer is too small - header incomplete!');
+        throw new Error('Generated WAV file is too small');
+      }
 
       // Validate WAV buffer
       if (wavBuffer.byteLength < 44) {
@@ -1073,7 +1107,15 @@ export default function SpeedPitchAdjuster() {
 
       // Create blob with correct MIME type
       const blob = new Blob([wavBuffer], { type: 'audio/wav' });
-      console.log('Blob created:', blob.size, 'bytes');
+      console.log('Blob created:', {
+        size: blob.size,
+        type: blob.type,
+        expectedSize: wavBuffer.byteLength
+      });
+
+      if (blob.size !== wavBuffer.byteLength) {
+        console.warn('Blob size mismatch:', blob.size, 'vs expected', wavBuffer.byteLength);
+      }
 
       // Generate filename
       const originalName = selectedFile.name.replace(/\.[^/.]+$/, '');
@@ -1137,6 +1179,39 @@ export default function SpeedPitchAdjuster() {
 
   // Convert AudioBuffer to WAV format
   const audioBufferToWav = (buffer: AudioBuffer): ArrayBuffer => {
+    console.log('=== WAV CONVERSION DEBUG ===');
+    console.log('Input buffer:', {
+      length: buffer.length,
+      channels: buffer.numberOfChannels,
+      sampleRate: buffer.sampleRate
+    });
+
+    if (!buffer || buffer.length === 0) {
+      console.error('Invalid or empty buffer passed to audioBufferToWav');
+      // Return minimal valid WAV header for empty file
+      const emptyBuffer = new ArrayBuffer(44);
+      const view = new DataView(emptyBuffer);
+      const writeString = (offset: number, string: string) => {
+        for (let i = 0; i < string.length; i++) {
+          view.setUint8(offset + i, string.charCodeAt(i));
+        }
+      };
+      writeString(0, 'RIFF');
+      view.setUint32(4, 36, true); // File size - 8
+      writeString(8, 'WAVE');
+      writeString(12, 'fmt ');
+      view.setUint32(16, 16, true);
+      view.setUint16(20, 1, true);
+      view.setUint16(22, 1, true); // Mono
+      view.setUint32(24, 44100, true); // Default sample rate
+      view.setUint32(28, 88200, true); // Byte rate
+      view.setUint16(32, 2, true); // Block align
+      view.setUint16(34, 16, true); // Bits per sample
+      writeString(36, 'data');
+      view.setUint32(40, 0, true); // No data
+      return emptyBuffer;
+    }
+
     const length = buffer.length;
     const numberOfChannels = buffer.numberOfChannels;
     const sampleRate = buffer.sampleRate;
@@ -1145,6 +1220,13 @@ export default function SpeedPitchAdjuster() {
     const byteRate = sampleRate * blockAlign;
     const dataSize = length * blockAlign;
     const bufferSize = 44 + dataSize;
+
+    console.log('Calculated sizes:', {
+      dataSize,
+      bufferSize,
+      blockAlign,
+      byteRate
+    });
 
     const arrayBuffer = new ArrayBuffer(bufferSize);
     const view = new DataView(arrayBuffer);
@@ -1170,8 +1252,11 @@ export default function SpeedPitchAdjuster() {
     writeString(36, 'data');
     view.setUint32(40, dataSize, true); // Data size
 
+    console.log('WAV header written, starting data conversion...');
+
     // Convert float samples to 16-bit PCM
     let offset = 44;
+    let samplesWritten = 0;
     for (let i = 0; i < length; i++) {
       for (let channel = 0; channel < numberOfChannels; channel++) {
         const floatSample = buffer.getChannelData(channel)[i];
@@ -1180,8 +1265,15 @@ export default function SpeedPitchAdjuster() {
         const intSample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
         view.setInt16(offset, intSample, true);
         offset += 2;
+        samplesWritten++;
       }
     }
+
+    console.log('Data conversion complete:', {
+      samplesWritten,
+      finalOffset: offset,
+      expectedOffset: 44 + dataSize
+    });
 
     return arrayBuffer;
   };
