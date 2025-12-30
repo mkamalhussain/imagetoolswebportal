@@ -316,11 +316,20 @@ export default function SpeedPitchAdjuster() {
       }
 
       const arrayBuffer = await file.arrayBuffer();
+      console.log('🎵 FILE SELECTED - decoding audio data...');
       const buffer = await audioContext.decodeAudioData(arrayBuffer);
+      console.log('🎵 AUDIO DECODED - setting buffers:', {
+        length: buffer.length,
+        sampleRate: buffer.sampleRate,
+        channels: buffer.numberOfChannels
+      });
+
       setOriginalAudioBuffer(buffer);
+      console.log('🎵 SET originalAudioBuffer');
 
       // Immediately set processed buffer to original (will be updated by processAudio)
       setProcessedAudioBuffer(buffer);
+      console.log('🎵 SET processedAudioBuffer - download button should now appear');
 
       // Generate and store original waveform
       const origWaveform = generateWaveformData(buffer);
@@ -868,11 +877,27 @@ export default function SpeedPitchAdjuster() {
     }
   }, [audioContext, showingOriginalWaveform, audioEffects, selectedCreativeEffect, applyAudioEffects, applyCreativeEffect]);
 
+  // Debug download button visibility
+  useEffect(() => {
+    console.log('🎵 DOWNLOAD BUTTON VISIBILITY CHECK:', {
+      selectedFile: !!selectedFile,
+      processedAudioBuffer: !!processedAudioBuffer,
+      shouldShowButton: !!(selectedFile && processedAudioBuffer)
+    });
+  }, [selectedFile, processedAudioBuffer]);
+
   // Process audio whenever original buffer or settings change
   useEffect(() => {
+    console.log('🎵 USEEFFECT TRIGGERED - checking conditions:', {
+      hasOriginalBuffer: !!originalAudioBuffer,
+      speed,
+      pitch
+    });
     if (originalAudioBuffer) {
       console.log('🎵 Processing audio - original buffer loaded or settings changed');
       processAudio(originalAudioBuffer, speed, pitch);
+    } else {
+      console.log('🎵 No original buffer yet');
     }
   }, [originalAudioBuffer, speed, pitch, processAudio]);
 
@@ -1922,7 +1947,10 @@ export default function SpeedPitchAdjuster() {
       {selectedFile && processedAudioBuffer && (
         <div className="mb-6">
           <Button
-            onClick={downloadProcessed}
+            onClick={() => {
+              console.log('🎵 DOWNLOAD BUTTON CLICKED');
+              downloadProcessed();
+            }}
             disabled={isProcessing}
             className="w-full md:w-auto bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
           >
