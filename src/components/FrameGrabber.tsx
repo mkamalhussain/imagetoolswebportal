@@ -143,7 +143,7 @@ export default function FrameGrabber() {
 
         try {
           const frameData = await ffmpeg.readFile(`frame_${i}.png`);
-          const blob = new Blob([frameData], { type: 'image/png' });
+          const blob = new Blob([frameData as BlobPart], { type: 'image/png' });
           const dataUrl = URL.createObjectURL(blob);
 
           frames.push({
@@ -339,12 +339,12 @@ export default function FrameGrabber() {
             <Button
               onClick={extractFramesAutomatically}
               disabled={isProcessing || !isFfmpegLoaded}
-              variant="outline"
+              variant="secondary"
             >
               {isProcessing ? `🔄 Extracting... ${progress}%` : '🤖 Auto Extract Frames'}
             </Button>
             {capturedFrames.length > 0 && (
-              <Button onClick={downloadAllFrames} variant="outline">
+              <Button onClick={downloadAllFrames} variant="secondary">
                 💾 Download All ({capturedFrames.length})
               </Button>
             )}
@@ -371,7 +371,7 @@ export default function FrameGrabber() {
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
               📸 Captured Frames ({capturedFrames.length})
             </h3>
-            <Button onClick={downloadAllFrames} size="sm">
+            <Button onClick={downloadAllFrames}>
               💾 Download All
             </Button>
           </div>
@@ -399,7 +399,6 @@ export default function FrameGrabber() {
                       a.click();
                       document.body.removeChild(a);
                     }}
-                    size="sm"
                     className="w-full"
                   >
                     💾 Download

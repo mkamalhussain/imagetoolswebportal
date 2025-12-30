@@ -293,7 +293,7 @@ but your subtitles will be burned into the full video when you click
       try {
         const videoData = await ffmpeg.readFile('input.mp4');
         const subtitleData = await ffmpeg.readFile('input.srt');
-        console.log('🎬 File verification - Video size in FS:', videoData.byteLength, 'Subtitle size in FS:', subtitleData.byteLength);
+        console.log('🎬 File verification - Video size in FS:', videoData instanceof Uint8Array ? videoData.byteLength : videoData.length, 'Subtitle size in FS:', subtitleData instanceof Uint8Array ? subtitleData.byteLength : subtitleData.length);
       } catch (readErr) {
         console.error('🎬 Error reading files from FFmpeg FS:', readErr);
         throw new Error('Failed to write input files to processing engine');
@@ -323,7 +323,7 @@ but your subtitles will be burned into the full video when you click
         // Check if output file was created
         try {
           const outputData = await ffmpeg.readFile('output.mp4');
-          console.log('🎬 Output file created, size:', outputData.byteLength);
+          console.log('🎬 Output file created, size:', outputData instanceof Uint8Array ? outputData.byteLength : outputData.length);
         } catch (outputErr) {
           console.error('🎬 Failed to read output file:', outputErr);
           throw new Error('FFmpeg completed but no output file was created');
@@ -337,54 +337,30 @@ but your subtitles will be burned into the full video when you click
       // Try multiple approaches to read the output file
       let data;
 
-      // Approach 1: Try direct FS API (more reliable than readFile)
+      // Read the output file
       try {
-        console.log('🎬 Attempting direct FS API read...');
+        console.log('🎬 Reading output file...');
         await new Promise(resolve => setTimeout(resolve, 500)); // Wait for file to stabilize
 
-        // Use FFmpeg's FS API directly
-        const fs = ffmpeg.FS;
-        const fileStats = fs.stat('output.mp4');
-        console.log('🎬 File stats:', { size: fileStats.size, mode: fileStats.mode });
+        data = await ffmpeg.readFile('output.mp4');
+        console.log('🎬 Successfully read output file, size:', data instanceof Uint8Array ? data.byteLength : data.length);
 
-        if (fileStats.size > 0) {
-          data = fs.readFile('output.mp4');
-          console.log('🎬 Successfully read via FS API, size:', data.byteLength);
-        } else {
-          throw new Error('File exists but is empty');
-        }
+      } catch (readErr) {
+        console.error('🎬 Failed to read output file:', readErr);
 
-      } catch (fsErr) {
-        console.warn('🎬 Direct FS API failed:', fsErr.message);
-
-        // Approach 2: Try the original readFile method with longer delay
-        try {
-          console.log('🎬 Attempting readFile with long delay...');
-          await new Promise(resolve => setTimeout(resolve, 1000)); // 1 second delay
-
-          data = await ffmpeg.readFile('output.mp4');
-          console.log('🎬 Successfully read via readFile, size:', data.byteLength);
-
-        } catch (readFileErr) {
-          console.warn('🎬 readFile also failed:', readFileErr.message);
-
-          // Approach 3: Create a meaningful error message and suggest alternatives
-          console.error('🎬 All file reading methods failed');
-
-          // Instead of creating placeholder data, inform user of the issue
-          throw new Error(
-            'Video processing completed successfully, but the output file cannot be accessed due to browser limitations with FFmpeg.wasm. ' +
-            'This is a known compatibility issue. Try using a different browser (Chrome/Firefox) or consider using desktop video editing software for subtitle burning.'
-          );
-        }
+        // Inform user of the issue
+        throw new Error(
+          'Video processing completed successfully, but the output file cannot be accessed due to browser limitations with FFmpeg.wasm. ' +
+          'This is a known compatibility issue. Try using a different browser (Chrome/Firefox) or consider using desktop video editing software for subtitle burning.'
+        );
       }
 
-      const blob = new Blob([data], { type: 'video/mp4' });
+      const blob = new Blob([data as BlobPart], { type: 'video/mp4' });
 
       console.log('Output blob size:', blob.size);
 
       // Check blob size (allow smaller sizes for placeholder data)
-      if (blob.size < 100 && data.byteLength < 100) {
+      if (blob.size < 100 && (data instanceof Uint8Array ? data.byteLength : data.length) < 100) {
         throw new Error('Generated video file is too small - processing likely failed');
       }
 
@@ -508,7 +484,7 @@ but your subtitles will be burned into the full video when you click
                 key={preset.name}
                 onClick={() => setSubtitleStyle(prev => ({ ...prev, ...preset.style }))}
                 className="text-xs py-2"
-                variant="outline"
+                variant="secondary"
               >
                 {preset.name}
               </Button>
@@ -711,8 +687,7 @@ but your subtitles will be burned into the full video when you click
             <Button
               onClick={generatePreview}
               disabled={isProcessing || !isFfmpegLoaded}
-              variant="outline"
-              size="sm"
+              variant="secondary"
             >
               {previewMode ? '🔄 Update Preview' : '🎬 Generate Preview'}
             </Button>
@@ -793,7 +768,7 @@ will be burned into the full video when you click
             <Button
               onClick={generatePreview}
               disabled={isProcessing || !isFfmpegLoaded}
-              variant="outline"
+              variant="secondary"
               className="flex-1"
             >
               👀 Generate Preview

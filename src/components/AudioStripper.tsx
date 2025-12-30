@@ -146,7 +146,7 @@ export default function AudioStripper() {
 
       // Read the output audio file
       const audioData = await ffmpeg.readFile(`output.${audioSettings.format}`);
-      const audioBlob = new Blob([audioData], {
+      const audioBlob = new Blob([audioData as BlobPart], {
         type: `audio/${audioSettings.format === 'aac' ? 'mp4' : audioSettings.format}`
       });
 
@@ -382,7 +382,7 @@ export default function AudioStripper() {
                 setAudioPreview(null);
                 setError(null);
               }}
-              variant="outline"
+              variant="secondary"
               disabled={isProcessing}
             >
               🔄 Reset
@@ -430,7 +430,7 @@ export default function AudioStripper() {
                 setAudioPreview(null);
                 setError(null);
               }}
-              variant="outline"
+              variant="secondary"
             >
               🔄 Extract Different Audio
             </Button>

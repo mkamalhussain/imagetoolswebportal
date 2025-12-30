@@ -174,12 +174,6 @@ const CREATIVE_EFFECTS: CreativeEffect[] = [
 ];
 
 export default function SpeedPitchAdjuster() {
-  try {
-    console.log('🎵🎵🎵 SPEED PITCH ADJUSTER COMPONENT RENDERED 🎵🎵🎵');
-    console.log('🚨🚨🚨 COMPONENT IS RENDERING 🚨🚨🚨');
-    console.log('🔥🔥🔥 COMPONENT VERSION WITH DEBUG LOGS LOADED 🔥🔥🔥');
-    console.log('🧪🧪🧪 BASIC TEST LOG - COMPONENT EXECUTING 🧪🧪🧪');
-
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -1275,29 +1269,6 @@ export default function SpeedPitchAdjuster() {
           throw new Error('Download failed completely');
         }
       }
-      } catch (blobError) {
-        console.warn('Blob download failed, trying alternative method:', blobError);
-
-        // Method 2: Fallback - create a data URL
-        try {
-          const reader = new FileReader();
-          reader.onload = () => {
-            const dataUrl = reader.result as string;
-            const a = document.createElement('a');
-            a.href = dataUrl;
-            a.download = filename;
-            a.style.display = 'none';
-
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-          };
-          reader.readAsDataURL(blob);
-        } catch (fallbackError) {
-          console.error('All download methods failed:', fallbackError);
-          throw new Error('Download failed with all methods');
-        }
-      }
 
       console.log('Audio downloaded successfully:', filename);
     } catch (err) {
@@ -1419,7 +1390,6 @@ export default function SpeedPitchAdjuster() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  try {
     return (
       <div className="max-w-6xl mx-auto p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
       <div className="mb-8">
@@ -2079,8 +2049,7 @@ export default function SpeedPitchAdjuster() {
                 }
               }}
               disabled={isProcessing}
-              variant="outline"
-              size="sm"
+              variant="secondary"
             >
               🧪 Test Download (Original)
             </Button>
@@ -2150,30 +2119,4 @@ export default function SpeedPitchAdjuster() {
       </div>
     </div>
     );
-  } catch (renderError) {
-    console.error('🚨🚨🚨 COMPONENT RENDER ERROR 🚨🚨🚨', renderError);
-    console.error('Error details:', {
-      message: renderError.message,
-      stack: renderError.stack,
-      name: renderError.name
-    });
-
-    return (
-      <div className="max-w-4xl mx-auto p-6 bg-red-50 dark:bg-red-900/20 rounded-xl shadow-lg border border-red-200 dark:border-red-800">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-red-600 dark:text-red-400 mb-4">
-            🚨 Component Error
-          </h2>
-          <p className="text-red-700 dark:text-red-300 mb-4">
-            The Speed Changer Pro component encountered an error and cannot render properly.
-          </p>
-          <div className="bg-red-100 dark:bg-red-800 p-4 rounded text-left">
-            <p className="text-red-800 dark:text-red-200 text-sm font-mono">
-              {renderError.message}
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
 }
