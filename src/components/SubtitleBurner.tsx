@@ -17,6 +17,7 @@ interface SubtitleStyle {
   alignment: 'left' | 'center' | 'right';
   marginV: number; // vertical margin
   marginH: number; // horizontal margin
+  encoding: string; // subtitle character encoding
 }
 
 interface SubtitleTiming {
@@ -41,11 +42,11 @@ const COLOR_PRESETS = [
 ];
 
 const STYLE_PRESETS = [
-  { name: 'Classic', style: { fontSize: 24, fontColor: 'white', outlineColor: 'black', outlineWidth: 2, shadowColor: 'black', shadowOffset: 0 } },
-  { name: 'Modern', style: { fontSize: 28, fontColor: 'yellow', outlineColor: 'black', outlineWidth: 1, shadowColor: 'black', shadowOffset: 1 } },
-  { name: 'Minimal', style: { fontSize: 22, fontColor: 'white', outlineColor: 'none', outlineWidth: 0, shadowColor: 'black', shadowOffset: 1 } },
-  { name: 'Bold', style: { fontSize: 32, fontColor: 'white', outlineColor: 'black', outlineWidth: 3, shadowColor: 'none', shadowOffset: 0 } },
-  { name: 'Retro', style: { fontSize: 24, fontColor: 'yellow', outlineColor: 'black', outlineWidth: 2, shadowColor: 'none', shadowOffset: 0 } }
+  { name: 'Classic', style: { fontSize: 24, fontColor: 'white', outlineColor: 'black', outlineWidth: 2, shadowColor: 'black', shadowOffset: 0, encoding: 'UTF-8' } },
+  { name: 'Modern', style: { fontSize: 28, fontColor: 'yellow', outlineColor: 'black', outlineWidth: 1, shadowColor: 'black', shadowOffset: 1, encoding: 'UTF-8' } },
+  { name: 'Minimal', style: { fontSize: 22, fontColor: 'white', outlineColor: 'none', outlineWidth: 0, shadowColor: 'black', shadowOffset: 1, encoding: 'UTF-8' } },
+  { name: 'Bold', style: { fontSize: 32, fontColor: 'white', outlineColor: 'black', outlineWidth: 3, shadowColor: 'none', shadowOffset: 0, encoding: 'UTF-8' } },
+  { name: 'Retro', style: { fontSize: 24, fontColor: 'yellow', outlineColor: 'black', outlineWidth: 2, shadowColor: 'none', shadowOffset: 0, encoding: 'UTF-8' } }
 ];
 
 export default function SubtitleBurner() {
@@ -71,7 +72,8 @@ export default function SubtitleBurner() {
     position: 'bottom',
     alignment: 'center',
     marginV: 30,
-    marginH: 20
+    marginH: 20,
+    encoding: 'UTF-8'
   });
 
   const [timing, setTiming] = useState<SubtitleTiming>({
@@ -164,10 +166,10 @@ export default function SubtitleBurner() {
   };
 
   const generateSubtitleFilter = (): string => {
-    // Use FFmpeg's built-in subtitles filter
-    // This should handle SRT files properly
-    console.log('🎬 Using subtitles filter: subtitles=input.srt');
-    return 'subtitles=input.srt';
+    // Use FFmpeg's built-in subtitles filter with encoding support
+    const encoding = subtitleStyle.encoding;
+    console.log('🎬 Using subtitles filter with encoding:', encoding);
+    return `subtitles=input.srt:charenc=${encoding}`;
   };
 
   const generatePreview = async () => {
@@ -198,6 +200,7 @@ export default function SubtitleBurner() {
       // Generate a short preview (first 10 seconds)
       const previewCommand = [
         '-i', 'input.mp4',
+        '-sub_charenc', subtitleStyle.encoding,
         '-vf', fullFilter,
         '-c:v', 'libx264',
         '-c:a', 'aac',
@@ -291,6 +294,7 @@ export default function SubtitleBurner() {
 
       const ffmpegCommand = [
         '-i', 'input.mp4',
+        '-sub_charenc', subtitleStyle.encoding,
         '-vf', fullFilter,
         '-c:v', 'libx264',
         '-c:a', 'aac',
@@ -601,6 +605,21 @@ export default function SubtitleBurner() {
                   <option value="center">Center</option>
                   <option value="left">Left</option>
                   <option value="right">Right</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">Text Encoding</label>
+                <select
+                  value={subtitleStyle.encoding}
+                  onChange={(e) => setSubtitleStyle(prev => ({ ...prev, encoding: e.target.value }))}
+                  className="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded dark:bg-gray-800"
+                >
+                  <option value="UTF-8">UTF-8</option>
+                  <option value="ISO-8859-1">ISO-8859-1 (Latin-1)</option>
+                  <option value="Windows-1252">Windows-1252</option>
+                  <option value="CP1252">CP1252</option>
+                  <option value="ISO-8859-15">ISO-8859-15</option>
+                  <option value="US-ASCII">US-ASCII</option>
                 </select>
               </div>
             </div>
