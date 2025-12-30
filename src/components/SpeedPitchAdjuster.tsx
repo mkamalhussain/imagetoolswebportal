@@ -174,6 +174,8 @@ const CREATIVE_EFFECTS: CreativeEffect[] = [
 ];
 
 export default function SpeedPitchAdjuster() {
+  console.log('🎵🎵🎵 SPEED PITCH ADJUSTER COMPONENT RENDERED 🎵🎵🎵');
+
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
