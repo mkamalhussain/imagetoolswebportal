@@ -1047,7 +1047,11 @@ export default function SpeedPitchAdjuster() {
 
   // Download processed audio
   const downloadProcessed = async () => {
+    console.log('🎵 ========== DOWNLOAD FUNCTION STARTED ==========');
+    console.log('🎵 DOWNLOAD FUNCTION CALLED - checking conditions');
+
     if (!selectedFile) {
+      console.log('❌ No file selected');
       setError('No file selected.');
       return;
     }
