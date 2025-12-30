@@ -163,31 +163,11 @@ export default function SubtitleBurner() {
     return subtitles;
   };
 
-  const generateSubtitleFilter = async (): Promise<string> => {
-    // Read and parse subtitle file
-    try {
-      const subtitleData = await ffmpeg.readFile('input.srt');
-      const subtitleText = new TextDecoder().decode(subtitleData);
-      const subtitles = parseSubtitles(subtitleText);
-
-      console.log('🎬 Parsed subtitles:', subtitles.length, 'entries');
-
-      if (subtitles.length === 0) {
-        console.warn('🎬 No subtitles parsed from file');
-        return '';
-      }
-
-      // For now, just show the first subtitle as a test
-      const firstSubtitle = subtitles[0];
-      const escapedText = firstSubtitle.text.replace(/'/g, "\\'").replace(/:/g, '\\:');
-
-      // Use drawtext filter to show subtitle
-      return `drawtext=text='${escapedText}':fontsize=24:fontcolor=white:borderw=2:bordercolor=black:x=(w-text_w)/2:y=h-100:enable='between(t,0,10)'`;
-
-    } catch (err) {
-      console.error('🎬 Error parsing subtitles:', err);
-      return '';
-    }
+  const generateSubtitleFilter = (): string => {
+    // Use FFmpeg's built-in subtitles filter
+    // This should handle SRT files properly
+    console.log('🎬 Using subtitles filter: subtitles=input.srt');
+    return 'subtitles=input.srt';
   };
 
   const generatePreview = async () => {
@@ -197,34 +177,64 @@ export default function SubtitleBurner() {
     setError(null);
 
     try {
+      console.log('🎬 Starting preview generation...');
+
       // Write input files to FFmpeg FS
       await ffmpeg.writeFile('input.mp4', await fetchFile(selectedVideo));
       await ffmpeg.writeFile('input.srt', await fetchFile(selectedSubtitles));
 
+      // Generate subtitle filter
+      const subtitleFilter = generateSubtitleFilter();
+      console.log('🎬 Generated subtitle filter:', subtitleFilter);
+
+      // Build the full filter chain
+      let fullFilter = 'select=between(t\\,0\\,10)'; // First select 10 seconds
+      if (subtitleFilter) {
+        fullFilter += `,${subtitleFilter}`; // Then apply subtitles
+      }
+
+      console.log('🎬 Full filter chain:', fullFilter);
+
       // Generate a short preview (first 10 seconds)
-      const filter = generateSubtitleFilter();
-      await ffmpeg.exec([
+      const previewCommand = [
         '-i', 'input.mp4',
-        '-vf', `${filter},select=between(t\\,0\\,10)`,
+        '-vf', fullFilter,
         '-c:v', 'libx264',
         '-c:a', 'aac',
         '-t', '10',
         '-preset', 'ultrafast',
         '-y',
         'preview.mp4'
-      ]);
+      ];
+
+      console.log('🎬 Preview FFmpeg command:', previewCommand.join(' '));
+
+      await ffmpeg.exec(previewCommand);
+
+      console.log('🎬 FFmpeg preview command executed');
+
+      // Verify preview file
+      try {
+        const previewData = await ffmpeg.readFile('preview.mp4');
+        console.log('🎬 Preview file verified, size:', previewData.byteLength);
+      } catch (previewErr) {
+        console.error('🎬 Failed to verify preview file:', previewErr);
+        throw new Error('Preview generation completed but file was not created');
+      }
 
       // Read the output
       const data = await ffmpeg.readFile('preview.mp4');
       const blob = new Blob([data], { type: 'video/mp4' });
       const url = URL.createObjectURL(blob);
 
+      console.log('🎬 Preview blob created, size:', blob.size);
+
       setPreviewUrl(url);
       setPreviewMode(true);
 
     } catch (err) {
-      console.error('Preview generation error:', err);
-      setError('Failed to generate preview. Please try again.');
+      console.error('🎬 Preview generation error:', err);
+      setError(`Failed to generate preview: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
       setIsProcessing(false);
     }
@@ -255,33 +265,14 @@ export default function SubtitleBurner() {
       }
 
       // Generate subtitle filter
-      const subtitleFilter = await generateSubtitleFilter();
-      const fullFilter = timingFilter + (subtitleFilter ? subtitleFilter : '');
+      const subtitleFilter = generateSubtitleFilter();
+      const fullFilter = timingFilter + subtitleFilter;
 
       if (!subtitleFilter) {
         console.warn('🎬 No subtitle filter generated, falling back to basic processing');
       }
 
-      // DEBUG: Try without subtitles first to test basic processing
-      console.log('🎬 DEBUG: Testing without subtitles first...');
-      const testCommand = [
-        '-i', 'input.mp4',
-        '-c:v', 'libx264',
-        '-c:a', 'aac',
-        '-preset', 'fast',
-        '-crf', '23',
-        '-y',
-        'output.mp4'
-      ];
-
-      try {
-        console.log('🎬 Running test command (no subtitles):', testCommand.join(' '));
-        await ffmpeg.exec(testCommand);
-        console.log('🎬 Test command successful - basic processing works');
-      } catch (testErr) {
-        console.error('🎬 Test command failed:', testErr);
-        throw new Error('Basic video processing failed - subtitles cannot be the issue');
-      }
+      // Execute the FFmpeg command with subtitles
 
       console.log('🎬 Subtitle burning - Input files written');
       console.log('🎬 Video file size:', selectedVideo.size);
@@ -310,12 +301,22 @@ export default function SubtitleBurner() {
       ];
 
       console.log('🎬 FFmpeg command:', ffmpegCommand.join(' '));
+      console.log('🎬 Full filter being applied:', fullFilter);
 
       // Burn subtitles using FFmpeg
       try {
         console.log('🎬 Executing FFmpeg command...');
         await ffmpeg.exec(ffmpegCommand);
         console.log('🎬 FFmpeg command executed successfully');
+
+        // Verify output file was created
+        try {
+          const outputData = await ffmpeg.readFile('output.mp4');
+          console.log('🎬 Output file verified, size:', outputData.byteLength);
+        } catch (verifyErr) {
+          console.error('🎬 Failed to verify output file:', verifyErr);
+          throw new Error('FFmpeg completed but output file was not created');
+        }
 
         // Check if output file was created
         try {
