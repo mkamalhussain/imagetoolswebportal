@@ -189,7 +189,7 @@ export default function PrivacyPolicy() {
                 If you have any questions about this Privacy Policy, please contact us:
               </p>
               <ul className="list-disc pl-6 text-gray-700 dark:text-gray-300 mb-4">
-                <li>Email: privacy@freetools.com</li>
+                <li>Email: privacy@freetoolbox.app</li>
                 <li>Address: [Company Address - To be updated]</li>
               </ul>
             </section>

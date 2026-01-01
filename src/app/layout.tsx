@@ -86,8 +86,8 @@ export const metadata: Metadata = {
     title: 'Free Tools - Professional Online Image, Audio, Video & PDF Tools',
     description: 'Free online tools for image resizing, conversion, meme creation, audio processing, video editing, and PDF manipulation. No signup required.',
     images: ['/og-image.png'],
-    creator: '@FreeToolsOnline',
-    site: '@FreeToolsOnline',
+    creator: '@FreeToolBoxApp',
+    site: '@FreeToolBoxApp',
   },
   alternates: {
     canonical: 'https://freetools.com',
@@ -118,7 +118,7 @@ export default function RootLayout({
     "description": "Free online tools for image editing, audio processing, video editing, and PDF manipulation",
     "url": "https://freetools.com",
     "sameAs": [
-      "https://twitter.com/FreeToolsOnline",
+      "https://twitter.com/FreeToolBoxApp",
       "https://github.com/freetools"
     ],
     "publisher": {

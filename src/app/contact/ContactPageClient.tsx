@@ -185,7 +185,7 @@ export default function ContactPageClient() {
                     </div>
                     <div>
                       <h3 className="font-semibold text-gray-900 dark:text-white">Email</h3>
-                      <p className="text-gray-600 dark:text-gray-400">hello@freetools.com</p>
+                      <p className="text-gray-600 dark:text-gray-400">hello@freetoolbox.app</p>
                       <p className="text-sm text-gray-500 dark:text-gray-500">We respond within 24 hours</p>
                     </div>
                   </div>

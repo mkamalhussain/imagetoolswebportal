@@ -155,7 +155,7 @@ export default function TermsOfServicePage() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">12. Contact Information</h2>
               <p className="text-gray-600 dark:text-gray-400 mb-4">
-                If you have questions about these Terms, please contact us at legal@freetools.com.
+                If you have questions about these Terms, please contact us at legal@freetoolbox.app.
               </p>
             </section>
           </div>
