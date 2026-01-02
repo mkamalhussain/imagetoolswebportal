@@ -53,14 +53,14 @@ export default function TermsOfServicePage() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">1. Acceptance of Terms</h2>
               <p className="text-gray-600 dark:text-gray-400 mb-4">
-                By accessing and using Free Tools ("we," "us," or "our"), you accept and agree to be bound by the terms and provision of this agreement.
+                By accessing and using FreeToolBox.app ("we," "us," or "our"), you accept and agree to be bound by the terms and provision of this agreement.
               </p>
             </section>
 
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">2. Description of Service</h2>
               <p className="text-gray-600 dark:text-gray-400 mb-4">
-                Free Tools provides online tools for processing images, audio files, videos, and PDF documents. All processing occurs in your web browser using client-side technologies.
+                FreeToolBox.app provides online tools for processing images, audio files, videos, and PDF documents. All processing occurs in your web browser using client-side technologies.
               </p>
             </section>
 
@@ -124,7 +124,7 @@ export default function TermsOfServicePage() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">8. Intellectual Property</h2>
               <p className="text-gray-600 dark:text-gray-400 mb-4">
-                The Free Tools website, software, and branding are owned by us and protected by intellectual property laws. You may not copy, modify, or distribute our content without permission.
+                The FreeToolBox.app website, software, and branding are owned by us and protected by intellectual property laws. You may not copy, modify, or distribute our content without permission.
               </p>
               <p className="text-gray-600 dark:text-gray-400 mb-4">
                 We use open-source libraries and tools, which are subject to their respective licenses.

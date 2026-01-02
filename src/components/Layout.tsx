@@ -12,8 +12,12 @@ export default function Layout({ children }: LayoutProps) {
       {/* Header - Visible on all pages */}
       <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-800 py-3 px-6 sticky top-0 z-50">
         <div className="max-w-screen-xl mx-auto flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 text-xl font-bold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-            Free Tools
+          <Link href="/" className="flex items-center gap-3 text-xl font-bold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+            <img
+              src="/logo-small.svg"
+              alt="FreeToolBox.app"
+              className="h-8 w-auto"
+            />
           </Link>
           <nav className="flex items-center gap-6">
             <Link href="/" className="px-3 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors font-medium">
@@ -42,7 +46,13 @@ export default function Layout({ children }: LayoutProps) {
         <div className="max-w-screen-xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div>
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Free Tools</h3>
+              <div className="flex items-center gap-2 mb-4">
+                <img
+                  src="/logo-small.svg"
+                  alt="FreeToolBox.app"
+                  className="h-6 w-auto"
+                />
+              </div>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Empowering creators with free, powerful online tools for image, audio, video, and PDF processing.
               </p>
@@ -77,7 +87,7 @@ export default function Layout({ children }: LayoutProps) {
           <div className="border-t border-gray-200 dark:border-gray-800 pt-8">
             <div className="flex flex-col md:flex-row justify-between items-center text-sm text-gray-500 dark:text-gray-400">
               <div className="mb-4 md:mb-0">
-                &copy; {new Date().getFullYear()} Free Tools. All rights reserved.
+                &copy; {new Date().getFullYear()} FreeToolBox.app. All rights reserved.
               </div>
               <div className="flex items-center space-x-6">
                 <span className="text-xs">GDPR Compliant</span>

@@ -53,7 +53,7 @@ export default function PrivacyPolicy() {
                 1. Introduction
               </h2>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
-                Welcome to Free Tools ("we," "our," or "us"). We are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our website and services.
+                Welcome to FreeToolBox.app ("we," "our," or "us"). We are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our website and services.
               </p>
               <p className="text-gray-700 dark:text-gray-300 mb-4">
                 By using our services, you agree to the collection and use of information in accordance with this policy.

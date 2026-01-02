@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import ContactPageClient from './ContactPageClient';
 
 export const metadata: Metadata = {
-  title: 'Contact Us - Get in Touch with Free Tools | Free Tools',
-  description: 'Have questions, feedback, or feature requests? Contact the Free Tools team. We\'re here to help you get the most out of our online tools.',
+  title: 'Contact Us - Get in Touch with FreeToolBox.app | FreeToolBox.app',
+  description: 'Have questions, feedback, or feature requests? Contact the FreeToolBox.app team. We\'re here to help you get the most out of our online tools.',
   keywords: [
     'contact free tools',
     'support',
@@ -14,18 +14,18 @@ export const metadata: Metadata = {
     'tool support'
   ],
   openGraph: {
-    title: 'Contact Us - Get in Touch with Free Tools',
-    description: 'Have questions, feedback, or feature requests? Contact the Free Tools team. We\'re here to help you get the most out of our online tools.',
+    title: 'Contact Us - Get in Touch with FreeToolBox.app',
+    description: 'Have questions, feedback, or feature requests? Contact the FreeToolBox.app team. We\'re here to help you get the most out of our online tools.',
     type: 'website',
-    url: 'https://freetools.com/contact',
+    url: 'https://freetoolbox.app/contact',
   },
   twitter: {
     card: 'summary',
-    title: 'Contact Us - Get in Touch with Free Tools',
-    description: 'Have questions, feedback, or feature requests? Contact the Free Tools team.',
+    title: 'Contact Us - Get in Touch with FreeToolBox.app',
+    description: 'Have questions, feedback, or feature requests? Contact the FreeToolBox.app team.',
   },
   alternates: {
-    canonical: 'https://freetools.com/contact',
+    canonical: 'https://freetoolbox.app/contact',
   },
 };
 
