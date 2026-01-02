@@ -52,37 +52,37 @@ export const modules: ModuleDef[] = [
     slug: 'image-ocr-extractor',
     title: 'Image OCR Extractor',
     description: 'Extract text from images using OCR.',
-    icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-teal-500"><path stroke-linecap="round" stroke-linejoin="round" d="M9 4.5v15m7.5-15v15m-4.5-15h.008v.008H12V4.5zm0 3h.008v.008H12V7.5zm0 3h.008v.008H12v10.5zm0 3h.008v.008H12V13.5zm0 3h.008v.008H12V16.5z" /></svg>'
+    icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-8 h-8"><rect x="3" y="3" width="18" height="18" rx="3" fill="url(#ocrGradient)" stroke="#14b8a6" stroke-width="1.5"/><text x="12" y="11" text-anchor="middle" font-family="monospace" font-size="7" font-weight="bold" fill="#ffffff">ABC</text><text x="12" y="17" text-anchor="middle" font-family="monospace" font-size="3" fill="#ffffff">123</text><circle cx="8" cy="8" r="1" fill="#ffffff"/><circle cx="16" cy="16" r="1" fill="#ffffff"/><defs><linearGradient id="ocrGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#14b8a6"/><stop offset="100%" style="stop-color:#06b6d4"/></linearGradient></defs></svg>'
   },
   {
     slug: 'image-pixel-sorter',
     title: 'Image Pixel Sorter',
     description: 'Glitch art via pixel sorting.',
-    icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-lime-500"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9H12m-8.25 4.5h7.5M3.75 18H12m3-6l2.25 2.25L21 12m0 0l-2.25-2.25L15 12m-3 6l2.25 2.25L21 18m0 0l-2.25-2.25L15 18" /></svg>'
+    icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-8 h-8"><rect x="2" y="3" width="20" height="18" rx="3" fill="url(#pixelGradient)" stroke="#65a30d" stroke-width="1.5"/><rect x="4" y="5" width="4" height="4" fill="#ffffff"/><rect x="8" y="5" width="4" height="4" fill="#dc2626"/><rect x="12" y="5" width="4" height="4" fill="#2563eb"/><rect x="16" y="5" width="4" height="4" fill="#7c3aed"/><rect x="4" y="9" width="4" height="4" fill="#16a34a"/><rect x="8" y="9" width="4" height="4" fill="#ea580c"/><rect x="12" y="9" width="4" height="4" fill="#0891b2"/><rect x="16" y="9" width="4" height="4" fill="#be185d"/><defs><linearGradient id="pixelGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#65a30d"/><stop offset="100%" style="stop-color:#84cc16"/></linearGradient></defs></svg>'
   },
   {
     slug: 'image-puzzle-game',
     title: 'Image Puzzle Game',
     description: 'Shuffle pieces and solve the image puzzle.',
-    icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-fuchsia-500"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.507 8.591A2.25 2.25 0 003 10.5v8.25c0 .414.336.75.75.75h9.75v-1.5a1.5 1.5 0 011.5-1.5H21a.75.75 0 00.75-.75V7.636a1.5 1.5 0 00-1.5-1.5H15.75c-.21 0-.422-.015-.632-.044A5.94 5.94 0 0112 5.25c-1.805 0-3.486.685-4.747 1.802A2.25 2.25 0 004.507 8.591z" /></svg>'
+    icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-8 h-8"><rect x="2" y="2" width="20" height="20" rx="4" fill="url(#puzzleGradient)" stroke="#c026d3" stroke-width="1.5"/><rect x="4" y="4" width="6" height="6" fill="#ffffff"/><rect x="10" y="4" width="6" height="6" fill="#ffffff"/><rect x="4" y="10" width="6" height="6" fill="#ffffff"/><rect x="10" y="10" width="6" height="6" fill="#ffffff"/><path d="M7 7h2v2H7V7zm6 0h2v2h-2V7zM7 13h2v2H7v-2zm6 0h2v2h-2v-2z" fill="#c026d3"/><defs><linearGradient id="puzzleGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#c026d3"/><stop offset="100%" style="stop-color:#db2777"/></linearGradient></defs></svg>'
   },
   {
     slug: 'image-format-converter',
     title: 'Format Converter',
     description: 'Convert between image formats.',
-    icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-cyan-500"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h18m-4.5 0L21 7.5m0 0L16.5 3M21 7.5H3" /></svg>'
+    icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-8 h-8"><rect x="2" y="3" width="20" height="18" rx="3" fill="url(#convertGradient)" stroke="#0891b2" stroke-width="1.5"/><circle cx="8" cy="9" r="2" fill="#ffffff"/><text x="8" y="11" text-anchor="middle" font-family="Arial, sans-serif" font-size="3" fill="#0891b2" font-weight="bold">JPG</text><circle cx="16" cy="15" r="2" fill="#ffffff"/><text x="16" y="17" text-anchor="middle" font-family="Arial, sans-serif" font-size="3" fill="#0891b2" font-weight="bold">PNG</text><path d="M10 12l4 4" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/><defs><linearGradient id="convertGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#0891b2"/><stop offset="100%" style="stop-color:#06b6d4"/></linearGradient></defs></svg>'
   },
   {
     slug: 'image-hidden-message',
     title: 'Hidden Message',
     description: 'Hide and reveal messages in images.',
-    icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-rose-500"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>'
+    icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-8 h-8"><rect x="2" y="2" width="20" height="20" rx="3" fill="url(#hiddenGradient)" stroke="#dc2626" stroke-width="1.5"/><circle cx="9" cy="9" r="2" fill="#ffffff"/><circle cx="15" cy="9" r="2" fill="#ffffff"/><rect x="5" y="13" width="14" height="1" fill="#ffffff"/><rect x="5" y="15" width="10" height="1" fill="#ffffff"/><circle cx="18" cy="14" r="1" fill="#dc2626"/><circle cx="19" cy="16" r="1" fill="#dc2626"/><defs><linearGradient id="hiddenGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#dc2626"/><stop offset="100%" style="stop-color:#e11d48"/></linearGradient></defs></svg>'
   },
   {
     slug: 'image-anaglyph-3d',
     title: 'Anaglyph 3D',
     description: 'Create 3D anaglyph images from stereo pairs.',
-    icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-emerald-500"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3m-6-12l-3-3m0 0l-3 3" /></svg>'
+    icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-8 h-8"><rect x="2" y="3" width="20" height="18" rx="3" fill="url(#anaglyphGradient)" stroke="#059669" stroke-width="1.5"/><rect x="5" y="6" width="8" height="12" fill="#dc2626"/><rect x="11" y="6" width="8" height="12" fill="#2563eb"/><circle cx="9" cy="12" r="1.5" fill="#ffffff"/><circle cx="15" cy="12" r="1.5" fill="#ffffff"/><defs><linearGradient id="anaglyphGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#059669"/><stop offset="100%" style="stop-color:#10b981"/></linearGradient></defs></svg>'
   },
   {
     slug: 'image-resizer',
@@ -94,7 +94,7 @@ export const modules: ModuleDef[] = [
     slug: 'image-to-cartoon',
     title: 'Image to Cartoon',
     description: 'Cartoonify your images.',
-    icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-sky-500"><path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182A4.5 4.5 0 0118 10.5c0-1.554-.627-2.968-1.638-4.032M13.5 16.5v1.5c0 1.24-.775 2.306-1.875 2.75M9.75 16.5V18a2.25 2.0 0 002.25 2.25H12M9 16.5A.75.75 0 019.75 17.25h.75M12 10.5h.008v.008H12V10.5zm6.375 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm-.965 6.223A2.25 2.25 0 0115 18h-.008v-.008H15V18z" /></svg>'
+    icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-8 h-8"><rect x="2" y="3" width="20" height="18" rx="3" fill="url(#cartoonGradient)" stroke="#0284c7" stroke-width="1.5"/><circle cx="9" cy="10" r="2" fill="#ffffff"/><circle cx="15" cy="10" r="2" fill="#ffffff"/><path d="M7 14h10" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/><circle cx="9" cy="10" r="0.5" fill="#0284c7"/><circle cx="15" cy="10" r="0.5" fill="#0284c7"/><path d="M11 15c0 1 1 2 2 2s2-1 2-2" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/><defs><linearGradient id="cartoonGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#0284c7"/><stop offset="100%" style="stop-color:#0ea5e9"/></linearGradient></defs></svg>'
   },
   {
     slug: 'color-palette-extractor',
@@ -106,19 +106,19 @@ export const modules: ModuleDef[] = [
     slug: 'image-upscaler',
     title: 'Image Upscaler',
     description: 'Upscale images by 2x–4x with multiple methods.',
-    icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-blue-600"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75l16.5 16.5m-16.5 0V3.75m0 16.5h16.5" /></svg>'
+    icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-8 h-8"><rect x="3" y="3" width="18" height="18" rx="3" fill="url(#upscaleGradient)" stroke="#2563eb" stroke-width="1.5"/><path d="M7 7h10v10H7z" fill="#ffffff"/><path d="M9 9h6v6H9z" fill="#2563eb"/><rect x="5" y="5" width="2" height="2" fill="#ffffff"/><rect x="17" y="5" width="2" height="2" fill="#ffffff"/><rect x="5" y="17" width="2" height="2" fill="#ffffff"/><rect x="17" y="17" width="2" height="2" fill="#ffffff"/><defs><linearGradient id="upscaleGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#2563eb"/><stop offset="100%" style="stop-color:#3b82f6"/></linearGradient></defs></svg>'
   },
   {
     slug: 'watermark-remover',
     title: 'Watermark Remover',
     description: 'Brush blur or clone to clean watermark areas.',
-    icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-red-400"><path stroke-linecap="round" stroke-linejoin="round" d="M9 4.5v15m7.5-15v15m-4.5-15h.008v.008H12V4.5zm0 3h.008v.008H12V7.5zm0 3h.008v.008H12v10.5zm0 3h.008v.008H12V13.5zm0 3h.008v.008H12V16.5z" /></svg>'
+    icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-8 h-8"><rect x="2" y="2" width="20" height="20" rx="3" fill="url(#watermarkGradient)" stroke="#dc2626" stroke-width="1.5"/><circle cx="9" cy="9" r="2" fill="#ffffff"/><circle cx="15" cy="9" r="2" fill="#ffffff"/><rect x="5" y="13" width="14" height="1" fill="#ffffff"/><rect x="5" y="15" width="10" height="1" fill="#ffffff"/><text x="18" y="15" font-family="Arial, sans-serif" font-size="6" font-weight="bold" fill="#dc2626">®</text><defs><linearGradient id="watermarkGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#dc2626"/><stop offset="100%" style="stop-color:#ef4444"/></linearGradient></defs></svg>'
   },
   {
     slug: 'personality-analyzer',
     title: 'Personality Analyzer',
     description: 'Analyze personality traits through handwriting analysis.',
-    icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-purple-500"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>'
+    icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-8 h-8"><rect x="3" y="3" width="18" height="18" rx="3" fill="url(#personalityGradient)" stroke="#7c3aed" stroke-width="1.5"/><circle cx="12" cy="9" r="3" fill="#ffffff"/><path d="M8 17h8" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/><circle cx="10" cy="15" r="1" fill="#7c3aed"/><circle cx="14" cy="15" r="1" fill="#7c3aed"/><path d="M9 12c1-1 4-1 5 0" stroke="#7c3aed" stroke-width="1.5" stroke-linecap="round"/><defs><linearGradient id="personalityGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#7c3aed"/><stop offset="100%" style="stop-color:#a855f7"/></linearGradient></defs></svg>'
   },
   {
     slug: 'qr-code-tool',
@@ -130,19 +130,19 @@ export const modules: ModuleDef[] = [
     slug: 'image-mood-analyzer',
     title: 'Image Mood Analyzer',
     description: 'Discover the emotional vibe of your images with AI-powered mood analysis.',
-    icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-pink-500"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567l-1.43-.742a10.394 10.394 0 003.587-5.621c.14-.344-.357-.676-.676-.5a9.424 9.424 0 01-4.861 2.923c.23.823.444 1.445.75 1.71a7.424 7.424 0 001.865-1.545z" /></svg>'
+    icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-8 h-8"><rect x="2" y="3" width="20" height="18" rx="3" fill="url(#moodGradient)" stroke="#db2777" stroke-width="1.5"/><circle cx="9" cy="9" r="2" fill="#ffffff"/><circle cx="15" cy="9" r="2" fill="#ffffff"/><path d="M7 13h10" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/><circle cx="9" cy="9" r="0.5" fill="#db2777"/><circle cx="15" cy="9" r="0.5" fill="#db2777"/><path d="M11 15c0 1 1 2 2 2s2-1 2-2" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/><defs><linearGradient id="moodGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#db2777"/><stop offset="100%" style="stop-color:#ec4899"/></linearGradient></defs></svg>'
   },
   {
     slug: 'color-blindness-simulator',
     title: 'Color Blindness Simulator',
     description: 'See how your images appear to people with different color vision deficiencies.',
-    icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-purple-500"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>'
+    icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-8 h-8"><rect x="2" y="2" width="20" height="20" rx="3" fill="url(#blindnessGradient)" stroke="#7c3aed" stroke-width="1.5"/><circle cx="8" cy="8" r="2" fill="#ef4444"/><circle cx="16" cy="8" r="2" fill="#22c55e"/><circle cx="8" cy="16" r="2" fill="#3b82f6"/><circle cx="16" cy="16" r="2" fill="#f59e0b"/><circle cx="12" cy="12" r="3" fill="none" stroke="#ffffff" stroke-width="1.5"/><path d="M9 9l6 6" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/><defs><linearGradient id="blindnessGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#7c3aed"/><stop offset="100%" style="stop-color:#8b5cf6"/></linearGradient></defs></svg>'
   },
   {
     slug: 'image-histogram-viewer',
     title: 'Image Histogram Viewer',
     description: 'Analyze color distribution and brightness levels in your images.',
-    icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-green-500"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>'
+    icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-8 h-8"><rect x="3" y="3" width="18" height="18" rx="3" fill="url(#histogramGradient)" stroke="#16a34a" stroke-width="1.5"/><rect x="5" y="12" width="2" height="6" fill="#ffffff"/><rect x="8" y="8" width="2" height="10" fill="#ffffff"/><rect x="11" y="6" width="2" height="12" fill="#ffffff"/><rect x="14" y="10" width="2" height="8" fill="#ffffff"/><rect x="17" y="9" width="2" height="9" fill="#ffffff"/><defs><linearGradient id="histogramGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#16a34a"/><stop offset="100%" style="stop-color:#22c55e"/></linearGradient></defs></svg>'
   },
   {
     slug: 'meme-generator',
@@ -154,30 +154,30 @@ export const modules: ModuleDef[] = [
     slug: 'image-grid-maker',
     title: 'Image Grid Maker',
     description: 'Create perfect image grids and collages with uniform cell sizes.',
-    icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-indigo-500"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" /></svg>'
+    icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-8 h-8"><rect x="2" y="2" width="20" height="20" rx="3" fill="url(#gridGradient)" stroke="#6366f1" stroke-width="1.5"/><rect x="4" y="4" width="6" height="6" fill="#ffffff"/><rect x="10" y="4" width="6" height="6" fill="#ffffff"/><rect x="4" y="10" width="6" height="6" fill="#ffffff"/><rect x="10" y="10" width="6" height="6" fill="#ffffff"/><path d="M7 7h2v2H7V7zm6 0h2v2h-2V7zM7 13h2v2H7v-2zm6 0h2v2h-2v-2z" fill="#6366f1"/><defs><linearGradient id="gridGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#6366f1"/><stop offset="100%" style="stop-color:#8b5cf6"/></linearGradient></defs></svg>'
   },
   {
     slug: 'image-size-predictor',
     title: 'Image Size Predictor',
     description: 'Predict compressed file sizes and optimize images for web delivery.',
-    icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-orange-500"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m.75 12l3-3m0 0l3 3m-3-3v6m-9-6h3M5.25 7.5h3A2.25 2.25 0 0010.5 9.75v1.5a2.25 2.25 0 002.25 2.25H18m0-12.75h.225c.038-.035.074-.067.11-.099L21 7.279m0 0l-3.21 3.21M21 7.279v7.5M10.5 9.75l-4.72-4.72a.75.75 0 00-1.06 0L2.25 7.5V21h19.5V7.5l-2.695-2.695a.75.75 0 00-1.06 0L14.25 9.75M5.25 14.25h3V16.5h-3v-2.25zM5.25 18h3v2.25h-3V18zM10.5 14.25h3V16.5h-3v-2.25zM10.5 18h3v2.25h-3V18zM15.75 14.25h3V16.5h-3v-2.25zM15.75 18h3v2.25h-3V18z" /></svg>'
+    icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-8 h-8"><rect x="2" y="3" width="20" height="18" rx="3" fill="url(#predictorGradient)" stroke="#ea580c" stroke-width="1.5"/><circle cx="8" cy="9" r="2" fill="#ffffff"/><circle cx="16" cy="9" r="2" fill="#ffffff"/><rect x="5" y="13" width="14" height="1" fill="#ffffff"/><rect x="5" y="15" width="10" height="1" fill="#ffffff"/><text x="18" y="15" font-family="Arial, sans-serif" font-size="5" font-weight="bold" fill="#ea580c">KB</text><circle cx="19" cy="16" r="0.5" fill="#ea580c"/><defs><linearGradient id="predictorGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#ea580c"/><stop offset="100%" style="stop-color:#f97316"/></linearGradient></defs></svg>'
   },
   {
     slug: 'infographic-creator',
     title: 'Infographic Creator',
     description: 'Create stunning infographics with charts, text, and background images.',
-    icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-violet-500"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h3.75m0 0h3.75m0 0h3.75m0 0H19.875c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H16.5m0 0H12m0 0H8.25m0 0H4.875" /></svg>'
+    icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-8 h-8"><rect x="2" y="2" width="20" height="20" rx="3" fill="url(#infographicGradient)" stroke="#8b5cf6" stroke-width="1.5"/><rect x="5" y="5" width="6" height="4" fill="#ffffff"/><rect x="13" y="5" width="6" height="4" fill="#ffffff"/><rect x="5" y="11" width="14" height="1" fill="#ffffff"/><rect x="5" y="13" width="10" height="1" fill="#ffffff"/><rect x="5" y="15" width="6" height="1" fill="#ffffff"/><circle cx="7" cy="7" r="1" fill="#8b5cf6"/><circle cx="15" cy="7" r="1" fill="#8b5cf6"/><defs><linearGradient id="infographicGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#8b5cf6"/><stop offset="100%" style="stop-color:#a855f7"/></linearGradient></defs></svg>'
   },
   {
     slug: 'perspective-correction',
     title: 'Perspective Correction',
     description: 'Correct tilted horizons and perspective distortion in photos.',
-    icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-cyan-500"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75L12 12m0 0l8.25 8.25M12 12L3.75 20.25M12 12l8.25-8.25M12 12H2.25m9.75 0h9.75m-9.75 0V2.25m0 9.75v9.75" /></svg>'
+    icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-8 h-8"><rect x="2" y="2" width="20" height="20" rx="3" fill="url(#perspectiveGradient)" stroke="#0891b2" stroke-width="1.5"/><path d="M5 5l7 7 7-7v14l-7-7-7 7z" fill="#ffffff"/><circle cx="12" cy="12" r="1" fill="#0891b2"/><defs><linearGradient id="perspectiveGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#0891b2"/><stop offset="100%" style="stop-color:#06b6d4"/></linearGradient></defs></svg>'
   },
   {
     slug: 'panorama-stitcher',
     title: 'Panorama Stitcher',
     description: 'Combine multiple overlapping photos into panoramic images.',
-    icon: '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-emerald-500"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38 1.054.106 2.259.734 3.106.484.659 1.002 1.052 1.492 1.291.37.145.504.188.6.215.126.034.41.063.918.063.5 0 .796-.03.918-.063.096-.027.23-.07.6-.215.49-.239 1.008-.632 1.492-1.291.628-.847 1.114-2.052.734-3.106a2.31 2.31 0 00-1.641-1.055c-.91-.064-1.35.694-2.42 1.061a7.19 7.19 0 01-1.703 0c-1.07-.367-1.51-1.125-2.42-1.061z" /><path stroke-linecap="round" stroke-linejoin="round" d="M14.505 6.175a2.31 2.31 0 001.641 1.055c.91.064 1.35-.694 2.42-1.061a7.19 7.19 0 011.703 0c1.07.367 1.51 1.125 2.42 1.061a2.31 2.31 0 001.641-1.055M9.75 12l2.25 6 6-6-6-6-2.25 6z" /></svg>'
+    icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-8 h-8"><rect x="2" y="2" width="20" height="20" rx="3" fill="url(#panoramaGradient)" stroke="#059669" stroke-width="1.5"/><rect x="4" y="6" width="5" height="8" fill="#ffffff"/><rect x="10" y="6" width="5" height="8" fill="#ffffff"/><rect x="16" y="6" width="4" height="8" fill="#ffffff"/><path d="M6 8h1v4H6V8zm6 0h1v4h-1V8zm5 0h1v4h-1V8z" fill="#059669"/><defs><linearGradient id="panoramaGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#059669"/><stop offset="100%" style="stop-color:#10b981"/></linearGradient></defs></svg>'
   },
 ];
