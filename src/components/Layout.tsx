@@ -16,6 +16,7 @@ export default function Layout({ children }: LayoutProps) {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [themeToggleCount, setThemeToggleCount] = useState(0);
 
   // Initialize theme from localStorage
   useEffect(() => {
@@ -271,6 +272,7 @@ export default function Layout({ children }: LayoutProps) {
                 onClick={() => {
                   const newTheme = !isDarkMode;
                   setIsDarkMode(newTheme);
+                  setThemeToggleCount(prev => prev + 1);
                   document.documentElement.classList.toggle('dark', newTheme);
                   localStorage.setItem('theme', newTheme ? 'dark' : 'light');
                 }}
@@ -287,6 +289,11 @@ export default function Layout({ children }: LayoutProps) {
                   </svg>
                 )}
               </button>
+
+              {/* Debug Panel - Remove this after testing */}
+              <div className="hidden md:block text-xs text-gray-500 dark:text-gray-400 px-2">
+                Theme: {isDarkMode ? 'Dark' : 'Light'} ({themeToggleCount}) | Search: "{searchQuery}" ({searchResults.length} results)
+              </div>
 
               {/* Share */}
               <button
