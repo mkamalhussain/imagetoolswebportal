@@ -23,6 +23,7 @@ const toolGuides: Record<string, {
   }>;
   tips: string[];
   relatedTools: string[];
+  ethicalNotes?: string[];
 }> = {
   'animated-gif-maker': {
     title: 'How to Create Animated GIFs',
@@ -1459,6 +1460,25 @@ const toolGuides: Record<string, {
       'Use for personal projects, research, or educational purposes',
       'Consider ethical implications of watermark removal',
     ],
+    ethicalNotes: [
+      '🔒 Copyright & Legal Considerations:',
+      '• Only remove watermarks from images you own or have explicit permission to modify',
+      '• Respect photographers\' and artists\' rights - watermarks protect creative work',
+      '• Do not use for commercial purposes without proper licensing',
+      '• Avoid removing watermarks from copyrighted stock photos or professional images',
+      '',
+      '✅ Acceptable Uses:',
+      '• Personal photos with unwanted camera watermarks',
+      '• Images from public domain or Creative Commons licensed content',
+      '• Educational or research purposes with proper attribution',
+      '• Removing your own branding from personal projects',
+      '',
+      '⚠️ Important Warnings:',
+      '• Watermark removal may violate terms of service on some platforms',
+      '• Always obtain permission before modifying others\' work',
+      '• Consider the impact on content creators\' livelihoods',
+      '• Use responsibly and ethically to support the creative community',
+    ],
     relatedTools: ['image-background-changer', 'image-resizer', 'image-exif-tool'],
   },
   'pdf-compressor': {
@@ -1811,26 +1831,31 @@ const toolGuides: Record<string, {
         title: 'Upload Handwriting Sample',
         description: 'Click "Choose Image" and upload a clear photo of handwritten text. Ensure good lighting and high resolution for best results.',
         tip: 'Use at least 200-300 words of natural handwriting for accurate analysis',
+        image: '/images/guides/personality-analyzer/upload-handwriting.png',
       },
       {
         title: 'Select Analysis Type',
         description: 'Choose between Quick Analysis (basic traits) or Detailed Analysis (comprehensive personality profile).',
         tip: 'Detailed analysis takes longer but provides more insights',
+        image: '/images/guides/personality-analyzer/select-analysis-type.png',
       },
       {
         title: 'Wait for Processing',
         description: 'The AI analyzes stroke patterns, pressure, spacing, and other handwriting characteristics to determine personality traits.',
         tip: 'Analysis typically takes 2-3 minutes for detailed reports',
+        image: '/images/guides/personality-analyzer/processing-analysis.png',
       },
       {
         title: 'Review Personality Insights',
         description: 'Examine the detailed personality profile including traits like openness, conscientiousness, extraversion, agreeableness, and neuroticism.',
         tip: 'Look for patterns in how your traits align with different life situations',
+        image: '/images/guides/personality-analyzer/personality-results.png',
       },
       {
         title: 'Download Report',
         description: 'Save your personality analysis as a PDF report for future reference and sharing.',
         tip: 'Reports include detailed explanations and trait interpretations',
+        image: '/images/guides/personality-analyzer/download-report.png',
       },
     ],
     tips: [
@@ -1853,31 +1878,37 @@ const toolGuides: Record<string, {
         title: 'Choose Mode',
         description: 'Select between "Generate QR Code" to create new codes or "Scan QR Code" to read existing ones.',
         tip: 'The tool supports both generation and scanning in one interface',
+        image: '/images/guides/qr-code-tool/choose-mode.png',
       },
       {
         title: 'For Generation: Enter Content',
         description: 'Input the URL, text, or data you want to encode. Choose the appropriate content type from the dropdown.',
         tip: 'URLs should include https:// for best compatibility',
+        image: '/images/guides/qr-code-tool/enter-content.png',
       },
       {
         title: 'Customize QR Code',
         description: 'Adjust size, error correction level, and add custom colors or logos if desired.',
         tip: 'Higher error correction allows the code to work even if partially damaged',
+        image: '/images/guides/qr-code-tool/customize-qr.png',
       },
       {
         title: 'Generate and Download',
         description: 'Click "Generate QR Code" and download the resulting image in PNG or SVG format.',
         tip: 'PNG format works best for most printing applications',
+        image: '/images/guides/qr-code-tool/generate-download.png',
       },
       {
         title: 'For Scanning: Upload Image',
         description: 'Click "Choose QR Image" and upload a photo containing a QR code.',
         tip: 'Ensure good lighting and focus on the QR code for best results',
+        image: '/images/guides/qr-code-tool/upload-scan.png',
       },
       {
         title: 'Scan and View Results',
         description: 'The tool automatically detects and decodes the QR code, displaying the embedded content.',
         tip: 'Results show the type of content and the decoded data',
+        image: '/images/guides/qr-code-tool/scan-results.png',
       },
     ],
     tips: [
@@ -1900,26 +1931,31 @@ const toolGuides: Record<string, {
         title: 'Upload Your Image',
         description: 'Click "Choose Image" and select the photo you want to analyze. The tool supports JPG, PNG, and WebP formats.',
         tip: 'Higher resolution images provide more accurate analysis',
+        image: '/images/guides/image-mood-analyzer/upload-image.png',
       },
       {
         title: 'Wait for AI Processing',
         description: 'The AI analyzes colors, composition, lighting, and visual elements to determine the emotional tone.',
         tip: 'Analysis typically takes 30-60 seconds depending on image complexity',
+        image: '/images/guides/image-mood-analyzer/ai-processing.png',
       },
       {
         title: 'Review Mood Analysis',
         description: 'View the detailed breakdown of emotions detected, including primary mood, intensity levels, and contributing factors.',
         tip: 'The tool identifies multiple emotions that can coexist in one image',
+        image: '/images/guides/image-mood-analyzer/mood-analysis.png',
       },
       {
         title: 'Explore Visual Insights',
         description: 'See which visual elements contribute to each emotion, such as warm/cool colors, lighting effects, or composition.',
         tip: 'Understanding these insights can help improve your photography skills',
+        image: '/images/guides/image-mood-analyzer/visual-insights.png',
       },
       {
         title: 'Compare Multiple Images',
         description: 'Upload additional images to compare their emotional impact and identify patterns in your work.',
         tip: 'Useful for photographers, marketers, and content creators',
+        image: '/images/guides/image-mood-analyzer/compare-images.png',
       },
     ],
     tips: [
@@ -1942,26 +1978,31 @@ const toolGuides: Record<string, {
         title: 'Upload Your Image',
         description: 'Click "Choose Image" and select the image you want to test for color accessibility.',
         tip: 'Works best with images containing multiple colors and fine details',
+        image: '/images/guides/color-blindness-simulator/upload-image.png',
       },
       {
         title: 'Select Color Vision Type',
         description: 'Choose from different types of color blindness: Protanopia, Deuteranopia, Tritanopia, or Achromatopsia.',
         tip: 'Protanopia and Deuteranopia are the most common forms',
+        image: '/images/guides/color-blindness-simulator/select-type.png',
       },
       {
         title: 'View Simulation',
         description: 'See how your image appears through the selected color vision deficiency filter.',
         tip: 'The simulation shows how colorblind users perceive your content',
+        image: '/images/guides/color-blindness-simulator/view-simulation.png',
       },
       {
         title: 'Compare All Types',
         description: 'Switch between different color blindness types to understand various accessibility needs.',
         tip: 'Each type affects color perception differently',
+        image: '/images/guides/color-blindness-simulator/compare-types.png',
       },
       {
         title: 'Make Accessibility Improvements',
         description: 'Use the insights to adjust colors, add patterns, or improve contrast for better accessibility.',
         tip: 'Consider adding text labels or patterns alongside colors',
+        image: '/images/guides/color-blindness-simulator/accessibility-improvements.png',
       },
     ],
     tips: [
@@ -1985,31 +2026,37 @@ const toolGuides: Record<string, {
         title: 'Upload Your Image',
         description: 'Click "Choose Image" and select a photo to analyze. The tool works with JPG, PNG, and other common formats.',
         tip: 'Works best with high-quality images that show a range of tones',
+        image: '/images/guides/image-histogram-viewer/upload-image.png',
       },
       {
         title: 'View Histogram Display',
         description: 'Examine the RGB histogram showing the distribution of red, green, and blue channels.',
         tip: 'Each channel shows how pixels are distributed across brightness levels',
+        image: '/images/guides/image-histogram-viewer/histogram-display.png',
       },
       {
         title: 'Analyze Brightness Distribution',
         description: 'Look at the overall shape - spikes indicate predominant tones, gaps show missing information.',
         tip: 'A well-exposed image typically has data spread across the histogram',
+        image: '/images/guides/image-histogram-viewer/brightness-distribution.png',
       },
       {
         title: 'Check Channel Balance',
         description: 'Compare the three color channels to identify color casts or imbalances.',
         tip: 'Ideally, the channels should be well-balanced without extreme spikes',
+        image: '/images/guides/image-histogram-viewer/channel-balance.png',
       },
       {
         title: 'Identify Exposure Issues',
         description: 'Look for data clustered at the left (underexposed) or right (overexposed) edges.',
         tip: 'Clipping at either end indicates loss of detail in shadows or highlights',
+        image: '/images/guides/image-histogram-viewer/exposure-issues.png',
       },
       {
         title: 'Apply Corrections',
         description: 'Use the histogram insights to make informed adjustments to exposure, contrast, or color balance.',
         tip: 'This tool helps you understand what photo editing software will show you',
+        image: '/images/guides/image-histogram-viewer/apply-corrections.png',
       },
     ],
     tips: [
@@ -2033,36 +2080,43 @@ const toolGuides: Record<string, {
         title: 'Choose a Template',
         description: 'Browse through popular meme templates or upload your own background image.',
         tip: 'Popular templates like "Distracted Boyfriend" or "This is Fine" work well',
+        image: '/images/guides/meme-generator/choose-template.png',
       },
       {
         title: 'Add Top Text',
         description: 'Enter your top text in the designated field. Keep it short and punchy for maximum impact.',
         tip: 'Use ALL CAPS for traditional meme style, but experiment with different cases',
+        image: '/images/guides/meme-generator/add-top-text.png',
       },
       {
         title: 'Add Bottom Text',
         description: 'Enter your bottom text, which often delivers the punchline in classic meme format.',
         tip: 'Bottom text is typically the humorous twist or conclusion',
+        image: '/images/guides/meme-generator/add-bottom-text.png',
       },
       {
         title: 'Customize Text Styling',
         description: 'Adjust font size, color, and positioning. Add outlines or shadows for better readability.',
         tip: 'White text with black outlines provides the best contrast on busy backgrounds',
+        image: '/images/guides/meme-generator/customize-text.png',
       },
       {
         title: 'Add Visual Elements',
         description: 'Include arrows, circles, or other graphics to highlight important parts of your meme.',
         tip: 'Use sparingly - too many elements can make the meme confusing',
+        image: '/images/guides/meme-generator/add-visual-elements.png',
       },
       {
         title: 'Preview and Adjust',
         description: 'Check how your meme looks and make final adjustments to text placement and styling.',
         tip: 'Test readability on different screen sizes',
+        image: '/images/guides/meme-generator/preview-adjust.png',
       },
       {
         title: 'Download and Share',
         description: 'Save your meme in PNG or JPG format and share it across social media platforms.',
         tip: 'PNG preserves transparency, JPG is smaller for sharing',
+        image: '/images/guides/meme-generator/download-share.png',
       },
     ],
     tips: [
@@ -2087,36 +2141,43 @@ const toolGuides: Record<string, {
         title: 'Upload Multiple Images',
         description: 'Click "Choose Images" and select 2-12 images you want to combine into a grid.',
         tip: 'Images are automatically resized to fit the grid layout',
+        image: '/images/guides/image-grid-maker/upload-images.png',
       },
       {
         title: 'Select Grid Layout',
         description: 'Choose from various grid options: 2x2, 3x3, 4x4, or custom aspect ratios.',
         tip: 'Consider your final output - square grids work well for Instagram, rectangular for other uses',
+        image: '/images/guides/image-grid-maker/select-layout.png',
       },
       {
         title: 'Adjust Spacing and Margins',
         description: 'Set the spacing between images and margin around the entire grid.',
         tip: 'Minimal spacing creates a seamless look, larger spacing adds breathing room',
+        image: '/images/guides/image-grid-maker/adjust-spacing.png',
       },
       {
         title: 'Choose Background Color',
         description: 'Select a background color or use transparency for flexible usage.',
         tip: 'White or light gray backgrounds work well for most applications',
+        image: '/images/guides/image-grid-maker/background-color.png',
       },
       {
         title: 'Reorder Images',
         description: 'Drag and drop images within the grid to arrange them in your desired order.',
         tip: 'Consider visual flow - important images should be prominently placed',
+        image: '/images/guides/image-grid-maker/reorder-images.png',
       },
       {
         title: 'Set Output Size',
         description: 'Choose the final dimensions for your grid image.',
         tip: 'Common sizes: 1080x1080px for social media, 1920x1080px for presentations',
+        image: '/images/guides/image-grid-maker/set-size.png',
       },
       {
         title: 'Generate and Download',
         description: 'Click "Create Grid" and download your professional-looking image grid.',
         tip: 'PNG format preserves quality, JPG is smaller for web use',
+        image: '/images/guides/image-grid-maker/generate-download.png',
       },
     ],
     tips: [
@@ -2145,31 +2206,37 @@ const toolGuides: Record<string, {
         title: 'View Current File Info',
         description: 'See the current file size, dimensions, and format information.',
         tip: 'Understanding the starting point helps with optimization decisions',
+        image: '/images/guides/image-size-predictor/file-info.png',
       },
       {
         title: 'Select Target Format',
         description: 'Choose your desired output format: JPG, PNG, WebP, or AVIF.',
         tip: 'WebP and AVIF typically provide better compression than JPG',
+        image: '/images/guides/image-size-predictor/select-format.png',
       },
       {
         title: 'Set Quality Parameters',
         description: 'Adjust quality settings and see real-time size predictions.',
         tip: 'Quality settings affect file size dramatically - find the sweet spot',
+        image: '/images/guides/image-size-predictor/quality-settings.png',
       },
       {
         title: 'Configure Dimensions',
         description: 'Set target width/height or use percentage scaling.',
         tip: 'Reducing dimensions has a huge impact on file size',
+        image: '/images/guides/image-size-predictor/dimensions.png',
       },
       {
         title: 'Review Size Predictions',
         description: 'See estimated file sizes for different compression settings.',
         tip: 'Use this to optimize for specific use cases (web, print, email)',
+        image: '/images/guides/image-size-predictor/size-predictions.png',
       },
       {
         title: 'Apply Optimal Settings',
         description: 'Use the insights to configure your image processing for the best size/quality balance.',
         tip: 'Consider your target audience and connection speeds',
+        image: '/images/guides/image-size-predictor/apply-settings.png',
       },
     ],
     tips: [
@@ -2193,21 +2260,25 @@ const toolGuides: Record<string, {
         title: 'Choose Template or Start Blank',
         description: 'Select from pre-designed infographic templates or start with a blank canvas.',
         tip: 'Templates provide structure, but custom designs offer more creativity',
+        image: '/images/guides/infographic-creator/choose-template.png',
       },
       {
         title: 'Set Canvas Dimensions',
         description: 'Choose appropriate dimensions based on your intended use (social media, print, web).',
         tip: 'Common sizes: 1080x1920px for stories, 1200x630px for social sharing',
+        image: '/images/guides/infographic-creator/canvas-dimensions.png',
       },
       {
         title: 'Add Background Elements',
         description: 'Upload or select background images, gradients, or solid colors.',
         tip: 'Use subtle backgrounds that don\'t compete with your data',
+        image: '/images/guides/infographic-creator/background-elements.png',
       },
       {
         title: 'Create Charts and Graphs',
         description: 'Add bar charts, pie charts, line graphs, or other data visualizations.',
         tip: 'Keep charts simple - complex charts can confuse viewers',
+        image: '/images/guides/infographic-creator/charts-graphs.png',
       },
       {
         title: 'Add Text Elements',
@@ -2361,6 +2432,7 @@ const toolGuides: Record<string, {
         title: 'Upload Your Video',
         description: 'Click "Choose Video File" and select the video you want to speed up or slow down.',
         tip: 'Supported formats: MP4, AVI, MOV, WebM (max 500MB recommended)',
+        image: '/images/guides/speed-changer/upload-video.png',
       },
       {
         title: 'Select Speed Preset',
@@ -2560,6 +2632,22 @@ export default function ToolGuideClient({ toolSlug }: ToolGuideClientProps) {
             ))}
           </ul>
         </div>
+
+        {/* Ethical Notes */}
+        {guide.ethicalNotes && guide.ethicalNotes.length > 0 && (
+          <div className="bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-800 rounded-xl shadow-lg p-8 mb-8">
+            <h2 className="text-2xl font-bold text-orange-900 dark:text-orange-100 mb-6">
+              ⚖️ Ethical Guidelines & Legal Notes
+            </h2>
+            <div className="space-y-2">
+              {guide.ethicalNotes.map((note, index) => (
+                <p key={index} className="text-orange-800 dark:text-orange-200 leading-relaxed">
+                  {note}
+                </p>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Related Tools */}
         {relatedTools.length > 0 && (
