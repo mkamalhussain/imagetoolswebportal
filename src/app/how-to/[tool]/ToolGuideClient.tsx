@@ -2605,8 +2605,9 @@ export default function ToolGuideClient({ toolSlug }: ToolGuideClientProps) {
                     <div className="mt-4">
                       <img
                         src={step.image}
-                        alt={step.title}
-                        className="rounded-lg border border-gray-200 dark:border-gray-700"
+                        alt={`Screenshot showing ${step.title.toLowerCase()} in ${guide.title} - FreeToolBox.app`}
+                        className="rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm"
+                        loading="lazy"
                       />
                     </div>
                   )}
