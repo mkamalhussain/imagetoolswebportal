@@ -19,12 +19,52 @@ export default function Layout({ children }: LayoutProps) {
 
   // Initialize theme from localStorage
   useEffect(() => {
+    const applyTheme = (shouldBeDark: boolean) => {
+      const html = document.documentElement;
+      console.log('Applying theme:', shouldBeDark ? 'dark' : 'light');
+      
+      if (shouldBeDark) {
+        html.classList.add('dark');
+      } else {
+        html.classList.remove('dark');
+      }
+      
+      console.log('Theme applied - HTML classes:', html.className);
+      console.log('Has dark class?', html.classList.contains('dark'));
+    };
+
     const savedTheme = localStorage.getItem('theme');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const shouldBeDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
 
+    console.log('Initializing theme:', { savedTheme, prefersDark, shouldBeDark });
     setIsDarkMode(shouldBeDark);
-    document.documentElement.classList.toggle('dark', shouldBeDark);
+    applyTheme(shouldBeDark);
+
+    // Listen for theme changes from other tabs/windows
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'theme') {
+        const newTheme = e.newValue === 'dark';
+        console.log('Storage change detected:', newTheme ? 'dark' : 'light');
+        setIsDarkMode(newTheme);
+        applyTheme(newTheme);
+      }
+    };
+
+    // Listen for custom theme change events
+    const handleThemeChange = () => {
+      const currentTheme = document.documentElement.classList.contains('dark');
+      console.log('Theme change event - current theme:', currentTheme ? 'dark' : 'light');
+      setIsDarkMode(currentTheme);
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('themechange', handleThemeChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('themechange', handleThemeChange);
+    };
   }, []);
 
   // Combine all tools for search
@@ -216,6 +256,12 @@ export default function Layout({ children }: LayoutProps) {
                   onChange={(e) => {
                     setSearchQuery(e.target.value);
                   }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') {
+                      setSearchQuery('');
+                      e.currentTarget.blur();
+                    }
+                  }}
                   className="w-48 pl-3 pr-10 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
                 <button className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
@@ -274,14 +320,30 @@ export default function Layout({ children }: LayoutProps) {
 
               {/* Theme Toggle */}
               <button
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  
                   const newTheme = !isDarkMode;
                   setIsDarkMode(newTheme);
-                  document.documentElement.classList.toggle('dark', newTheme);
+                  
+                  // Explicitly add or remove the dark class
+                  const html = document.documentElement;
+                  if (newTheme) {
+                    html.classList.add('dark');
+                  } else {
+                    html.classList.remove('dark');
+                  }
+                  
+                  // Save to localStorage
                   localStorage.setItem('theme', newTheme ? 'dark' : 'light');
+                  
+                  // Force a re-render by dispatching a custom event
+                  window.dispatchEvent(new Event('themechange'));
                 }}
                 className="p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                 title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+                aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
               >
                 {isDarkMode ? (
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

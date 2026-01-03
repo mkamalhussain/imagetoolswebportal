@@ -332,6 +332,28 @@ export default function RootLayout({
   return (
     <html lang="en" itemScope itemType="https://schema.org/WebSite">
       <head>
+        {/* Apply theme before React hydrates to prevent flash */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  const savedTheme = localStorage.getItem('theme');
+                  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                  const shouldBeDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
+                  if (shouldBeDark) {
+                    document.documentElement.classList.add('dark');
+                  } else {
+                    document.documentElement.classList.remove('dark');
+                  }
+                } catch (e) {
+                  console.error('Theme initialization error:', e);
+                }
+              })();
+            `,
+          }}
+        />
+        
         {/* Viewport meta tag is required */}
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
