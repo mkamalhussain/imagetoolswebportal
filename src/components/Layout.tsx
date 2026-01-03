@@ -16,7 +16,6 @@ export default function Layout({ children }: LayoutProps) {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [themeToggleCount, setThemeToggleCount] = useState(0);
 
   // Initialize theme from localStorage
   useEffect(() => {
@@ -213,10 +212,9 @@ export default function Layout({ children }: LayoutProps) {
                 <input
                   type="text"
                   placeholder="Search tools..."
-                  defaultValue=""
+                  value={searchQuery}
                   onChange={(e) => {
-                    const value = e.target.value;
-                    setSearchQuery(value);
+                    setSearchQuery(e.target.value);
                   }}
                   className="w-48 pl-3 pr-10 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
@@ -238,7 +236,14 @@ export default function Layout({ children }: LayoutProps) {
                           setSearchQuery('');
                         }}
                       >
-                        <span className="text-base">{tool.icon || '🔧'}</span>
+                        {tool.icon ? (
+                          <span 
+                            className="flex-shrink-0 w-6 h-6 flex items-center justify-center [&>svg]:w-6 [&>svg]:h-6"
+                            dangerouslySetInnerHTML={{ __html: tool.icon }}
+                          />
+                        ) : (
+                          <span className="text-base">🔧</span>
+                        )}
                         <div className="flex-1 min-w-0">
                           <div className="font-medium text-gray-900 dark:text-white truncate">
                             {tool.title}
@@ -272,7 +277,6 @@ export default function Layout({ children }: LayoutProps) {
                 onClick={() => {
                   const newTheme = !isDarkMode;
                   setIsDarkMode(newTheme);
-                  setThemeToggleCount(prev => prev + 1);
                   document.documentElement.classList.toggle('dark', newTheme);
                   localStorage.setItem('theme', newTheme ? 'dark' : 'light');
                 }}
@@ -289,11 +293,6 @@ export default function Layout({ children }: LayoutProps) {
                   </svg>
                 )}
               </button>
-
-              {/* Debug Panel - Remove this after testing */}
-              <div className="hidden md:block text-xs text-gray-500 dark:text-gray-400 px-2">
-                Theme: {isDarkMode ? 'Dark' : 'Light'} ({themeToggleCount}) | Search: "{searchQuery}" ({searchResults.length} results)
-              </div>
 
               {/* Share */}
               <button
