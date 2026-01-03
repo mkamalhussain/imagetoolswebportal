@@ -24,6 +24,7 @@ export default function Layout({ children }: LayoutProps) {
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const shouldBeDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
 
+    console.log('Initializing theme:', { savedTheme, prefersDark, shouldBeDark });
     setIsDarkMode(shouldBeDark);
     document.documentElement.classList.toggle('dark', shouldBeDark);
   }, []);
@@ -43,11 +44,13 @@ export default function Layout({ children }: LayoutProps) {
     if (!searchQuery.trim()) return [];
 
     const query = searchQuery.toLowerCase();
-    return allTools.filter(tool =>
+    const results = allTools.filter(tool =>
       tool.title.toLowerCase().includes(query) ||
       tool.description.toLowerCase().includes(query) ||
       tool.slug.toLowerCase().includes(query)
     ).slice(0, 8); // Limit to 8 results
+
+    return results;
   }, [searchQuery, allTools]);
 
   const navigationItems = [
@@ -213,8 +216,9 @@ export default function Layout({ children }: LayoutProps) {
                   placeholder="Search tools..."
                   value={searchQuery}
                   onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setShowSearchResults(e.target.value.length > 0);
+                    const value = e.target.value;
+                    setSearchQuery(value);
+                    setShowSearchResults(value.length > 0);
                   }}
                   onFocus={() => {
                     if (searchQuery.length > 0) setShowSearchResults(true);
@@ -233,7 +237,7 @@ export default function Layout({ children }: LayoutProps) {
 
                 {/* Search Results Dropdown */}
                 {showSearchResults && searchResults.length > 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 max-h-80 overflow-y-auto z-50">
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 max-h-80 overflow-y-auto z-[9999]">
                     {searchResults.map((tool) => (
                       <Link
                         key={`${tool.categorySlug}/${tool.slug}`}
@@ -276,10 +280,12 @@ export default function Layout({ children }: LayoutProps) {
               {/* Theme Toggle */}
               <button
                 onClick={() => {
+                  console.log('Theme toggle clicked, current:', isDarkMode);
                   const newTheme = !isDarkMode;
                   setIsDarkMode(newTheme);
                   document.documentElement.classList.toggle('dark', newTheme);
                   localStorage.setItem('theme', newTheme ? 'dark' : 'light');
+                  console.log('Theme toggled to:', newTheme);
                 }}
                 className="p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                 title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
