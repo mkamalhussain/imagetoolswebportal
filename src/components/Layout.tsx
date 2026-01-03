@@ -1,8 +1,12 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 // import ThemeToggle from '@/components/ThemeToggle'; // Assuming ThemeToggle exists
+import { modules } from '@/data/modules';
+import { audioModules } from '@/data/audioModules';
+import { videoModules } from '@/data/videoModules';
+import { pdfModules } from '@/data/pdfModules';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -10,6 +14,41 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // Initialize theme from localStorage
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const shouldBeDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
+
+    setIsDarkMode(shouldBeDark);
+    document.documentElement.classList.toggle('dark', shouldBeDark);
+  }, []);
+
+  // Combine all tools for search
+  const allTools = useMemo(() => {
+    return [
+      ...modules.map(tool => ({ ...tool, category: 'image', categorySlug: 'modules' })),
+      ...audioModules.map(tool => ({ ...tool, category: 'audio', categorySlug: 'audio' })),
+      ...videoModules.map(tool => ({ ...tool, category: 'video', categorySlug: 'video' })),
+      ...pdfModules.map(tool => ({ ...tool, category: 'pdf', categorySlug: 'pdf' })),
+    ];
+  }, []);
+
+  // Search results
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+
+    const query = searchQuery.toLowerCase();
+    return allTools.filter(tool =>
+      tool.title.toLowerCase().includes(query) ||
+      tool.description.toLowerCase().includes(query) ||
+      tool.slug.toLowerCase().includes(query)
+    ).slice(0, 8); // Limit to 8 results
+  }, [searchQuery, allTools]);
 
   const navigationItems = [
     {
@@ -172,6 +211,18 @@ export default function Layout({ children }: LayoutProps) {
                 <input
                   type="text"
                   placeholder="Search tools..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setShowSearchResults(e.target.value.length > 0);
+                  }}
+                  onFocus={() => {
+                    if (searchQuery.length > 0) setShowSearchResults(true);
+                  }}
+                  onBlur={() => {
+                    // Delay hiding to allow clicking on results
+                    setTimeout(() => setShowSearchResults(false), 200);
+                  }}
                   className="w-48 pl-3 pr-10 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
                 <button className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
@@ -179,34 +230,95 @@ export default function Layout({ children }: LayoutProps) {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                 </button>
+
+                {/* Search Results Dropdown */}
+                {showSearchResults && searchResults.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 max-h-80 overflow-y-auto z-50">
+                    {searchResults.map((tool) => (
+                      <Link
+                        key={`${tool.categorySlug}/${tool.slug}`}
+                        href={`/${tool.categorySlug}/${tool.slug}`}
+                        className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-600 last:border-b-0"
+                        onClick={() => {
+                          setSearchQuery('');
+                          setShowSearchResults(false);
+                        }}
+                      >
+                        <span className="text-base">{tool.icon || '🔧'}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-gray-900 dark:text-white truncate">
+                            {tool.title}
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400 capitalize">
+                            {tool.category} Tool
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
+                    {searchResults.length >= 8 && (
+                      <div className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400 text-center border-t border-gray-100 dark:border-gray-600">
+                        Showing top 8 results
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* No Results */}
+                {showSearchResults && searchQuery.length > 0 && searchResults.length === 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 p-4 z-50">
+                    <div className="text-sm text-gray-500 dark:text-gray-400 text-center">
+                      No tools found for "{searchQuery}"
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Theme Toggle */}
-              <button className="p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
-              </button>
-
-              {/* My Files */}
-              <button className="hidden md:flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                My Files
+              <button
+                onClick={() => {
+                  const newTheme = !isDarkMode;
+                  setIsDarkMode(newTheme);
+                  document.documentElement.classList.toggle('dark', newTheme);
+                  localStorage.setItem('theme', newTheme ? 'dark' : 'light');
+                }}
+                className="p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+              >
+                {isDarkMode ? (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                  </svg>
+                )}
               </button>
 
               {/* Share */}
-              <button className="hidden md:flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors">
+              <button
+                onClick={() => {
+                  if (navigator.share) {
+                    navigator.share({
+                      title: 'FreeToolBox.app - Professional Online Tools',
+                      text: 'Discover 50+ free online tools for image, audio, video, and PDF processing. No signup required!',
+                      url: window.location.href,
+                    });
+                  } else {
+                    // Fallback: copy URL to clipboard
+                    navigator.clipboard.writeText(window.location.href).then(() => {
+                      // Could add a toast notification here
+                      alert('Link copied to clipboard!');
+                    });
+                  }
+                }}
+                className="hidden md:flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors"
+                title="Share FreeToolBox.app"
+              >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
                 </svg>
                 Share
-              </button>
-
-              {/* Sign In */}
-              <button className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors">
-                Sign In
               </button>
 
               {/* Mobile menu button */}
