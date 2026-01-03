@@ -1800,6 +1800,610 @@ const toolGuides: Record<string, {
     ],
     relatedTools: ['image-ocr-extractor', 'text-to-pdf', 'pdf-compressor'],
   },
+
+  'personality-analyzer': {
+    title: 'How to Use Personality Analyzer',
+    description: 'Discover personality traits and psychological insights through handwriting analysis using advanced AI algorithms.',
+    difficulty: 'Intermediate',
+    timeRequired: '10-15 minutes',
+    steps: [
+      {
+        title: 'Upload Handwriting Sample',
+        description: 'Click "Choose Image" and upload a clear photo of handwritten text. Ensure good lighting and high resolution for best results.',
+        tip: 'Use at least 200-300 words of natural handwriting for accurate analysis',
+      },
+      {
+        title: 'Select Analysis Type',
+        description: 'Choose between Quick Analysis (basic traits) or Detailed Analysis (comprehensive personality profile).',
+        tip: 'Detailed analysis takes longer but provides more insights',
+      },
+      {
+        title: 'Wait for Processing',
+        description: 'The AI analyzes stroke patterns, pressure, spacing, and other handwriting characteristics to determine personality traits.',
+        tip: 'Analysis typically takes 2-3 minutes for detailed reports',
+      },
+      {
+        title: 'Review Personality Insights',
+        description: 'Examine the detailed personality profile including traits like openness, conscientiousness, extraversion, agreeableness, and neuroticism.',
+        tip: 'Look for patterns in how your traits align with different life situations',
+      },
+      {
+        title: 'Download Report',
+        description: 'Save your personality analysis as a PDF report for future reference and sharing.',
+        tip: 'Reports include detailed explanations and trait interpretations',
+      },
+    ],
+    tips: [
+      'Use cursive handwriting rather than printed text for better analysis',
+      'Ensure the handwriting sample is recent and represents your natural writing style',
+      'Consider the context - stress or time pressure can affect handwriting',
+      'Use high-quality images with good contrast for accurate character recognition',
+      'Compare results with self-assessment questionnaires for validation',
+    ],
+    relatedTools: ['image-ocr-extractor', 'image-mood-analyzer', 'color-palette-extractor'],
+  },
+
+  'qr-code-tool': {
+    title: 'How to Generate and Scan QR Codes',
+    description: 'Create custom QR codes for URLs, text, and data, or scan existing QR codes from images.',
+    difficulty: 'Beginner',
+    timeRequired: '3-5 minutes',
+    steps: [
+      {
+        title: 'Choose Mode',
+        description: 'Select between "Generate QR Code" to create new codes or "Scan QR Code" to read existing ones.',
+        tip: 'The tool supports both generation and scanning in one interface',
+      },
+      {
+        title: 'For Generation: Enter Content',
+        description: 'Input the URL, text, or data you want to encode. Choose the appropriate content type from the dropdown.',
+        tip: 'URLs should include https:// for best compatibility',
+      },
+      {
+        title: 'Customize QR Code',
+        description: 'Adjust size, error correction level, and add custom colors or logos if desired.',
+        tip: 'Higher error correction allows the code to work even if partially damaged',
+      },
+      {
+        title: 'Generate and Download',
+        description: 'Click "Generate QR Code" and download the resulting image in PNG or SVG format.',
+        tip: 'PNG format works best for most printing applications',
+      },
+      {
+        title: 'For Scanning: Upload Image',
+        description: 'Click "Choose QR Image" and upload a photo containing a QR code.',
+        tip: 'Ensure good lighting and focus on the QR code for best results',
+      },
+      {
+        title: 'Scan and View Results',
+        description: 'The tool automatically detects and decodes the QR code, displaying the embedded content.',
+        tip: 'Results show the type of content and the decoded data',
+      },
+    ],
+    tips: [
+      'Test your generated QR codes with multiple devices before mass distribution',
+      'Keep QR codes at least 2cm x 2cm for reliable scanning',
+      'Avoid using very dark colors that might confuse scanners',
+      'Include a call-to-action or border around your QR codes for better visibility',
+      'Regular QR codes work better than colored ones for universal compatibility',
+    ],
+    relatedTools: ['image-ocr-extractor', 'barcode-generator', 'image-format-converter'],
+  },
+
+  'image-mood-analyzer': {
+    title: 'How to Analyze Image Mood and Emotions',
+    description: 'Discover the emotional tone and mood conveyed by your images using advanced AI analysis.',
+    difficulty: 'Beginner',
+    timeRequired: '5-8 minutes',
+    steps: [
+      {
+        title: 'Upload Your Image',
+        description: 'Click "Choose Image" and select the photo you want to analyze. The tool supports JPG, PNG, and WebP formats.',
+        tip: 'Higher resolution images provide more accurate analysis',
+      },
+      {
+        title: 'Wait for AI Processing',
+        description: 'The AI analyzes colors, composition, lighting, and visual elements to determine the emotional tone.',
+        tip: 'Analysis typically takes 30-60 seconds depending on image complexity',
+      },
+      {
+        title: 'Review Mood Analysis',
+        description: 'View the detailed breakdown of emotions detected, including primary mood, intensity levels, and contributing factors.',
+        tip: 'The tool identifies multiple emotions that can coexist in one image',
+      },
+      {
+        title: 'Explore Visual Insights',
+        description: 'See which visual elements contribute to each emotion, such as warm/cool colors, lighting effects, or composition.',
+        tip: 'Understanding these insights can help improve your photography skills',
+      },
+      {
+        title: 'Compare Multiple Images',
+        description: 'Upload additional images to compare their emotional impact and identify patterns in your work.',
+        tip: 'Useful for photographers, marketers, and content creators',
+      },
+    ],
+    tips: [
+      'Warm colors (reds, oranges) often convey energy and passion',
+      'Cool colors (blues, greens) typically suggest calmness and serenity',
+      'Lighting plays a major role - bright images feel more positive than dark ones',
+      'Composition affects mood - centered subjects feel stable, off-center ones feel dynamic',
+      'Cultural context matters - colors and symbols have different meanings across cultures',
+    ],
+    relatedTools: ['color-palette-extractor', 'image-histogram-viewer', 'personality-analyzer'],
+  },
+
+  'color-blindness-simulator': {
+    title: 'How to Simulate Color Blindness',
+    description: 'See how your images appear to people with different types of color vision deficiencies.',
+    difficulty: 'Beginner',
+    timeRequired: '3-5 minutes',
+    steps: [
+      {
+        title: 'Upload Your Image',
+        description: 'Click "Choose Image" and select the image you want to test for color accessibility.',
+        tip: 'Works best with images containing multiple colors and fine details',
+      },
+      {
+        title: 'Select Color Vision Type',
+        description: 'Choose from different types of color blindness: Protanopia, Deuteranopia, Tritanopia, or Achromatopsia.',
+        tip: 'Protanopia and Deuteranopia are the most common forms',
+      },
+      {
+        title: 'View Simulation',
+        description: 'See how your image appears through the selected color vision deficiency filter.',
+        tip: 'The simulation shows how colorblind users perceive your content',
+      },
+      {
+        title: 'Compare All Types',
+        description: 'Switch between different color blindness types to understand various accessibility needs.',
+        tip: 'Each type affects color perception differently',
+      },
+      {
+        title: 'Make Accessibility Improvements',
+        description: 'Use the insights to adjust colors, add patterns, or improve contrast for better accessibility.',
+        tip: 'Consider adding text labels or patterns alongside colors',
+      },
+    ],
+    tips: [
+      'Always test with real colorblind users when possible',
+      'Use high contrast ratios for text and important elements',
+      'Avoid relying solely on color to convey important information',
+      'Consider adding textures or patterns alongside colors',
+      'Test with multiple color blindness types as they vary widely',
+      'Use colorblind-friendly color palettes in your designs',
+    ],
+    relatedTools: ['color-palette-extractor', 'image-histogram-viewer', 'contrast-checker'],
+  },
+
+  'image-histogram-viewer': {
+    title: 'How to Analyze Image Histograms',
+    description: 'Understand color distribution, brightness levels, and exposure quality through histogram analysis.',
+    difficulty: 'Intermediate',
+    timeRequired: '5-10 minutes',
+    steps: [
+      {
+        title: 'Upload Your Image',
+        description: 'Click "Choose Image" and select a photo to analyze. The tool works with JPG, PNG, and other common formats.',
+        tip: 'Works best with high-quality images that show a range of tones',
+      },
+      {
+        title: 'View Histogram Display',
+        description: 'Examine the RGB histogram showing the distribution of red, green, and blue channels.',
+        tip: 'Each channel shows how pixels are distributed across brightness levels',
+      },
+      {
+        title: 'Analyze Brightness Distribution',
+        description: 'Look at the overall shape - spikes indicate predominant tones, gaps show missing information.',
+        tip: 'A well-exposed image typically has data spread across the histogram',
+      },
+      {
+        title: 'Check Channel Balance',
+        description: 'Compare the three color channels to identify color casts or imbalances.',
+        tip: 'Ideally, the channels should be well-balanced without extreme spikes',
+      },
+      {
+        title: 'Identify Exposure Issues',
+        description: 'Look for data clustered at the left (underexposed) or right (overexposed) edges.',
+        tip: 'Clipping at either end indicates loss of detail in shadows or highlights',
+      },
+      {
+        title: 'Apply Corrections',
+        description: 'Use the histogram insights to make informed adjustments to exposure, contrast, or color balance.',
+        tip: 'This tool helps you understand what photo editing software will show you',
+      },
+    ],
+    tips: [
+      'A histogram with data touching both sides indicates good dynamic range',
+      'Spikes at the far left indicate underexposed areas with lost shadow detail',
+      'Spikes at the far right indicate overexposed areas with lost highlight detail',
+      'Gaps in the histogram show missing tonal information',
+      'RGB channels should be roughly balanced for natural-looking images',
+      'Use histograms to optimize exposure before editing',
+    ],
+    relatedTools: ['color-palette-extractor', 'image-upscaler', 'contrast-analyzer'],
+  },
+
+  'meme-generator': {
+    title: 'How to Create Engaging Memes',
+    description: 'Design hilarious and shareable memes with popular templates and custom text styling.',
+    difficulty: 'Beginner',
+    timeRequired: '5-8 minutes',
+    steps: [
+      {
+        title: 'Choose a Template',
+        description: 'Browse through popular meme templates or upload your own background image.',
+        tip: 'Popular templates like "Distracted Boyfriend" or "This is Fine" work well',
+      },
+      {
+        title: 'Add Top Text',
+        description: 'Enter your top text in the designated field. Keep it short and punchy for maximum impact.',
+        tip: 'Use ALL CAPS for traditional meme style, but experiment with different cases',
+      },
+      {
+        title: 'Add Bottom Text',
+        description: 'Enter your bottom text, which often delivers the punchline in classic meme format.',
+        tip: 'Bottom text is typically the humorous twist or conclusion',
+      },
+      {
+        title: 'Customize Text Styling',
+        description: 'Adjust font size, color, and positioning. Add outlines or shadows for better readability.',
+        tip: 'White text with black outlines provides the best contrast on busy backgrounds',
+      },
+      {
+        title: 'Add Visual Elements',
+        description: 'Include arrows, circles, or other graphics to highlight important parts of your meme.',
+        tip: 'Use sparingly - too many elements can make the meme confusing',
+      },
+      {
+        title: 'Preview and Adjust',
+        description: 'Check how your meme looks and make final adjustments to text placement and styling.',
+        tip: 'Test readability on different screen sizes',
+      },
+      {
+        title: 'Download and Share',
+        description: 'Save your meme in PNG or JPG format and share it across social media platforms.',
+        tip: 'PNG preserves transparency, JPG is smaller for sharing',
+      },
+    ],
+    tips: [
+      'Keep text concise - memes should be readable in 3 seconds',
+      'Use high-contrast text colors for better readability',
+      'Popular meme formats have specific text placement expectations',
+      'Timing is crucial - post when your audience is most active',
+      'Test your meme on a small group before mass sharing',
+      'Consider current trends and cultural relevance',
+      'Quality images work better than low-resolution ones',
+    ],
+    relatedTools: ['custom-card-maker', 'image-to-cartoon', 'background-changer'],
+  },
+
+  'image-grid-maker': {
+    title: 'How to Create Image Grids and Collages',
+    description: 'Combine multiple images into professional-looking grids with uniform spacing and alignment.',
+    difficulty: 'Beginner',
+    timeRequired: '5-10 minutes',
+    steps: [
+      {
+        title: 'Upload Multiple Images',
+        description: 'Click "Choose Images" and select 2-12 images you want to combine into a grid.',
+        tip: 'Images are automatically resized to fit the grid layout',
+      },
+      {
+        title: 'Select Grid Layout',
+        description: 'Choose from various grid options: 2x2, 3x3, 4x4, or custom aspect ratios.',
+        tip: 'Consider your final output - square grids work well for Instagram, rectangular for other uses',
+      },
+      {
+        title: 'Adjust Spacing and Margins',
+        description: 'Set the spacing between images and margin around the entire grid.',
+        tip: 'Minimal spacing creates a seamless look, larger spacing adds breathing room',
+      },
+      {
+        title: 'Choose Background Color',
+        description: 'Select a background color or use transparency for flexible usage.',
+        tip: 'White or light gray backgrounds work well for most applications',
+      },
+      {
+        title: 'Reorder Images',
+        description: 'Drag and drop images within the grid to arrange them in your desired order.',
+        tip: 'Consider visual flow - important images should be prominently placed',
+      },
+      {
+        title: 'Set Output Size',
+        description: 'Choose the final dimensions for your grid image.',
+        tip: 'Common sizes: 1080x1080px for social media, 1920x1080px for presentations',
+      },
+      {
+        title: 'Generate and Download',
+        description: 'Click "Create Grid" and download your professional-looking image grid.',
+        tip: 'PNG format preserves quality, JPG is smaller for web use',
+      },
+    ],
+    tips: [
+      'Use images of similar quality and style for cohesive grids',
+      'Consider the rule of thirds when arranging your images',
+      'Maintain consistent aspect ratios within each grid cell',
+      'Test different layouts to find what works best for your content',
+      'Grid layouts work well for portfolios, product showcases, and event photos',
+      'Consider color coordination between adjacent images',
+    ],
+    relatedTools: ['image-resizer', 'image-format-converter', 'background-remover'],
+  },
+
+  'image-size-predictor': {
+    title: 'How to Predict Image File Sizes',
+    description: 'Estimate compressed file sizes and optimize images for web delivery before processing.',
+    difficulty: 'Intermediate',
+    timeRequired: '3-5 minutes',
+    steps: [
+      {
+        title: 'Upload Your Image',
+        description: 'Click "Choose Image" and select the file you want to analyze. Works with JPG, PNG, WebP, and other formats.',
+        tip: 'The tool analyzes the current file and predicts compressed sizes',
+      },
+      {
+        title: 'View Current File Info',
+        description: 'See the current file size, dimensions, and format information.',
+        tip: 'Understanding the starting point helps with optimization decisions',
+      },
+      {
+        title: 'Select Target Format',
+        description: 'Choose your desired output format: JPG, PNG, WebP, or AVIF.',
+        tip: 'WebP and AVIF typically provide better compression than JPG',
+      },
+      {
+        title: 'Set Quality Parameters',
+        description: 'Adjust quality settings and see real-time size predictions.',
+        tip: 'Quality settings affect file size dramatically - find the sweet spot',
+      },
+      {
+        title: 'Configure Dimensions',
+        description: 'Set target width/height or use percentage scaling.',
+        tip: 'Reducing dimensions has a huge impact on file size',
+      },
+      {
+        title: 'Review Size Predictions',
+        description: 'See estimated file sizes for different compression settings.',
+        tip: 'Use this to optimize for specific use cases (web, print, email)',
+      },
+      {
+        title: 'Apply Optimal Settings',
+        description: 'Use the insights to configure your image processing for the best size/quality balance.',
+        tip: 'Consider your target audience and connection speeds',
+      },
+    ],
+    tips: [
+      'File size decreases exponentially as you reduce quality settings',
+      'WebP format typically reduces file size by 25-50% compared to JPG',
+      'Reducing dimensions by 50% reduces file size by about 75%',
+      'Consider your use case - thumbnails need smaller files than hero images',
+      'Test different settings to find the best quality/size balance',
+      'Always compare visual quality when optimizing file sizes',
+    ],
+    relatedTools: ['image-compressor', 'image-resizer', 'image-format-converter'],
+  },
+
+  'infographic-creator': {
+    title: 'How to Create Stunning Infographics',
+    description: 'Design professional infographics with charts, text, and data visualization elements.',
+    difficulty: 'Intermediate',
+    timeRequired: '15-25 minutes',
+    steps: [
+      {
+        title: 'Choose Template or Start Blank',
+        description: 'Select from pre-designed infographic templates or start with a blank canvas.',
+        tip: 'Templates provide structure, but custom designs offer more creativity',
+      },
+      {
+        title: 'Set Canvas Dimensions',
+        description: 'Choose appropriate dimensions based on your intended use (social media, print, web).',
+        tip: 'Common sizes: 1080x1920px for stories, 1200x630px for social sharing',
+      },
+      {
+        title: 'Add Background Elements',
+        description: 'Upload or select background images, gradients, or solid colors.',
+        tip: 'Use subtle backgrounds that don\'t compete with your data',
+      },
+      {
+        title: 'Create Charts and Graphs',
+        description: 'Add bar charts, pie charts, line graphs, or other data visualizations.',
+        tip: 'Keep charts simple - complex charts can confuse viewers',
+      },
+      {
+        title: 'Add Text Elements',
+        description: 'Include headlines, body text, and call-to-action text with appropriate styling.',
+        tip: 'Use hierarchy - larger fonts for headlines, smaller for details',
+      },
+      {
+        title: 'Incorporate Icons and Graphics',
+        description: 'Add relevant icons, illustrations, or decorative elements to enhance visual appeal.',
+        tip: 'Use icons sparingly and consistently throughout the design',
+      },
+      {
+        title: 'Review Layout and Flow',
+        description: 'Ensure logical information flow from top to bottom, left to right.',
+        tip: 'Most people read infographics like a story - guide them through your data',
+      },
+      {
+        title: 'Export Final Design',
+        description: 'Download your infographic in high-resolution format for sharing and printing.',
+        tip: 'Use PNG for web sharing, PDF for print, JPG for email',
+      },
+    ],
+    tips: [
+      'Focus on one key message per infographic',
+      'Use high-contrast colors for readability',
+      'Limit text to essential information only',
+      'Include data sources for credibility',
+      'Test readability at different sizes',
+      'Use consistent fonts and colors throughout',
+      'Consider your audience\'s knowledge level when presenting data',
+    ],
+    relatedTools: ['meme-generator', 'custom-card-maker', 'image-grid-maker'],
+  },
+
+  'perspective-correction': {
+    title: 'How to Correct Image Perspective',
+    description: 'Fix tilted horizons, keystoning, and perspective distortion in architectural and landscape photos.',
+    difficulty: 'Intermediate',
+    timeRequired: '8-12 minutes',
+    steps: [
+      {
+        title: 'Upload Your Image',
+        description: 'Click "Choose Image" and select a photo with perspective distortion, such as buildings or landscapes.',
+        tip: 'Works best with images containing straight lines or geometric elements',
+      },
+      {
+        title: 'Identify Reference Lines',
+        description: 'Look for straight lines in your image that should be horizontal or vertical (like building edges or horizons).',
+        tip: 'The tool automatically detects these lines, but you can adjust if needed',
+      },
+      {
+        title: 'Set Correction Mode',
+        description: 'Choose between automatic correction or manual adjustment using control points.',
+        tip: 'Automatic mode works well for most architectural photos',
+      },
+      {
+        title: 'Adjust Control Points (Manual Mode)',
+        description: 'Drag the corner points to align with the desired perspective correction.',
+        tip: 'Imagine where the lines should be if the perspective was perfect',
+      },
+      {
+        title: 'Preview the Correction',
+        description: 'See how the image looks with the applied perspective correction before finalizing.',
+        tip: 'Check that straight lines appear straight and proportions look natural',
+      },
+      {
+        title: 'Crop and Refine',
+        description: 'Crop out any transparent areas created by the transformation.',
+        tip: 'You may need to crop slightly to remove edge artifacts',
+      },
+      {
+        title: 'Download Corrected Image',
+        description: 'Save your perspective-corrected image in your preferred format.',
+        tip: 'JPG is usually sufficient unless you need transparency',
+      },
+    ],
+    tips: [
+      'Shoot with the camera level to minimize needed corrections',
+      'Include straight reference lines in your composition',
+      'Avoid extreme angles that require heavy correction',
+      'Check the histogram after correction for any exposure issues',
+      'Use this tool before applying other edits for best results',
+      'Consider lens correction in camera settings when possible',
+      'Practice on test shots to understand the correction limits',
+    ],
+    relatedTools: ['image-resizer', 'image-upscaler', 'contrast-enhancer'],
+  },
+
+  'panorama-stitcher': {
+    title: 'How to Create Panoramic Images',
+    description: 'Combine multiple overlapping photos into seamless panoramic images with professional stitching.',
+    difficulty: 'Intermediate',
+    timeRequired: '10-15 minutes',
+    steps: [
+      {
+        title: 'Capture Source Images',
+        description: 'Take multiple overlapping photos (30-50% overlap) while rotating around a central point.',
+        tip: 'Use a tripod for best results, keep exposure and focus consistent',
+      },
+      {
+        title: 'Upload Images in Order',
+        description: 'Click "Choose Images" and select your panorama sequence in shooting order (left to right or right to left).',
+        tip: 'The tool automatically detects the correct sequence, but manual ordering helps',
+      },
+      {
+        title: 'Wait for Analysis',
+        description: 'The AI analyzes overlapping areas and identifies matching features between images.',
+        tip: 'This process typically takes 1-2 minutes depending on image count and complexity',
+      },
+      {
+        title: 'Review Stitching Preview',
+        description: 'Check the automatic stitching result and make adjustments if needed.',
+        tip: 'Look for seamless transitions and proper alignment',
+      },
+      {
+        title: 'Adjust Blend Settings',
+        description: 'Fine-tune exposure blending and color matching between images.',
+        tip: 'The tool automatically handles exposure differences, but you can override',
+      },
+      {
+        title: 'Crop Final Panorama',
+        description: 'Crop the stitched image to remove any edge artifacts or unwanted areas.',
+        tip: 'Panoramas often have irregular shapes that benefit from cropping',
+      },
+      {
+        title: 'Export High-Resolution Result',
+        description: 'Download your panoramic image in high resolution for printing or web use.',
+        tip: 'Use TIFF for maximum quality, JPG for web sharing',
+      },
+    ],
+    tips: [
+      'Shoot with consistent exposure and white balance',
+      'Overlap images by at least 30% for reliable stitching',
+      'Use a tripod to avoid parallax errors',
+      'Shoot in manual mode to maintain consistent settings',
+      'Avoid moving objects that appear in multiple frames',
+      'Include reference points in overlapping areas',
+      'Shoot during golden hour for best lighting consistency',
+      'Process bracketed exposures separately if needed',
+    ],
+    relatedTools: ['image-resizer', 'perspective-correction', 'image-format-converter'],
+  },
+
+  'speed-changer': {
+    title: 'How to Change Video Speed (Speed Changer Pro)',
+    description: 'Adjust video playback speed while maintaining audio pitch for natural-sounding results.',
+    difficulty: 'Beginner',
+    timeRequired: '5-8 minutes',
+    steps: [
+      {
+        title: 'Upload Your Video',
+        description: 'Click "Choose Video File" and select the video you want to speed up or slow down.',
+        tip: 'Supported formats: MP4, AVI, MOV, WebM (max 500MB recommended)',
+      },
+      {
+        title: 'Select Speed Preset',
+        description: 'Choose from common presets (0.5x, 0.75x, 1.25x, 1.5x, 2x) or set a custom speed.',
+        tip: '0.5x creates slow motion, 2x creates time-lapse effects',
+      },
+      {
+        title: 'Enable Audio Pitch Correction',
+        description: 'Keep "Maintain Audio Pitch" enabled for natural-sounding results, or disable for special effects.',
+        tip: 'Pitch correction prevents "chipmunk" voices when speeding up',
+      },
+      {
+        title: 'Preview Speed Change',
+        description: 'Watch a short preview to see how the speed change affects your video.',
+        tip: 'Previews help you choose the perfect speed before full processing',
+      },
+      {
+        title: 'Apply Voice Effects (Optional)',
+        description: 'Add voice effects like Robot, Echo, or Reverb to enhance your video.',
+        tip: 'Use effects sparingly - they work best when intentional',
+      },
+      {
+        title: 'Start Processing',
+        description: 'Click "Change Speed" and wait for the AI to process your video with speed and pitch adjustments.',
+        tip: 'Processing time depends on video length and speed change amount',
+      },
+      {
+        title: 'Download Processed Video',
+        description: 'Save your speed-adjusted video in MP4 format for sharing or further editing.',
+        tip: 'Videos maintain original quality and sync between audio and video',
+      },
+    ],
+    tips: [
+      'Speed changes between 0.5x-2x work best for natural results',
+      'Very slow speeds (0.25x) may require audio pitch correction adjustments',
+      'Test different speeds to find the right pacing for your content',
+      'Consider your audience - faster speeds work well for tutorials, slower for dramatic effect',
+      'Maintain consistent audio quality by using the pitch correction feature',
+      'Use speed changes to emphasize important moments in your video',
+      'Preview before full processing to avoid re-rendering',
+    ],
+    relatedTools: ['video-trimmer', 'clip-joiner', 'subtitle-burner'],
+  },
 };
 
 interface ToolGuideClientProps {
