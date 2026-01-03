@@ -15,7 +15,6 @@ interface LayoutProps {
 export default function Layout({ children }: LayoutProps) {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [showSearchResults, setShowSearchResults] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   // Initialize theme from localStorage
@@ -36,7 +35,7 @@ export default function Layout({ children }: LayoutProps) {
       ...videoModules.map(tool => ({ ...tool, category: 'video', categorySlug: 'video' })),
       ...pdfModules.map(tool => ({ ...tool, category: 'pdf', categorySlug: 'pdf' })),
     ];
-  }, []);
+  }, [modules, audioModules, videoModules, pdfModules]);
 
   // Search results
   const searchResults = useMemo(() => {
@@ -50,7 +49,7 @@ export default function Layout({ children }: LayoutProps) {
     ).slice(0, 8); // Limit to 8 results
 
     return results;
-  }, [searchQuery, allTools]);
+  }, [searchQuery, allTools, modules, audioModules, videoModules, pdfModules]);
 
   const navigationItems = [
     {
@@ -213,18 +212,10 @@ export default function Layout({ children }: LayoutProps) {
                 <input
                   type="text"
                   placeholder="Search tools..."
-                  value={searchQuery}
+                  defaultValue=""
                   onChange={(e) => {
                     const value = e.target.value;
                     setSearchQuery(value);
-                    setShowSearchResults(value.length > 0);
-                  }}
-                  onFocus={() => {
-                    if (searchQuery.length > 0) setShowSearchResults(true);
-                  }}
-                  onBlur={() => {
-                    // Delay hiding to allow clicking on results
-                    setTimeout(() => setShowSearchResults(false), 200);
                   }}
                   className="w-48 pl-3 pr-10 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
@@ -235,7 +226,7 @@ export default function Layout({ children }: LayoutProps) {
                 </button>
 
                 {/* Search Results Dropdown */}
-                {showSearchResults && searchResults.length > 0 && (
+                {searchQuery.trim() && searchResults.length > 0 && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 max-h-80 overflow-y-auto z-[9999]">
                     {searchResults.map((tool) => (
                       <Link
@@ -244,7 +235,6 @@ export default function Layout({ children }: LayoutProps) {
                         className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-600 last:border-b-0"
                         onClick={() => {
                           setSearchQuery('');
-                          setShowSearchResults(false);
                         }}
                       >
                         <span className="text-base">{tool.icon || '🔧'}</span>
@@ -267,7 +257,7 @@ export default function Layout({ children }: LayoutProps) {
                 )}
 
                 {/* No Results */}
-                {showSearchResults && searchQuery.length > 0 && searchResults.length === 0 && (
+                {searchQuery.trim() && searchResults.length === 0 && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 p-4 z-50">
                     <div className="text-sm text-gray-500 dark:text-gray-400 text-center">
                       No tools found for "{searchQuery}"
