@@ -24,7 +24,6 @@ export default function Layout({ children }: LayoutProps) {
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const shouldBeDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
 
-    console.log('Initializing theme:', { savedTheme, prefersDark, shouldBeDark });
     setIsDarkMode(shouldBeDark);
     document.documentElement.classList.toggle('dark', shouldBeDark);
   }, []);
@@ -280,12 +279,10 @@ export default function Layout({ children }: LayoutProps) {
               {/* Theme Toggle */}
               <button
                 onClick={() => {
-                  console.log('Theme toggle clicked, current:', isDarkMode);
                   const newTheme = !isDarkMode;
                   setIsDarkMode(newTheme);
                   document.documentElement.classList.toggle('dark', newTheme);
                   localStorage.setItem('theme', newTheme ? 'dark' : 'light');
-                  console.log('Theme toggled to:', newTheme);
                 }}
                 className="p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                 title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
