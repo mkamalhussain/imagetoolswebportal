@@ -254,11 +254,11 @@ export const metadata: Metadata = {
   manifest: '/manifest.json',
   icons: {
     icon: [
-      { url: '/favicon.svg', type: 'image/svg+xml' },
-      { url: '/favicon-16x16.svg', sizes: '16x16', type: 'image/svg+xml' },
+      { url: '/favicon.png', type: 'image/png' },
+      { url: '/logo.png', type: 'image/png' },
     ],
-    shortcut: '/favicon.svg',
-    apple: '/apple-touch-icon.svg',
+    shortcut: '/favicon.png',
+    apple: '/logo.png',
   },
   other: {
     'google-adsense-account': 'ca-pub-xxxxxxxxxxxxxxxx',
@@ -367,6 +367,13 @@ export default function RootLayout({
         {/* DNS prefetch for performance */}
         <link rel="dns-prefetch" href="//unpkg.com" />
         <link rel="dns-prefetch" href="//fonts.gstatic.com" />
+        
+        {/* Favicon links - multiple formats for browser compatibility */}
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon.png" />
+        <link rel="shortcut icon" type="image/png" href="/favicon.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/logo.png" />
+        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
 
         {/* Structured Data */}
         <script

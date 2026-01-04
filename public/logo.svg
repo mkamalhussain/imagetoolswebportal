@@ -1,36 +1,53 @@
 <svg width="240" height="60" viewBox="0 0 240 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <!-- Blue gradient for icon -->
-    <linearGradient id="iconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#2563EB;stop-opacity:1" />
-      <stop offset="50%" style="stop-color:#3B82F6;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#60A5FA;stop-opacity:1" />
-    </linearGradient>
-    <!-- Blue gradient for text -->
-    <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#1E40AF;stop-opacity:1" />
-      <stop offset="50%" style="stop-color:#3B82F6;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#2563EB;stop-opacity:1" />
-    </linearGradient>
-  </defs>
-  
-  <!-- Orange hexagon frame (subtle accent) -->
-  <path d="M5 30 L15 10 L35 10 L45 30 L35 50 L15 50 Z" fill="none" stroke="#F97316" stroke-width="1.5" opacity="0.6"/>
-  
-  <!-- Blue gradient diamond icon (rotated square) -->
-  <g transform="translate(20, 15) rotate(45)">
-    <!-- Outer square -->
-    <rect x="-8" y="-8" width="16" height="16" rx="2" fill="url(#iconGradient)" opacity="0.2"/>
-    <!-- Middle square -->
-    <rect x="-6" y="-6" width="12" height="12" rx="1.5" fill="url(#iconGradient)" opacity="0.4"/>
-    <!-- Inner square -->
-    <rect x="-4" y="-4" width="8" height="8" rx="1" fill="url(#iconGradient)"/>
-    <!-- Center highlight -->
-    <rect x="-2" y="-2" width="4" height="4" rx="0.5" fill="#FFFFFF" opacity="0.8"/>
+  <!-- Purple dot icon (circular pattern with 4 large central dots) -->
+  <g transform="translate(25, 30)">
+    <!-- Outer ring of small dots -->
+    <circle cx="-8" cy="-8" r="1.5" fill="#9333EA"/>
+    <circle cx="0" cy="-8" r="1.5" fill="#9333EA"/>
+    <circle cx="8" cy="-8" r="1.5" fill="#9333EA"/>
+    <circle cx="-8" cy="0" r="1.5" fill="#9333EA"/>
+    <circle cx="8" cy="0" r="1.5" fill="#9333EA"/>
+    <circle cx="-8" cy="8" r="1.5" fill="#9333EA"/>
+    <circle cx="0" cy="8" r="1.5" fill="#9333EA"/>
+    <circle cx="8" cy="8" r="1.5" fill="#9333EA"/>
+    
+    <!-- Middle ring of medium dots -->
+    <circle cx="-5" cy="-5" r="2" fill="#9333EA"/>
+    <circle cx="5" cy="-5" r="2" fill="#9333EA"/>
+    <circle cx="-5" cy="5" r="2" fill="#9333EA"/>
+    <circle cx="5" cy="5" r="2" fill="#9333EA"/>
+    
+    <!-- Central 2x2 square of large dots -->
+    <circle cx="-2.5" cy="-2.5" r="2.5" fill="#9333EA"/>
+    <circle cx="2.5" cy="-2.5" r="2.5" fill="#9333EA"/>
+    <circle cx="-2.5" cy="2.5" r="2.5" fill="#9333EA"/>
+    <circle cx="2.5" cy="2.5" r="2.5" fill="#9333EA"/>
   </g>
   
-  <!-- Text: FREETOOLBOX -->
-  <text x="60" y="35" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="20" font-weight="700" letter-spacing="-0.5" fill="url(#textGradient)">
-    FREETOOLBOX
+  <!-- FREETOOLBOX text with stencil style (E's as bars, O's and B with cut-outs) -->
+  <text x="60" y="35" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="22" font-weight="900" letter-spacing="1" fill="#9333EA">
+    <tspan>FR</tspan>
+    <tspan x="28">E</tspan>
+    <tspan x="38">T</tspan>
+    <tspan x="48">O</tspan>
+    <tspan x="60">OLB</tspan>
+    <tspan x="90">O</tspan>
+    <tspan x="102">X</tspan>
   </text>
+  
+  <!-- Stencil cut-outs for E (three horizontal bars) -->
+  <line x1="28" y1="20" x2="35" y2="20" stroke="#9333EA" stroke-width="3" stroke-linecap="round"/>
+  <line x1="28" y1="28" x2="35" y2="28" stroke="#9333EA" stroke-width="3" stroke-linecap="round"/>
+  <line x1="28" y1="36" x2="35" y2="36" stroke="#9333EA" stroke-width="3" stroke-linecap="round"/>
+  
+  <!-- Stencil cut-outs for first O (horizontal gaps) -->
+  <rect x="48" y="18" width="12" height="2" fill="#9333EA"/>
+  <rect x="48" y="28" width="12" height="2" fill="#9333EA"/>
+  
+  <!-- Stencil cut-out for B (horizontal gap in middle) -->
+  <rect x="78" y="22" width="8" height="2" fill="#9333EA"/>
+  
+  <!-- Stencil cut-outs for second O (horizontal gaps) -->
+  <rect x="90" y="18" width="12" height="2" fill="#9333EA"/>
+  <rect x="90" y="28" width="12" height="2" fill="#9333EA"/>
 </svg>

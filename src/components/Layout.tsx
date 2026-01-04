@@ -169,9 +169,9 @@ export default function Layout({ children }: LayoutProps) {
             {/* Logo */}
             <Link href="/" className="flex items-center gap-3 text-xl font-bold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-200 hover:scale-105">
               <img
-                src="/logo-small.svg"
+                src="/logo.png"
                 alt="FreeToolBox - Professional Online Tools"
-                className="h-8 w-auto"
+                className="h-12 md:h-14 w-auto"
               />
             </Link>
 
@@ -405,7 +405,7 @@ export default function Layout({ children }: LayoutProps) {
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <img
-                  src="/logo-small.svg"
+                  src="/logo.png"
                   alt="FreeToolBox.app"
                   className="h-6 w-auto"
                 />
