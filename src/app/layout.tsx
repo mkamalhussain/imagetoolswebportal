@@ -253,9 +253,12 @@ export const metadata: Metadata = {
   },
   manifest: '/manifest.json',
   icons: {
-    icon: '/favicon.svg',
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon-16x16.svg', sizes: '16x16', type: 'image/svg+xml' },
+    ],
     shortcut: '/favicon.svg',
-    apple: '/favicon.svg',
+    apple: '/apple-touch-icon.svg',
   },
   other: {
     'google-adsense-account': 'ca-pub-xxxxxxxxxxxxxxxx',
