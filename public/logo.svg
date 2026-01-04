@@ -1,53 +1,32 @@
-<svg width="240" height="60" viewBox="0 0 240 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Purple dot icon (circular pattern with 4 large central dots) -->
-  <g transform="translate(25, 30)">
-    <!-- Outer ring of small dots -->
-    <circle cx="-8" cy="-8" r="1.5" fill="#9333EA"/>
-    <circle cx="0" cy="-8" r="1.5" fill="#9333EA"/>
-    <circle cx="8" cy="-8" r="1.5" fill="#9333EA"/>
-    <circle cx="-8" cy="0" r="1.5" fill="#9333EA"/>
-    <circle cx="8" cy="0" r="1.5" fill="#9333EA"/>
-    <circle cx="-8" cy="8" r="1.5" fill="#9333EA"/>
-    <circle cx="0" cy="8" r="1.5" fill="#9333EA"/>
-    <circle cx="8" cy="8" r="1.5" fill="#9333EA"/>
-    
-    <!-- Middle ring of medium dots -->
-    <circle cx="-5" cy="-5" r="2" fill="#9333EA"/>
-    <circle cx="5" cy="-5" r="2" fill="#9333EA"/>
-    <circle cx="-5" cy="5" r="2" fill="#9333EA"/>
-    <circle cx="5" cy="5" r="2" fill="#9333EA"/>
-    
-    <!-- Central 2x2 square of large dots -->
-    <circle cx="-2.5" cy="-2.5" r="2.5" fill="#9333EA"/>
-    <circle cx="2.5" cy="-2.5" r="2.5" fill="#9333EA"/>
-    <circle cx="-2.5" cy="2.5" r="2.5" fill="#9333EA"/>
-    <circle cx="2.5" cy="2.5" r="2.5" fill="#9333EA"/>
+<svg width="200" height="50" viewBox="0 0 200 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#6366F1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8B5CF6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Modern Toolbox Icon -->
+  <g transform="translate(5, 8)">
+    <!-- Toolbox base -->
+    <rect x="0" y="12" width="28" height="18" rx="3" fill="url(#logoGradient)" opacity="0.9"/>
+    <!-- Toolbox lid -->
+    <rect x="2" y="6" width="24" height="10" rx="2" fill="url(#logoGradient)"/>
+    <!-- Handle -->
+    <rect x="6" y="2" width="16" height="6" rx="3" fill="url(#logoGradient)"/>
+    <!-- Tools inside (simplified) -->
+    <circle cx="10" cy="20" r="1.5" fill="#FFFFFF" opacity="0.8"/>
+    <circle cx="18" cy="20" r="1.5" fill="#FFFFFF" opacity="0.8"/>
+    <line x1="12" y1="24" x2="16" y2="24" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" opacity="0.8"/>
   </g>
   
-  <!-- FREETOOLBOX text with stencil style (E's as bars, O's and B with cut-outs) -->
-  <text x="60" y="35" font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="22" font-weight="900" letter-spacing="1" fill="#9333EA">
-    <tspan>FR</tspan>
-    <tspan x="28">E</tspan>
-    <tspan x="38">T</tspan>
-    <tspan x="48">O</tspan>
-    <tspan x="60">OLB</tspan>
-    <tspan x="90">O</tspan>
-    <tspan x="102">X</tspan>
+  <!-- Text: FreeToolBox -->
+  <text x="40" y="32" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="20" font-weight="700" letter-spacing="-0.5" fill="#1F2937">
+    FreeToolBox
   </text>
   
-  <!-- Stencil cut-outs for E (three horizontal bars) -->
-  <line x1="28" y1="20" x2="35" y2="20" stroke="#9333EA" stroke-width="3" stroke-linecap="round"/>
-  <line x1="28" y1="28" x2="35" y2="28" stroke="#9333EA" stroke-width="3" stroke-linecap="round"/>
-  <line x1="28" y1="36" x2="35" y2="36" stroke="#9333EA" stroke-width="3" stroke-linecap="round"/>
-  
-  <!-- Stencil cut-outs for first O (horizontal gaps) -->
-  <rect x="48" y="18" width="12" height="2" fill="#9333EA"/>
-  <rect x="48" y="28" width="12" height="2" fill="#9333EA"/>
-  
-  <!-- Stencil cut-out for B (horizontal gap in middle) -->
-  <rect x="78" y="22" width="8" height="2" fill="#9333EA"/>
-  
-  <!-- Stencil cut-outs for second O (horizontal gaps) -->
-  <rect x="90" y="18" width="12" height="2" fill="#9333EA"/>
-  <rect x="90" y="28" width="12" height="2" fill="#9333EA"/>
+  <!-- Professional tagline (subtle) -->
+  <text x="40" y="42" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="9" font-weight="500" letter-spacing="0.5" fill="#6B7280" opacity="0.8">
+    PROFESSIONAL TOOLS
+  </text>
 </svg>

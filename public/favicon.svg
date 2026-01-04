@@ -1,26 +1,24 @@
 <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Purple dot icon (simplified for small size) -->
+  <defs>
+    <linearGradient id="faviconGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366F1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8B5CF6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Rounded square background -->
+  <rect x="0" y="0" width="32" height="32" rx="6" fill="url(#faviconGradient)"/>
+  
+  <!-- Simplified toolbox icon -->
   <g transform="translate(16, 16)">
-    <!-- Outer dots -->
-    <circle cx="-4" cy="-4" r="1" fill="#9333EA"/>
-    <circle cx="0" cy="-4" r="1" fill="#9333EA"/>
-    <circle cx="4" cy="-4" r="1" fill="#9333EA"/>
-    <circle cx="-4" cy="0" r="1" fill="#9333EA"/>
-    <circle cx="4" cy="0" r="1" fill="#9333EA"/>
-    <circle cx="-4" cy="4" r="1" fill="#9333EA"/>
-    <circle cx="0" cy="4" r="1" fill="#9333EA"/>
-    <circle cx="4" cy="4" r="1" fill="#9333EA"/>
-    
-    <!-- Middle dots -->
-    <circle cx="-2.5" cy="-2.5" r="1.2" fill="#9333EA"/>
-    <circle cx="2.5" cy="-2.5" r="1.2" fill="#9333EA"/>
-    <circle cx="-2.5" cy="2.5" r="1.2" fill="#9333EA"/>
-    <circle cx="2.5" cy="2.5" r="1.2" fill="#9333EA"/>
-    
-    <!-- Central 2x2 large dots -->
-    <circle cx="-1.2" cy="-1.2" r="1.5" fill="#9333EA"/>
-    <circle cx="1.2" cy="-1.2" r="1.5" fill="#9333EA"/>
-    <circle cx="-1.2" cy="1.2" r="1.5" fill="#9333EA"/>
-    <circle cx="1.2" cy="1.2" r="1.5" fill="#9333EA"/>
+    <!-- Base -->
+    <rect x="-6" y="-2" width="12" height="8" rx="1.5" fill="#FFFFFF" opacity="0.95"/>
+    <!-- Lid -->
+    <rect x="-5" y="-5" width="10" height="4" rx="1" fill="#FFFFFF" opacity="0.95"/>
+    <!-- Handle -->
+    <rect x="-3" y="-7" width="6" height="2" rx="1" fill="#FFFFFF" opacity="0.95"/>
+    <!-- Tools -->
+    <circle cx="-2" cy="2" r="0.8" fill="url(#faviconGradient)"/>
+    <circle cx="2" cy="2" r="0.8" fill="url(#faviconGradient)"/>
   </g>
 </svg>

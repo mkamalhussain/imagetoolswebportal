@@ -163,22 +163,22 @@ export default function Layout({ children }: LayoutProps) {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-950 text-gray-800 dark:text-gray-200 font-sans">
       {/* Header - Visible on all pages */}
-      <header className="bg-white dark:bg-gray-900 shadow-lg border-b border-gray-200 dark:border-gray-800 sticky top-0 z-50 backdrop-blur-sm">
-        <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+      <header className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-md shadow-sm border-b border-gray-200/50 dark:border-gray-800/50 sticky top-0 z-50">
+        <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16 md:h-18">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-3 text-xl font-bold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-200 hover:scale-105">
+            <Link href="/" className="flex items-center gap-2.5 group">
               <img
-                src="/logo.png"
+                src="/logo.svg"
                 alt="FreeToolBox - Professional Online Tools"
-                className="h-12 md:h-14 w-auto"
+                className="h-10 md:h-12 w-auto transition-opacity group-hover:opacity-80"
               />
             </Link>
 
             {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center space-x-1">
               {/* Home Link */}
-              <Link href="/" className="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-all duration-200">
+              <Link href="/" className="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all duration-200">
                 🏠 Home
               </Link>
 
@@ -190,7 +190,7 @@ export default function Layout({ children }: LayoutProps) {
                   onMouseEnter={() => setActiveDropdown(item.name)}
                   onMouseLeave={() => setActiveDropdown(null)}
                 >
-                  <button className="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-all duration-200 flex items-center gap-1">
+                  <button className="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all duration-200 flex items-center gap-1">
                     {item.name}
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -210,7 +210,7 @@ export default function Layout({ children }: LayoutProps) {
                           <Link
                             key={tool.href}
                             href={tool.href}
-                            className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors"
+                            className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                           >
                             <span className="text-base">{tool.icon}</span>
                             <span>{tool.name}</span>
@@ -227,7 +227,7 @@ export default function Layout({ children }: LayoutProps) {
                           <Link
                             key={tool.href}
                             href={tool.href}
-                            className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors"
+                            className="flex items-center gap-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
                           >
                             <span className="text-base">{tool.icon}</span>
                             <span>{tool.name}</span>
@@ -240,7 +240,7 @@ export default function Layout({ children }: LayoutProps) {
               ))}
 
               {/* How To Link */}
-              <Link href="/how-to" className="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-all duration-200">
+              <Link href="/how-to" className="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all duration-200">
                 📚 How To
               </Link>
             </nav>
@@ -264,11 +264,6 @@ export default function Layout({ children }: LayoutProps) {
                   }}
                   className="w-48 pl-3 pr-10 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
-                <button className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </button>
 
                 {/* Search Results Dropdown */}
                 {searchQuery.trim() && searchResults.length > 0 && (
@@ -341,7 +336,7 @@ export default function Layout({ children }: LayoutProps) {
                   // Force a re-render by dispatching a custom event
                   window.dispatchEvent(new Event('themechange'));
                 }}
-                className="p-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                className="p-2.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
                 title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
                 aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
               >
@@ -373,7 +368,7 @@ export default function Layout({ children }: LayoutProps) {
                     });
                   }
                 }}
-                className="hidden md:flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-md transition-colors"
+                className="hidden md:flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all duration-200"
                 title="Share FreeToolBox.app"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -405,9 +400,9 @@ export default function Layout({ children }: LayoutProps) {
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <img
-                  src="/logo.png"
+                  src="/logo.svg"
                   alt="FreeToolBox.app"
-                  className="h-6 w-auto"
+                  className="h-8 w-auto"
                 />
               </div>
               <p className="text-sm text-gray-600 dark:text-gray-400">
