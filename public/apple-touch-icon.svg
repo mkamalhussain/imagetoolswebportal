@@ -1,50 +1,31 @@
 <svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <style>
-      .stencil-text {
-        font-family: 'Arial Black', 'Helvetica Neue', Arial, sans-serif;
-        font-weight: 900;
-        letter-spacing: 2px;
-      }
-    </style>
+    <linearGradient id="appleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2563EB;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#3B82F6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#60A5FA;stop-opacity:1" />
+    </linearGradient>
   </defs>
   
-  <!-- Background circle (iOS requirement) -->
-  <circle cx="90" cy="90" r="90" fill="#9333EA" opacity="0.1"/>
+  <!-- Rounded square background (iOS requirement) -->
+  <rect x="0" y="0" width="180" height="180" rx="40" fill="url(#appleGradient)"/>
   
-  <!-- Purple dot icon (centered, large) -->
-  <g transform="translate(90, 80)">
-    <!-- Outer ring -->
-    <circle cx="-15" cy="-15" r="3" fill="#9333EA"/>
-    <circle cx="0" cy="-15" r="3" fill="#9333EA"/>
-    <circle cx="15" cy="-15" r="3" fill="#9333EA"/>
-    <circle cx="-15" cy="0" r="3" fill="#9333EA"/>
-    <circle cx="15" cy="0" r="3" fill="#9333EA"/>
-    <circle cx="-15" cy="15" r="3" fill="#9333EA"/>
-    <circle cx="0" cy="15" r="3" fill="#9333EA"/>
-    <circle cx="15" cy="15" r="3" fill="#9333EA"/>
-    
-    <!-- Middle ring -->
-    <circle cx="-9" cy="-9" r="4" fill="#9333EA"/>
-    <circle cx="9" cy="-9" r="4" fill="#9333EA"/>
-    <circle cx="-9" cy="9" r="4" fill="#9333EA"/>
-    <circle cx="9" cy="9" r="4" fill="#9333EA"/>
-    
-    <!-- Central 2x2 -->
-    <circle cx="-4.5" cy="-4.5" r="5" fill="#9333EA"/>
-    <circle cx="4.5" cy="-4.5" r="5" fill="#9333EA"/>
-    <circle cx="-4.5" cy="4.5" r="5" fill="#9333EA"/>
-    <circle cx="4.5" cy="4.5" r="5" fill="#9333EA"/>
+  <!-- Large geometric tool icon -->
+  <g transform="translate(90, 70)">
+    <!-- Main shape -->
+    <path d="M35 0 L70 20 L60 50 L-60 50 L-70 20 L-35 0 Z" fill="#FFFFFF" opacity="0.95"/>
+    <!-- Inner accent -->
+    <path d="M20 8 L50 18 L45 38 L-45 38 L-50 18 L-20 8 Z" fill="url(#appleGradient)" opacity="0.2"/>
+    <!-- Center elements -->
+    <circle cx="0" cy="25" r="6" fill="url(#appleGradient)"/>
+    <rect x="-8" y="32" width="16" height="4" rx="2" fill="#FFFFFF" opacity="0.9"/>
+    <!-- Sparkles -->
+    <circle cx="50" cy="10" r="3" fill="#FCD34D"/>
+    <circle cx="-50" cy="40" r="2.5" fill="#FCD34D"/>
   </g>
   
-  <!-- FREETOOLBOX text (below icon) -->
-  <text x="90" y="140" class="stencil-text" font-size="14" fill="#9333EA" text-anchor="middle">
-    <tspan>FR</tspan>
-    <tspan fill="none" stroke="#9333EA" stroke-width="1.5">E</tspan>
-    <tspan fill="#9333EA">T</tspan>
-    <tspan fill="none" stroke="#9333EA" stroke-width="1.5">O</tspan>
-    <tspan fill="#9333EA">OLB</tspan>
-    <tspan fill="none" stroke="#9333EA" stroke-width="1.5">O</tspan>
-    <tspan fill="#9333EA">X</tspan>
+  <!-- Text: FT (abbreviated) -->
+  <text x="90" y="150" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="800" fill="#FFFFFF" text-anchor="middle" opacity="0.95" letter-spacing="2">
+    FT
   </text>
 </svg>
