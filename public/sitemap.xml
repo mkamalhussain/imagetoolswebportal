@@ -412,14 +412,7 @@
   </url>
 
   <url>
-    <loc>https://freetoolbox.app/pdf/pdf-password-remover</loc>
-    <lastmod>2026-01-14</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-
-  <url>
-    <loc>https://freetoolbox.app/pdf/pdf-password-protector</loc>
+    <loc>https://freetoolbox.app/pdf/pdf-password</loc>
     <lastmod>2026-01-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
