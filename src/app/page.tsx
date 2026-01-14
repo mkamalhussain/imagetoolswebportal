@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import HomeClient from './HomeClient';
 
 export const metadata: Metadata = {
-  title: 'FreeToolBox.app - Free Online Tools - Image, Audio, Video & PDF Processing | No Signup Required',
+  title: 'Free Online Tools',
   description: 'Access 50+ professional free online tools for image editing, audio processing, video editing, and PDF manipulation. No signup required. Resize images, create memes, edit audio, trim videos, merge PDFs, and more.',
   keywords: [
     // Core keywords

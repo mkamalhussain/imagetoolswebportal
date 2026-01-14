@@ -11,7 +11,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!module) {
     return {
-      title: "Tool Not Found | FreeToolBox.app",
+      title: "Tool Not Found",
       description: "The requested tool could not be found.",
     };
   }
@@ -85,7 +85,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const additionalKeywords = toolKeywords[slug] || [];
 
   return {
-    title: `${module.title} - Free Online Tool | FreeToolBox.app`,
+    title: module.title,
     description,
     keywords: [
       ...additionalKeywords,

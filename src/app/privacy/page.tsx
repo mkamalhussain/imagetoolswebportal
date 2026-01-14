@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy - How We Protect Your Data | Free Tools',
+  title: 'Privacy Policy',
   description: 'Learn about our privacy practices, data collection policies, and how we protect your information. Free Tools is committed to transparency and GDPR compliance.',
   keywords: [
     'privacy policy',

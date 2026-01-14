@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import AudioPageClient from './AudioPageClient';
 
 export const metadata: Metadata = {
-  title: 'Audio Tools - Free Online Audio Processing & Editing | FreeToolBox.app',
+  title: 'Audio Tools',
   description: 'Professional audio tools for processing, editing, and enhancing audio files. Noise removal, speed/pitch adjustment, multi-track mixing, format conversion, and more. Free online audio tools with no signup required.',
   keywords: [
     // Core audio keywords

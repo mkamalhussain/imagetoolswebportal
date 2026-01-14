@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import PDFPageClient from './PDFPageClient';
 
 export const metadata: Metadata = {
-  title: 'PDF Tools - Free Online PDF Processing & Editing | FreeToolBox.app',
+  title: 'PDF Tools',
   description: 'Professional PDF tools for processing, editing, and manipulating PDF files. Compression, merging, splitting, encryption, form filling, text extraction, and more. Free online PDF tools with no signup required.',
   keywords: [
     // Core PDF keywords

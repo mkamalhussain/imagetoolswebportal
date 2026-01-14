@@ -19,8 +19,8 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL('https://freetoolbox.app'),
   title: {
-    default: "FreeToolBox.app - Professional Online Image, Audio, Video & PDF Tools",
-    template: "%s | FreeToolBox.app"
+    default: "FreeToolBox.app | Free Online Tools",
+    template: "%s | FreeToolBox"
   },
   description: "Free online tools for image editing, audio processing, video editing, and PDF manipulation. Professional quality tools with no signup required. Resize images, create memes, edit audio, trim videos, merge PDFs, and more.",
   keywords: [

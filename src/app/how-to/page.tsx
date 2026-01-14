@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import HowToClient from './HowToClient';
 
 export const metadata: Metadata = {
-  title: 'How To Guides - Step-by-Step Tutorials for All Tools | Free Tools',
+  title: 'How To Guides',
   description: 'Complete step-by-step guides and tutorials for using our free online tools. Learn how to edit images, process audio, edit videos, and manipulate PDFs with detailed instructions and visual examples.',
   keywords: [
     'how to guides',

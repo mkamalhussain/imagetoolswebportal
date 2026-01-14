@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import ContactPageClient from './ContactPageClient';
 
 export const metadata: Metadata = {
-  title: 'Contact Us - Get in Touch with FreeToolBox.app | FreeToolBox.app',
+  title: 'Contact Us',
   description: 'Have questions, feedback, or feature requests? Contact the FreeToolBox.app team. We\'re here to help you get the most out of our online tools.',
   keywords: [
     'contact free tools',

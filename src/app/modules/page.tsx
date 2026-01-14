@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import ModulesClient from './ModulesClient';
 
 export const metadata: Metadata = {
-  title: 'All Tools - Complete Collection of Free Online Tools | Free Tools',
+  title: 'All Tools',
   description: 'Browse our complete collection of 50+ free online tools for image editing, audio processing, video editing, and PDF manipulation. No signup required, privacy-first approach.',
   keywords: [
     'all online tools',

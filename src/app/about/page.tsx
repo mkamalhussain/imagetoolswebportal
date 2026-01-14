@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'About Us - Free Tools for Creative Work | Free Tools',
+  title: 'About FreeToolBox',
   description: 'Learn about Free Tools - our mission to democratize access to professional digital tools. Discover our commitment to privacy, innovation, and empowering creators worldwide.',
   keywords: [
     'about free tools',

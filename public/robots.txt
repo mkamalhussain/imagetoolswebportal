@@ -2,7 +2,7 @@ User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://freetools.com/sitemap.xml
+Sitemap: https://freetoolbox.app/sitemap.xml
 
 # Disallow admin areas (if any)
 Disallow: /admin/

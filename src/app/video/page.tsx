@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import VideoPageClient from './VideoPageClient';
 
 export const metadata: Metadata = {
-  title: 'Video Tools - Free Online Video Processing & Editing | FreeToolBox.app',
+  title: 'Video Tools',
   description: 'Professional video tools for processing, editing, and enhancing video files. Trimming, format conversion, GIF creation, subtitle burning, speed adjustment, and more. Free online video tools with no signup required.',
   keywords: [
     // Core video keywords
