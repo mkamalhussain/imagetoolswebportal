@@ -10,6 +10,11 @@ Disallow: /api/
 
 # Allow all major search engine bots
 User-agent: Googlebot
+Allow: /ads.txt
+Allow: /
+
+User-agent: AdsBot-Google
+Allow: /ads.txt
 Allow: /
 
 User-agent: Bingbot
