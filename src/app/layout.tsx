@@ -261,7 +261,7 @@ export const metadata: Metadata = {
     apple: "/apple-touch-icon.svg",
   },
   other: {
-    "google-adsense-account": "ca-pub-xxxxxxxxxxxxxxxx",
+    "google-adsense-account": "ca-pub-2020371901709303",
   },
 };
 
