@@ -316,6 +316,11 @@ export default function RootLayout({
           description: "Trim videos with frame-accurate precision",
           applicationCategory: "MultimediaApplication",
           operatingSystem: "Web Browser",
+          offers: {
+            "@type": "Offer",
+            price: "0",
+            priceCurrency: "USD",
+          },
         },
         {
           "@type": "SoftwareApplication",
@@ -323,6 +328,11 @@ export default function RootLayout({
           description: "Remove background noise from audio recordings",
           applicationCategory: "MultimediaApplication",
           operatingSystem: "Web Browser",
+          offers: {
+            "@type": "Offer",
+            price: "0",
+            priceCurrency: "USD",
+          },
         },
       ],
     },
