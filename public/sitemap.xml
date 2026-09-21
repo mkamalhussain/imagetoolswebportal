@@ -360,6 +360,13 @@
     <priority>0.6</priority>
   </url>
 
+  <url>
+    <loc>https://freetoolbox.app/audio/waveform-generator</loc>
+    <lastmod>2026-09-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
   <!-- Video Tools -->
   <url>
     <loc>https://freetoolbox.app/video/video-trimmer</loc>
@@ -377,6 +384,34 @@
 
   <url>
     <loc>https://freetoolbox.app/video/gif-maker</loc>
+    <lastmod>2026-09-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <url>
+    <loc>https://freetoolbox.app/video/speed-changer</loc>
+    <lastmod>2026-09-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <url>
+    <loc>https://freetoolbox.app/video/subtitle-burner</loc>
+    <lastmod>2026-09-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <url>
+    <loc>https://freetoolbox.app/video/frame-grabber</loc>
+    <lastmod>2026-09-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <url>
+    <loc>https://freetoolbox.app/video/audio-stripper</loc>
     <lastmod>2026-09-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>

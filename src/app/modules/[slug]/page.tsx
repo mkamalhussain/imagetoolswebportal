@@ -116,6 +116,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+export function generateStaticParams() {
+  return modules.map((m) => ({ slug: m.slug }));
+}
+
 export default async function ModulePage({ params }: Props) {
   const { slug } = await params;
   const mod = modules.find((m) => m.slug === slug);
