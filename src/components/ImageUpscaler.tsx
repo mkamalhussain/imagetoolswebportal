@@ -32,7 +32,8 @@ export default function ImageUpscaler() {
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const originalImgRef = useRef<HTMLImageElement | null>(null);
-  const originalCanvasRef = useRef<HTMLCanvasElement | null>(null);
+    const originalCanvasRef = useRef<HTMLCanvasElement | null>(null);
+    const [originalReady, setOriginalReady] = useState(false);
 
   useEffect(() => {
     return () => { if (sourceUrl) URL.revokeObjectURL(sourceUrl); };
@@ -252,8 +253,9 @@ export default function ImageUpscaler() {
     const url = URL.createObjectURL(file);
     const img = new Image();
     img.onload = () => {
-      originalImgRef.current = img;
-      setSourceUrl(url);
+          originalImgRef.current = img;
+          setOriginalReady(true);
+          setSourceUrl(url);
       setFileName(file.name);
       
       // Store original in canvas for comparison
@@ -517,8 +519,8 @@ export default function ImageUpscaler() {
                         transition: isDraggingSlider ? 'none' : 'clip-path 0.1s'
                       }}
                     />
-                    {originalImgRef.current && (
-                      <img 
+                    {originalReady && (
+                                          <img
                         src={sourceUrl} 
                         className="absolute max-w-full max-h-full shadow-2xl"
                         style={{ 

@@ -31,7 +31,8 @@ export default function WatermarkRemover() {
   const cloneSourceRef = useRef<{ x: number; y: number } | null>(null);
   const cloneOffsetRef = useRef<{ x: number; y: number } | null>(null);
   const lastPosRef = useRef<{ x: number; y: number } | null>(null);
-  const brushPreviewRef = useRef<{ x: number; y: number } | null>(null);
+    const [brushPreview, setBrushPreview] = useState<{ x: number; y: number } | null>(null);
+    const [isDrawingPreview, setIsDrawingPreview] = useState(false);
 
   useEffect(() => {
     return () => { if (sourceUrl) URL.revokeObjectURL(sourceUrl); };
@@ -417,14 +418,15 @@ export default function WatermarkRemover() {
     }
     
     isDrawingRef.current = true;
-    lastPosRef.current = pos;
+        setIsDrawingPreview(true);
+        lastPosRef.current = pos;
     applyAtPos(pos.x, pos.y);
   };
 
   const handleMove = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
     const pos = getMousePos(e);
-    brushPreviewRef.current = pos;
+        setBrushPreview(pos);
     
     if (!isDrawingRef.current) return;
     applyAtPos(pos.x, pos.y);
@@ -433,8 +435,9 @@ export default function WatermarkRemover() {
 
   const handleEnd = () => {
     if (isDrawingRef.current) saveHistory();
-    isDrawingRef.current = false;
-    lastPosRef.current = null;
+        isDrawingRef.current = false;
+        setIsDrawingPreview(false);
+        lastPosRef.current = null;
   };
 
   const handleFile = useCallback((file: File) => {
@@ -764,18 +767,18 @@ export default function WatermarkRemover() {
                       alt="Original"
                     />
                   )}
-                  {brushPreviewRef.current && sourceUrl && (
-                    <div 
-                      className="absolute pointer-events-none border-2 border-indigo-500 rounded-full"
-                      style={{
-                        left: `${brushPreviewRef.current.x - brushSize}px`,
-                        top: `${brushPreviewRef.current.y - brushSize}px`,
-                        width: `${brushSize * 2}px`,
-                        height: `${brushSize * 2}px`,
-                        opacity: isDrawingRef.current ? 0.8 : 0.3
-                      }}
-                    />
-                  )}
+                  {brushPreview && sourceUrl && (
+                                      <div 
+                                        className="absolute pointer-events-none border-2 border-indigo-500 rounded-full"
+                                        style={{
+                                          left: `${brushPreview.x - brushSize}px`,
+                                          top: `${brushPreview.y - brushSize}px`,
+                                          width: `${brushSize * 2}px`,
+                                          height: `${brushSize * 2}px`,
+                                          opacity: isDrawingPreview ? 0.8 : 0.3
+                                        }}
+                                      />
+                                    )}
                 </div>
                 {!sourceUrl && (
                   <div className="flex flex-col items-center text-gray-400 dark:text-gray-600">

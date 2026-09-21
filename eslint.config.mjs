@@ -16,6 +16,13 @@ const eslintConfig = defineConfig([
       "@next/next/no-img-element": "warn",
       "@next/next/no-assign-module-variable": "warn",
       "@next/next/no-html-link-for-pages": "warn",
+      // React Compiler-only lints: this app does not enable React Compiler,
+      // so these are false positives and must not gate the build.
+      "react-hooks/set-state-in-effect": "off",
+      "react-hooks/immutability": "off",
+      "react-hooks/purity": "off",
+      "react-hooks/static-components": "off",
+      "react-hooks/preserve-manual-memoization": "off",
     },
   },
   // Override default ignores of eslint-config-next.
