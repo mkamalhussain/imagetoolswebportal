@@ -31,7 +31,9 @@ const eslintConfig = defineConfig([
     ".next/**",
     "out/**",
     "build/**",
-    "next-env.d.ts",
+        "next-env.d.ts",
+        // Static assets & vendored third-party bundles (ffmpeg-core.js, pdf.worker.min.js)
+        "public/**",
   ]),
 ]);
 
