@@ -248,9 +248,7 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://freetoolbox.app",
   },
-  verification: {
-    google: "your-google-site-verification-code",
-  },
+  verification: {},
   manifest: "/manifest.json",
   icons: {
     icon: [
@@ -277,7 +275,7 @@ export default function RootLayout({
     description:
       "Free online tools for image editing, audio processing, video editing, and PDF manipulation",
     url: "https://freetoolbox.app",
-    sameAs: ["https://twitter.com/FreeToolBoxApp", "https://github.com/freetools"],
+    sameAs: ["https://twitter.com/FreeToolBoxApp"],
     publisher: {
       "@type": "Organization",
       name: "Free Tools",
