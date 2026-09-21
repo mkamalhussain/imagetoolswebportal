@@ -120,7 +120,7 @@ export default function ColorPaletteExtractor() {
     }
 
     // K-Means ++ Initialization
-    let centroids: Swatch[] = [];
+    const centroids: Swatch[] = [];
     if (samples.length > 0) {
       centroids.push({ ...samples[Math.floor(Math.random() * samples.length)], population: 0 });
       while (centroids.length < k) {

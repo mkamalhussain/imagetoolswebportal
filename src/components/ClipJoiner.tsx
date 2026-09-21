@@ -314,7 +314,7 @@ export default function ClipJoiner() {
         );
 
         // Set up progress callback for this operation
-        let operationProgress = 0;
+        const operationProgress = 0;
         const progressCallback = ({ progress }: { progress: number }) => {
           const baseProgress = 20 + (i / clips.length) * 30;
           const operationProgress = Math.min(progress * 30 / clips.length, 30 / clips.length);

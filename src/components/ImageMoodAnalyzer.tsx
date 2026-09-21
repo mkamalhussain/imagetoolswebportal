@@ -125,7 +125,7 @@ export default function ImageMoodAnalyzer() {
       let totalBrightness = 0;
       let totalSaturation = 0;
       let totalWarmth = 0;
-      let pixelCount = data.length / 4;
+      const pixelCount = data.length / 4;
 
       // Sample pixels (every 10th pixel for performance)
       for (let i = 0; i < data.length; i += 40) {

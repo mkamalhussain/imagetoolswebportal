@@ -81,7 +81,7 @@ export default function WatermarkRemover() {
     // Sync size only when clone tool is active
     syncCanvasSize();
 
-    let startTime = Date.now();
+    const startTime = Date.now();
 
     const draw = () => {
       // Clear overlay

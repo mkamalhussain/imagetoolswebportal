@@ -164,9 +164,9 @@ export default function ImageToCartoon() {
       const isEdge = e > edgeThreshold;
       
       // Fast Posterize
-      let r = Math.round(data[i] / step) * step;
-      let g = Math.round(data[i+1] / step) * step;
-      let b = Math.round(data[i+2] / step) * step;
+      const r = Math.round(data[i] / step) * step;
+      const g = Math.round(data[i+1] / step) * step;
+      const b = Math.round(data[i+2] / step) * step;
 
       if (style === "sketch") {
         const val = isEdge ? clamp(255 - (e * inkStrength)) : 255;

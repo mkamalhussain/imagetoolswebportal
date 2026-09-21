@@ -141,7 +141,7 @@ export default function ImageHiddenMessage() {
     const data = imgData.data;
 
     const encoder = new TextEncoder();
-    let bytes = encoder.encode(message);
+    const bytes = encoder.encode(message);
     
     // Header byte: [0: randomSpread, 1: compression, 2-7: reserved]
     let flags = 0;
@@ -191,7 +191,7 @@ export default function ImageHiddenMessage() {
     let currentSlot = 0;
 
     // 1. Write 32-bit length
-    let len = keyed.length >>> 0;
+    const len = keyed.length >>> 0;
     for (let i = 0; i < 32; i++) {
       writeBitToSlot((len >> (31 - i)) & 1, slotOrder[currentSlot++]);
     }
