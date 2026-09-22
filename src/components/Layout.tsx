@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from 'react';
-import Link from 'next/link';
+import React, { useState, useMemo, useEffect } from "react";
+import Link from "next/link";
+import CookieBanner from "./CookieBanner";
 // import ThemeToggle from '@/components/ThemeToggle'; // Assuming ThemeToggle exists
 import { modules } from '@/data/modules';
 import { audioModules } from '@/data/audioModules';
@@ -454,6 +455,7 @@ export default function Layout({ children }: LayoutProps) {
           </div>
         </div>
       </footer>
+      <CookieBanner />
     </div>
   );
 }
