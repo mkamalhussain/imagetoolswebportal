@@ -78,11 +78,11 @@ export default function HomeClient() {
         </div>
       </div>
 
-      {/* Google AdSense Top Banner */}
+      {/* Top Banner Slot */}
       <div className="w-full max-w-4xl mb-8 relative z-10">
-        <div className="bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center">
-          <p className="text-gray-500 dark:text-gray-400">📢 Google AdSense Placeholder</p>
-          <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">728x90 Banner Ad</p>
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 rounded-xl p-5 text-center border border-blue-100 dark:border-gray-700 shadow-sm">
+          <p className="text-sm text-blue-600 dark:text-blue-300 font-medium">Advertisement — 728x90 Slot</p>
+          <p className="text-xs text-blue-400 dark:text-blue-500 mt-1">Content served via Google AdSense (ca-pub-2020371901709303)</p>
         </div>
       </div>
 
@@ -118,11 +118,11 @@ export default function HomeClient() {
         ))}
       </div>
 
-      {/* Google AdSense Bottom Banner */}
+      {/* Bottom Banner Slot */}
       <div className="w-full max-w-4xl mt-16 relative z-10">
-        <div className="bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center">
-          <p className="text-gray-500 dark:text-gray-400">📢 Google AdSense Placeholder</p>
-          <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">728x90 Banner Ad</p>
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 rounded-xl p-5 text-center border border-blue-100 dark:border-gray-700 shadow-sm">
+          <p className="text-sm text-blue-600 dark:text-blue-300 font-medium">Advertisement — 728x90 Slot</p>
+          <p className="text-xs text-blue-400 dark:text-blue-500 mt-1">Content served via Google AdSense (ca-pub-2020371901709303)</p>
         </div>
       </div>
     </div>
