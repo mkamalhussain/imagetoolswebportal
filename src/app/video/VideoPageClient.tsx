@@ -29,8 +29,8 @@ export default function VideoPageClient() {
       {/* Google AdSense Top Banner */}
       <div className="w-full max-w-4xl mb-8 relative z-10">
         <div className="bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center">
-          <p className="text-gray-500 dark:text-gray-400">📢 Google AdSense Placeholder</p>
-          <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">728x90 Banner Ad</p>
+          <p className="text-gray-500 dark:text-gray-400">Advertisement</p>
+          <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">728x90 Slot</p>
         </div>
       </div>
 
@@ -69,8 +69,8 @@ export default function VideoPageClient() {
       {/* Google AdSense Bottom Banner */}
       <div className="w-full max-w-4xl mt-16 relative z-10">
         <div className="bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center">
-          <p className="text-gray-500 dark:text-gray-400">📢 Google AdSense Placeholder</p>
-          <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">728x90 Banner Ad</p>
+          <p className="text-gray-500 dark:text-gray-400">Advertisement</p>
+          <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">728x90 Slot</p>
         </div>
       </div>
     </div>

@@ -30,8 +30,8 @@ export default function HowToClient() {
         {/* Google AdSense Top Banner */}
         <div className="w-full max-w-4xl mb-16">
           <div className="bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center">
-            <p className="text-gray-500 dark:text-gray-400">📢 Google AdSense Placeholder</p>
-            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">728x90 Banner Ad</p>
+            <p className="text-gray-500 dark:text-gray-400">Advertisement</p>
+            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">728x90 Slot</p>
           </div>
         </div>
 
@@ -85,8 +85,8 @@ export default function HowToClient() {
         {/* Google AdSense Middle Banner */}
         <div className="w-full max-w-4xl mx-auto my-16">
           <div className="bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center">
-            <p className="text-gray-500 dark:text-gray-400">📢 Google AdSense Placeholder</p>
-            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">728x90 Banner Ad</p>
+            <p className="text-gray-500 dark:text-gray-400">Advertisement</p>
+            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">728x90 Slot</p>
           </div>
         </div>
 
