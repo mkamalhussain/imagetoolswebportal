@@ -2684,6 +2684,22 @@ export default function ToolGuideClient({ toolSlug }: ToolGuideClientProps) {
           </div>
         )}
 
+        {/* FAQ Schema for AI search citations */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "FAQPage",
+              mainEntity: guide ? guide.steps.map((s) => ({
+                "@type": "Question",
+                name: s.title || "How to use this tool?",
+                acceptedAnswer: { "@type": "Answer", text: s.description || "See the guide steps for full instructions." },
+              })) : []
+            }),
+          }}
+        />
+
         {/* Google AdSense Bottom Banner */}
         <div className="w-full my-12">
           <div className="bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center">
