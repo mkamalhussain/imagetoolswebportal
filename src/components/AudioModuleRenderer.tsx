@@ -133,13 +133,6 @@ export default function AudioModuleRenderer({ slug }: AudioModuleRendererProps) 
           </div>
         </div>
 
-        {/* Google AdSense Banner */}
-        <div className="w-full mb-8">
-          <div className="bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center">
-            <p className="text-gray-500 dark:text-gray-400">📢 Google AdSense Placeholder</p>
-            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">728x90 Banner Ad</p>
-          </div>
-        </div>
 
         <Component />
       </div>

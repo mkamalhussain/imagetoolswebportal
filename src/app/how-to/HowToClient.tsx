@@ -27,13 +27,6 @@ export default function HowToClient() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        {/* Google AdSense Top Banner */}
-        <div className="w-full max-w-4xl mb-16">
-          <div className="bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center">
-            <p className="text-gray-500 dark:text-gray-400">Advertisement</p>
-            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">728x90 Slot</p>
-          </div>
-        </div>
 
         {/* Header */}
         <div className="text-center mb-16">
@@ -82,13 +75,6 @@ export default function HowToClient() {
           </div>
         ))}
 
-        {/* Google AdSense Middle Banner */}
-        <div className="w-full max-w-4xl mx-auto my-16">
-          <div className="bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center">
-            <p className="text-gray-500 dark:text-gray-400">Advertisement</p>
-            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">728x90 Slot</p>
-          </div>
-        </div>
 
         {/* Call to Action */}
         <div className="text-center bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white">

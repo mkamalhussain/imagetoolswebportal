@@ -1,5 +1,7 @@
 import { PDFModuleRenderer } from "../PDFPageClient";
 import { pdfModules } from "@/data/pdfModules";
+import { getToolContent } from "@/data/toolContent";
+import ToolContent from "@/components/ToolContent";
 import type { Metadata } from "next";
 
 interface PageProps {
@@ -84,6 +86,7 @@ export default async function PDFToolPage({ params }: PageProps) {
   }
 
   // Schema markup for SoftwareApplication
+  const content = getToolContent(slug);
   const schemaData = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
@@ -102,7 +105,7 @@ export default async function PDFToolPage({ params }: PageProps) {
       "name": "FreeToolBox.app",
       "url": "https://freetoolbox.app"
     },
-    "featureList": [
+    "featureList": content?.features ?? [
       "Free PDF processing",
       "No signup required",
       "Browser-based editing",
@@ -118,8 +121,14 @@ export default async function PDFToolPage({ params }: PageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }}
       />
-      <h1 className="sr-only">{module.title}</h1>
       <PDFModuleRenderer slug={slug} />
+      {content && (
+        <ToolContent
+          content={content}
+          toolTitle={module.title}
+          guidePath={`/how-to/${slug}`}
+        />
+      )}
     </>
   );
 }

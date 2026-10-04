@@ -8,6 +8,7 @@ import { modules } from '../../../data/modules';
 import { audioModules } from '../../../data/audioModules';
 import { videoModules } from '../../../data/videoModules';
 import { pdfModules } from '../../../data/pdfModules';
+import { getToolPath } from '../../../data/toolPaths';
 
 // Sample guide data - in a real app, this would come from a database or CMS
 const toolGuides: Record<string, {
@@ -2526,13 +2527,6 @@ export default function ToolGuideClient({ toolSlug }: ToolGuideClientProps) {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Google AdSense Top Banner */}
-        <div className="w-full mb-8">
-          <div className="bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center">
-            <p className="text-gray-500 dark:text-gray-400">Advertisement</p>
-            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">728x90 Slot</p>
-          </div>
-        </div>
 
         {/* Breadcrumb */}
         <nav className="mb-8">
@@ -2560,6 +2554,12 @@ export default function ToolGuideClient({ toolSlug }: ToolGuideClientProps) {
               <p className="text-lg text-gray-600 dark:text-gray-400 mb-6">
                 {guide.description}
               </p>
+              <Link
+                href={getToolPath(toolSlug) ?? "/"}
+                className="inline-flex items-center px-5 py-2.5 mb-6 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
+              >
+                Launch {tool.title} →
+              </Link>
               <div className="flex flex-wrap gap-4 text-sm">
                 <span className={`px-3 py-1 rounded-full ${
                   guide.difficulty === 'Beginner' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' :
@@ -2700,13 +2700,6 @@ export default function ToolGuideClient({ toolSlug }: ToolGuideClientProps) {
           }}
         />
 
-        {/* Google AdSense Bottom Banner */}
-        <div className="w-full my-12">
-          <div className="bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center">
-            <p className="text-gray-500 dark:text-gray-400">Advertisement</p>
-            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">728x90 Slot</p>
-          </div>
-        </div>
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">

@@ -2139,20 +2139,6 @@ export default function PersonalityAnalyzer() {
             </div>
         )}
 
-        {/* Google Ads Pane */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 mt-10">
-          <div className="text-center">
-            <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Advertisement</p>
-            <div className="bg-gray-100 dark:bg-gray-900 rounded-xl p-12 border-2 border-dashed border-gray-300 dark:border-gray-700">
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Google Ads Space - 728 x 90
-              </p>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
-                This space is reserved for Google AdSense advertisements
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
 
       <canvas ref={canvasRef} className="hidden" />

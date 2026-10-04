@@ -31,11 +31,6 @@ export default function AboutPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
       <div className="max-w-4xl mx-auto px-4">
-        {/* Google AdSense Header */}
-        <div className="bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center mb-8">
-          <p className="text-gray-500 dark:text-gray-400">Advertisement</p>
-          <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">728x90 Slot</p>
-        </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-8 text-center">
@@ -195,13 +190,6 @@ export default function AboutPage() {
           </div>
         </div>
 
-        {/* Google AdSense Bottom Banner */}
-        <div className="w-full mt-12">
-          <div className="bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center">
-            <p className="text-gray-500 dark:text-gray-400">Advertisement</p>
-            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">728x90 Slot</p>
-          </div>
-        </div>
       </div>
     </div>
   );

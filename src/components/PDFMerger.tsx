@@ -168,11 +168,6 @@ export default function PDFMerger() {
         </p>
       </div>
 
-      {/* Google AdSense Placeholder */}
-      <div className="bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center mb-6">
-        <p className="text-gray-500 dark:text-gray-400">📢 Google AdSense Placeholder</p>
-        <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">728x90 Banner Ad</p>
-      </div>
 
       {/* File Upload */}
       <div>
@@ -309,11 +304,6 @@ export default function PDFMerger() {
         </div>
       )}
 
-      {/* Google AdSense Placeholder */}
-      <div className="bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center mt-8">
-        <p className="text-gray-500 dark:text-gray-400">📢 Google AdSense Placeholder</p>
-        <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">300x250 Rectangle Ad</p>
-      </div>
 
       {/* Instructions */}
       <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">

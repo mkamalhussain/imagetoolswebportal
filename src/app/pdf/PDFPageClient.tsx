@@ -19,14 +19,6 @@ interface PDFModuleRendererProps {
 }
 
 function PDFModuleRenderer({ slug }: PDFModuleRendererProps) {
-  // Google AdSense placeholder component
-  const AdPlaceholder = ({ size }: { size: string }) => (
-    <div className="bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center my-6">
-      <p className="text-gray-500 dark:text-gray-400">Advertisement</p>
-      <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">{size}</p>
-    </div>
-  );
-
   const renderModule = () => {
     switch (slug) {
       case "pdf-compressor":
@@ -51,16 +43,10 @@ function PDFModuleRenderer({ slug }: PDFModuleRendererProps) {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-950">
       <div className="container mx-auto px-4 py-8">
-        {/* Google AdSense Header */}
-        <AdPlaceholder size="728x90 Slot" />
-
         {/* PDF Tool Content */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg">
           {renderModule()}
         </div>
-
-        {/* Google AdSense Footer */}
-        <AdPlaceholder size="728x90 Slot" />
       </div>
     </div>
   );
@@ -88,13 +74,6 @@ export default function PDFPageClient() {
         Free Online PDF Tools
       </p>
 
-      {/* Google AdSense Top Banner */}
-      <div className="w-full max-w-4xl mb-8 relative z-10">
-        <div className="bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center">
-          <p className="text-gray-500 dark:text-gray-400">Advertisement</p>
-          <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">728x90 Slot</p>
-        </div>
-      </div>
 
       <div className="w-full max-w-2xl flex items-center mb-16 relative z-10">
         <input
@@ -128,13 +107,6 @@ export default function PDFPageClient() {
         ))}
       </div>
 
-      {/* Google AdSense Bottom Banner */}
-      <div className="w-full max-w-4xl mt-16 relative z-10">
-        <div className="bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 text-center">
-          <p className="text-gray-500 dark:text-gray-400">Advertisement</p>
-          <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">728x90 Slot</p>
-        </div>
-      </div>
     </div>
   );
 }

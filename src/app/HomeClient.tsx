@@ -78,14 +78,6 @@ export default function HomeClient() {
         </div>
       </div>
 
-      {/* Top Banner Slot */}
-      <div className="w-full max-w-4xl mb-8 relative z-10">
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 rounded-xl p-5 text-center border border-blue-100 dark:border-gray-700 shadow-sm">
-          <p className="text-sm text-blue-600 dark:text-blue-300 font-medium">Advertisement — 728x90 Slot</p>
-          <p className="text-xs text-blue-400 dark:text-blue-500 mt-1">Content served via Google AdSense (ca-pub-2020371901709303)</p>
-        </div>
-      </div>
-
       <div className="w-full max-w-2xl flex items-center mb-16 relative z-10">
         <input
           type="text"
@@ -118,13 +110,6 @@ export default function HomeClient() {
         ))}
       </div>
 
-      {/* Bottom Banner Slot */}
-      <div className="w-full max-w-4xl mt-16 relative z-10">
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 rounded-xl p-5 text-center border border-blue-100 dark:border-gray-700 shadow-sm">
-          <p className="text-sm text-blue-600 dark:text-blue-300 font-medium">Advertisement — 728x90 Slot</p>
-          <p className="text-xs text-blue-400 dark:text-blue-500 mt-1">Content served via Google AdSense (ca-pub-2020371901709303)</p>
-        </div>
-      </div>
     </div>
   );
 }

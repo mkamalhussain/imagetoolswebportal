@@ -1,6 +1,8 @@
 import Link from "next/link";
 import ClientModuleRenderer from "./ClientModuleRenderer";
 import { modules } from "@/data/modules";
+import { getToolContent } from "@/data/toolContent";
+import ToolContent from "@/components/ToolContent";
 import type { Metadata } from "next";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -135,6 +137,7 @@ export default async function ModulePage({ params }: Props) {
   }
 
   // Schema markup for SoftwareApplication
+  const content = getToolContent(slug);
   const schemaData = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
@@ -153,19 +156,13 @@ export default async function ModulePage({ params }: Props) {
       "name": "FreeToolBox.app",
       "url": "https://freetoolbox.app"
     },
-    "featureList": mod.title.toLowerCase().includes('image') ? [
+    "featureList": content?.features ?? [
       "Free to use",
       "No signup required",
       "Browser-based processing",
       "High-quality results",
       "Multiple format support"
-    ] : [
-      "Free online tool",
-      "No registration needed",
-      "Client-side processing",
-      "Professional quality",
-      "Web-based application"
-    ]
+    ],
   };
 
   return (
@@ -189,7 +186,13 @@ export default async function ModulePage({ params }: Props) {
         <div className="card p-4 mt-6">
           <ClientModuleRenderer slug={slug} />
         </div>
-        {/* Sponsored section provided globally in layout */}
+        {content && (
+          <ToolContent
+            content={content}
+            toolTitle={mod.title}
+            guidePath={`/how-to/${slug}`}
+          />
+        )}
       </main>
     </>
   );
