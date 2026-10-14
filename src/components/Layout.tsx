@@ -243,6 +243,11 @@ export default function Layout({ children }: LayoutProps) {
               <Link href="/how-to" className="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all duration-200">
                 📚 How To
               </Link>
+
+              {/* Blog Link */}
+              <Link href="/blog" className="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all duration-200">
+                📝 Blog
+              </Link>
             </nav>
 
             {/* Right side actions */}
@@ -419,6 +424,7 @@ export default function Layout({ children }: LayoutProps) {
                 <li><Link href="/" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Home</Link></li>
                 <li><Link href="/modules" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">All Tools</Link></li>
                 <li><Link href="/how-to" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">How To Guides</Link></li>
+                <li><Link href="/blog" className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">Blog</Link></li>
               </ul>
             </div>
             <div>

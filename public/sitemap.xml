@@ -783,4 +783,26 @@
     <priority>0.4</priority>
   </url>
 
+  <!-- Blog -->
+  <url>
+    <loc>https://freetoolbox.app/blog</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://freetoolbox.app/blog/how-to-compress-pdf-without-losing-quality</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://freetoolbox.app/blog/social-media-image-sizes-2026</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
 </urlset>
