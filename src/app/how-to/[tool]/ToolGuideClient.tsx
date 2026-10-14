@@ -111,7 +111,7 @@ const toolGuides: Record<string, {
       'Test different quality settings to balance file size vs. visual quality',
       'Use the preview feature to verify your trim before final processing',
     ],
-    relatedTools: ['gif-maker', 'video-speed-changer', 'audio-stripper'],
+    relatedTools: ['gif-maker', 'speed-changer', 'audio-stripper'],
   },
   'gif-maker': {
     title: 'How to Create GIFs from Videos',
@@ -208,7 +208,7 @@ const toolGuides: Record<string, {
       'Trim clips before joining to remove unwanted footage',
       'Test with a few clips first to understand processing times',
     ],
-    relatedTools: ['video-trimmer', 'video-speed-changer', 'gif-maker'],
+    relatedTools: ['video-trimmer', 'speed-changer', 'gif-maker'],
   },
   'speed-pitch-adjuster': {
     title: 'How to Change Video Speed & Pitch',
@@ -1919,7 +1919,7 @@ const toolGuides: Record<string, {
       'Include a call-to-action or border around your QR codes for better visibility',
       'Regular QR codes work better than colored ones for universal compatibility',
     ],
-    relatedTools: ['image-ocr-extractor', 'barcode-generator', 'image-format-converter'],
+    relatedTools: ['image-ocr-extractor', 'custom-card-maker', 'image-format-converter'],
   },
 
   'image-mood-analyzer': {
@@ -2014,7 +2014,7 @@ const toolGuides: Record<string, {
       'Test with multiple color blindness types as they vary widely',
       'Use colorblind-friendly color palettes in your designs',
     ],
-    relatedTools: ['color-palette-extractor', 'image-histogram-viewer', 'contrast-checker'],
+    relatedTools: ['color-palette-extractor', 'image-histogram-viewer', 'image-mood-analyzer'],
   },
 
   'image-histogram-viewer': {
@@ -2068,7 +2068,7 @@ const toolGuides: Record<string, {
       'RGB channels should be roughly balanced for natural-looking images',
       'Use histograms to optimize exposure before editing',
     ],
-    relatedTools: ['color-palette-extractor', 'image-upscaler', 'contrast-analyzer'],
+    relatedTools: ['color-palette-extractor', 'image-upscaler', 'color-blindness-simulator'],
   },
 
   'meme-generator': {
@@ -2129,7 +2129,7 @@ const toolGuides: Record<string, {
       'Consider current trends and cultural relevance',
       'Quality images work better than low-resolution ones',
     ],
-    relatedTools: ['custom-card-maker', 'image-to-cartoon', 'background-changer'],
+    relatedTools: ['custom-card-maker', 'image-to-cartoon', 'image-background-changer'],
   },
 
   'image-grid-maker': {
@@ -2189,7 +2189,7 @@ const toolGuides: Record<string, {
       'Grid layouts work well for portfolios, product showcases, and event photos',
       'Consider color coordination between adjacent images',
     ],
-    relatedTools: ['image-resizer', 'image-format-converter', 'background-remover'],
+    relatedTools: ['image-resizer', 'image-format-converter', 'image-background-changer'],
   },
 
   'image-size-predictor': {
@@ -2248,7 +2248,7 @@ const toolGuides: Record<string, {
       'Test different settings to find the best quality/size balance',
       'Always compare visual quality when optimizing file sizes',
     ],
-    relatedTools: ['image-compressor', 'image-resizer', 'image-format-converter'],
+    relatedTools: ['image-upscaler', 'image-resizer', 'image-format-converter'],
   },
 
   'infographic-creator': {
@@ -2365,7 +2365,7 @@ const toolGuides: Record<string, {
       'Consider lens correction in camera settings when possible',
       'Practice on test shots to understand the correction limits',
     ],
-    relatedTools: ['image-resizer', 'image-upscaler', 'contrast-enhancer'],
+    relatedTools: ['image-resizer', 'image-upscaler', 'image-histogram-viewer'],
   },
 
   'panorama-stitcher': {

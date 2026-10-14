@@ -99,7 +99,7 @@ export default function Layout({ children }: LayoutProps) {
       featured: [
         { name: 'Background Remover', href: '/modules/image-background-changer', icon: '🎨' },
         { name: 'Resize Image', href: '/modules/image-resizer', icon: '📐' },
-        { name: 'Compress Image', href: '/modules/image-compressor', icon: '🗜️' },
+        { name: 'Image Converter', href: '/modules/image-format-converter', icon: '🔄' },
         { name: 'Remove Watermark', href: '/modules/watermark-remover', icon: '🚫' },
       ],
       other: [
@@ -149,10 +149,9 @@ export default function Layout({ children }: LayoutProps) {
       featured: [
         { name: 'PDF Compressor', href: '/pdf/pdf-compressor', icon: '🗜️' },
         { name: 'PDF Merger', href: '/pdf/pdf-merger', icon: '🔗' },
-        { name: 'PDF Editor', href: '/pdf/pdf-editor', icon: '✏️' },
+        { name: 'PDF Splitter', href: '/pdf/pdf-splitter', icon: '✂️' },
       ],
       other: [
-        { name: 'PDF Splitter', href: '/pdf/pdf-splitter', icon: '✂️' },
         { name: 'Text to PDF', href: '/pdf/text-to-pdf', icon: '📄' },
         { name: 'PDF Password', href: '/pdf/pdf-password', icon: '🔒' },
         { name: 'PDF Form Filler', href: '/pdf/pdf-form-filler', icon: '📝' },
